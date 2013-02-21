@@ -1,3 +1,5 @@
+// $Id$
+//
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
@@ -101,21 +103,6 @@ const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence& myCS)
 }
 
 
-
-/*/// NjettinessInfo stores potentially relevant info found by the Njettiness jet finding algorithm
-class NjettinessInfo : public fastjet::PseudoJet::UserInfoBase {
-   private:
-      double _subTau;
-      double _totalTau;
-      fastjet::PseudoJet _axis;
-   public:
-      NjettinessInfo(const double subTau, const double totalTau, const fastjet::PseudoJet & axis) : _subTau(subTau), _totalTau(totalTau), _axis(axis) {}
-      double subTau() const { return _subTau;}
-      double totalTau() const { return _totalTau;}
-      fastjet::PseudoJet axis() const { return _axis;}
-}; // set the info*/
-
-
 /// The Njettiness jet algorithm
 /**
  * An exclusive jet finder that identifies N jets; first N axes are found, then
@@ -196,10 +183,7 @@ inline void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
          int merge_j = indices.back(); indices.pop_back();
          int newIndex;
          double fakeDij = -1.0;
-         
-         // Store explicit combination, adding current Axis Information
-//         fastjet::PseudoJet combination = cs.jets()[merge_i] + cs.jets()[merge_j];
-//         cs.plugin_record_ij_recombination(merge_i, merge_j, fakeDij, combination, newIndex);
+      
          cs.plugin_record_ij_recombination(merge_i, merge_j, fakeDij, newIndex);
 
          indices.push_back(newIndex);

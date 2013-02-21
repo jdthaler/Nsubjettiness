@@ -33,6 +33,7 @@
 #include <string>
 
 #include "fastjet/PseudoJet.hh"
+#include "fastjet/ClusterSequenceArea.hh"
 #include <sstream>
 #include "Nsubjettiness.hh" // In external code, this should be fastjet/contrib/Nsubjettiness.hh
 #include "Njettiness.hh"
@@ -44,13 +45,45 @@ using namespace fastjet::contrib;
 
 // forward declaration to make things clearer
 void read_event(vector<PseudoJet> &event);
+void PrintJets(const vector <PseudoJet>& jets);
+void analyze(const vector<PseudoJet> & input_particles);
 
-////////
-//
-//  Helper function for output 
-//
-///////
+//----------------------------------------------------------------------
+int main(){
 
+  //----------------------------------------------------------
+  // read in input particles
+  vector<PseudoJet> event;
+  read_event(event);
+  cout << "# read an event with " << event.size() << " particles" << endl;
+
+  //----------------------------------------------------------
+  // illustrate how Nsubjettiness contrib works
+
+  analyze(event);
+
+  return 0;
+}
+
+// read in input particles
+void read_event(vector<PseudoJet> &event){  
+  string line;
+  while (getline(cin, line)) {
+    istringstream linestream(line);
+    // take substrings to avoid problems when there are extra "pollution"
+    // characters (e.g. line-feed).
+    if (line.substr(0,4) == "#END") {return;}
+    if (line.substr(0,1) == "#") {continue;}
+    double px,py,pz,E;
+    linestream >> px >> py >> pz >> E;
+    PseudoJet particle(px,py,pz,E);
+
+    // push event onto back of full_event vector
+    event.push_back(particle);
+  }
+}
+
+/// Helper function for output 
 void PrintJets(const vector <PseudoJet>& jets) {
 
    if (jets.size() == 0) return;
@@ -70,7 +103,7 @@ void PrintJets(const vector <PseudoJet>& jets) {
             printf("%5u %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]),(jets[i].has_area() ? jets[i].area() : 0.0 ));
             total += jets[i];
          }   
-         printf("%5s %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau(),total.area());
+         printf("%5s %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau(),(total.has_area() ? total.area() : 0.0 ));
       }
    } else {
       if (extras == NULL) {
@@ -92,8 +125,13 @@ void PrintJets(const vector <PseudoJet>& jets) {
 
 }
 
+////////
+//
+//  Main Routine for Analysis 
+//
+///////
 
-void analyze(const vector<PseudoJet> & input_particles, int i_event, int n_event) {
+void analyze(const vector<PseudoJet> & input_particles) {
 
    /////// N-subjettiness /////////////////////////////
    
@@ -115,6 +153,7 @@ void analyze(const vector<PseudoJet> & input_particles, int i_event, int n_event
          
          //
          // If you don't want subjets, you can use the simple functor Nsubjettiness:
+         // Recommended usage is Njettiness::onepass_kt_axes mode.
          //
 
          // 1-subjettiness
@@ -143,9 +182,9 @@ void analyze(const vector<PseudoJet> & input_particles, int i_event, int n_event
 
          //
          // Or, if you want subjets, use the FastJet plugin on a jet's constituents
+         // Recommended usage is Njettiness::onepass_kt_axes mode.
          //
          
-
          JetDefinition nsub_jetDef1(new NjettinessPlugin(1, Njettiness::kt_axes, 1.0, 1.0, 1.0));
          ClusterSequence nsub_seq1(antikt_jets[j].constituents(), nsub_jetDef1);
          vector<PseudoJet> kt1jets = nsub_seq1.inclusive_jets();
@@ -158,9 +197,17 @@ void analyze(const vector<PseudoJet> & input_particles, int i_event, int n_event
          ClusterSequence nsub_seq3(antikt_jets[j].constituents(), nsub_jetDef3);
          vector<PseudoJet> kt3jets = nsub_seq3.inclusive_jets();
         
-//         JetDefinition nsubMin_jetDef(new NjettinessPlugin(3, Njettiness::min_axes, 1.0, 1.0, 1.0));
-//         ClusterSequence nsubMin_seq(antikt_jets[j].constituents(), nsubMin_jetDef);
-//         vector<PseudoJet> min3jets = nsubMin_seq.inclusive_jets();
+         JetDefinition nsubMin_jetDef1(new NjettinessPlugin(1, Njettiness::min_axes, 1.0, 1.0, 1.0));
+         ClusterSequence nsubMin_seq1(antikt_jets[j].constituents(), nsubMin_jetDef1);
+         vector<PseudoJet> min1jets = nsubMin_seq1.inclusive_jets();
+         
+         JetDefinition nsubMin_jetDef2(new NjettinessPlugin(2, Njettiness::min_axes, 1.0, 1.0, 1.0));
+         ClusterSequence nsubMin_seq2(antikt_jets[j].constituents(), nsubMin_jetDef2);
+         vector<PseudoJet> min2jets = nsubMin_seq2.inclusive_jets();
+
+         JetDefinition nsubMin_jetDef3(new NjettinessPlugin(3, Njettiness::min_axes, 1.0, 1.0, 1.0));
+         ClusterSequence nsubMin_seq3(antikt_jets[j].constituents(), nsubMin_jetDef3);
+         vector<PseudoJet> min3jets = nsubMin_seq3.inclusive_jets();
 
          JetDefinition nsubOnePass_jetDef1(new NjettinessPlugin(1, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0));
          ClusterSequence nsubOnePass_seq1(antikt_jets[j].constituents(), nsubOnePass_jetDef1);
@@ -173,115 +220,95 @@ void analyze(const vector<PseudoJet> & input_particles, int i_event, int n_event
          JetDefinition nsubOnePass_jetDef3(new NjettinessPlugin(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0));
          ClusterSequence nsubOnePass_seq3(antikt_jets[j].constituents(), nsubOnePass_jetDef3);
          vector<PseudoJet> onepass3jets = nsubOnePass_seq3.inclusive_jets();
-        
-         // etc...
-         
-         // Print data to screen
-         if (true) {
-            printf("-------------------------------------------------------------------------------------"); printf("\n");
-            printf("-------------------------------------------------------------------------------------"); printf("\n");
-            cout << "Beta = " << beta << endl;
-            cout << "kT Axes:" << endl;
-            PrintJets(kt1jets);
-            PrintJets(kt2jets);
-            PrintJets(kt3jets);
-//            cout << "Minimization Axes:" << endl;
-//            PrintJets(min1jets);
-//            PrintJets(min2jets);
-//            PrintJets(min3jets);
-            cout << "One Pass Minimization Axes from kT" << endl;
-            PrintJets(onepass1jets);
-            PrintJets(onepass2jets);
-            PrintJets(onepass3jets);            
-            printf("-------------------------------------------------------------------------------------"); printf("\n");
-            cout << "Beta = " << beta << endl;
-            cout << "     kT: " << "tau1: " << tau1 << "  tau2: " << tau2 << "  tau3: " << tau3 << "  tau2/tau1: " << tau2/tau1 << "  tau3/tau2: " << tau3/tau2 << endl;
-            cout << "    Min: " << "tau1: " << tau1min << "  tau2: " << tau2min << "  tau3: " << tau3min << "  tau2/tau1: " << tau2min/tau1min << "  tau3/tau2: " << tau3min/tau2min << endl;
-            cout << "OnePass: " << "tau1: " << tau1onepass << "  tau2: " << tau2onepass << "  tau3: " << tau3onepass << "  tau2/tau1: " << tau2onepass/tau1onepass << "  tau3/tau2: " << tau3onepass/tau2onepass << endl;
-            cout << endl;
-            printf("-------------------------------------------------------------------------------------"); printf("\n");
-            printf("-------------------------------------------------------------------------------------"); printf("\n");
-            
-         }
+                 
+         printf("-------------------------------------------------------------------------------------"); printf("\n");
+         printf("-------------------------------------------------------------------------------------"); printf("\n");
+         cout << "Beta = " << beta << endl;
+         cout << "kT Axes:" << endl;
+         PrintJets(kt1jets);
+         PrintJets(kt2jets);
+         PrintJets(kt3jets);
+         cout << "Multi-Pass Minimization Axes:" << endl;
+         PrintJets(min1jets);
+         PrintJets(min2jets);
+         PrintJets(min3jets);
+         cout << "One Pass Minimization Axes from kT" << endl;
+         PrintJets(onepass1jets);
+         PrintJets(onepass2jets);
+         PrintJets(onepass3jets);            
+         printf("-------------------------------------------------------------------------------------"); printf("\n");
+         cout << "Beta = " << beta << endl;
+         cout << "     kT: " << "tau1: " << tau1 << "  tau2: " << tau2 << "  tau3: " << tau3 << "  tau2/tau1: " << tau2/tau1 << "  tau3/tau2: " << tau3/tau2 << endl;
+         cout << "    Min: " << "tau1: " << tau1min << "  tau2: " << tau2min << "  tau3: " << tau3min << "  tau2/tau1: " << tau2min/tau1min << "  tau3/tau2: " << tau3min/tau2min << endl;
+         cout << "OnePass: " << "tau1: " << tau1onepass << "  tau2: " << tau2onepass << "  tau3: " << tau3onepass << "  tau2/tau1: " << tau2onepass/tau1onepass << "  tau3/tau2: " << tau3onepass/tau2onepass << endl;
+         cout << endl;
+         printf("-------------------------------------------------------------------------------------"); printf("\n");
+         printf("-------------------------------------------------------------------------------------"); printf("\n");
       }
    }
    
    
    ////////// N-jettiness as a jet algorithm ///////////////////////////
 
-   // WARNING:  This is extremely preliminary
+   // WARNING:  This is extremely preliminary.  You should not use for
+   //   physics studies without contacting the authors.
    // You can also find jets with Njettiness:
-   
-//   double ghost_maxrap = 5.0; // e.g. if particles go up to y=5
-//   AreaDefinition area_def(active_area_explicit_ghosts, GhostedAreaSpec(ghost_maxrap));
    
    NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
    JetDefinition njet_jetDef(&njet_plugin);
-//   ClusterSequenceArea njet_seq(input_particles, njet_jetDef,area_def);
    ClusterSequence njet_seq(input_particles, njet_jetDef);
    vector<PseudoJet> njet_jets = njet_seq.inclusive_jets();
 
    NjettinessPlugin geo_plugin(3, NsubGeometricParameters(1.0));
    JetDefinition geo_jetDef(&geo_plugin);
-//   ClusterSequenceArea geo_seq(input_particles, geo_jetDef,area_def);
    ClusterSequence geo_seq(input_particles, geo_jetDef);
    vector<PseudoJet> geo_jets = geo_seq.inclusive_jets();
       
    // The axes might point in a different direction than the jets
    // Using the NjettinessExtras pointer (ClusterSequence::Extras) to access that information
    vector<PseudoJet> njet_axes;
-//   const NjettinessExtras * extras = njettiness_extras(njet_jets[0]);
    const NjettinessExtras * extras = njettiness_extras(njet_seq);
    if (extras != NULL) {
       njet_axes = extras->axes();
    }
    
-   if (false) {
-      printf("-------------------------------------------------------------------------------------"); printf("\n");
-      cout << "Event-wide Jets from One-Pass Minimization (beta = 1.0)" << endl;
-      PrintJets(njet_jets);
-      cout << "Event-wide Axis Location for Above Jets" << endl;
-      PrintJets(njet_axes);
-      cout << "Event-wide Jets from Geometric Measure" << endl;
-      PrintJets(geo_jets);
-      printf("-------------------------------------------------------------------------------------"); printf("\n");
+   printf("-------------------------------------------------------------------------------------"); printf("\n");
+   cout << "Event-wide Jets from One-Pass Minimization (beta = 1.0)" << endl;
+   PrintJets(njet_jets);
+   cout << "Event-wide Axis Location for Above Jets" << endl;
+   PrintJets(njet_axes);
+   cout << "Event-wide Jets from Geometric Measure" << endl;
+   PrintJets(geo_jets);
+   printf("-------------------------------------------------------------------------------------"); printf("\n");
+
+   // You can also find jet areas using this method (quite slow, though)
+
+   double ghost_maxrap = 5.0; // e.g. if particles go up to y=5
+   AreaDefinition area_def(active_area_explicit_ghosts, GhostedAreaSpec(ghost_maxrap));
+   
+   ClusterSequenceArea njet_seq_area(input_particles, njet_jetDef,area_def);
+   vector<PseudoJet> njet_jets_area = njet_seq_area.inclusive_jets();
+
+   ClusterSequenceArea geo_seq_area(input_particles, geo_jetDef,area_def);
+   vector<PseudoJet> geo_jets_area = geo_seq_area.inclusive_jets();
+      
+   // The axes might point in a different direction than the jets
+   // Using the NjettinessExtras pointer (ClusterSequence::Extras) to access that information
+   vector<PseudoJet> njet_axes_area;
+   const NjettinessExtras * extras_area = njettiness_extras(njet_seq_area);
+   if (extras_area != NULL) {
+      njet_axes_area = extras_area->axes();
    }
+   
+   printf("-------------------------------------------------------------------------------------"); printf("\n");
+   cout << "Event-wide Jets from One-Pass Minimization (beta = 1.0) (with area information)" << endl;
+   PrintJets(njet_jets_area);
+   cout << "Event-wide Axis Location for Above Jets (with area information)" << endl;
+   PrintJets(njet_axes_area);
+   cout << "Event-wide Jets from Geometric Measure (with area information)" << endl;
+   PrintJets(geo_jets_area);
+   printf("-------------------------------------------------------------------------------------"); printf("\n");
+
 }
 
 
-
-
-//----------------------------------------------------------------------
-int main(){
-
-  //----------------------------------------------------------
-  // read in input particles
-  vector<PseudoJet> event;
-  read_event(event);
-  cout << "# read an event with " << event.size() << " particles" << endl;
-
-  //----------------------------------------------------------
-  // illustrate how this Nsubjettiness contrib works
-
-  analyze(event,0,0);
-
-  return 0;
-}
-
-// read in input particles
-void read_event(vector<PseudoJet> &event){  
-  string line;
-  while (getline(cin, line)) {
-    istringstream linestream(line);
-    // take substrings to avoid problems when there are extra "pollution"
-    // characters (e.g. line-feed).
-    if (line.substr(0,4) == "#END") {return;}
-    if (line.substr(0,1) == "#") {continue;}
-    double px,py,pz,E;
-    linestream >> px >> py >> pz >> E;
-    PseudoJet particle(px,py,pz,E);
-
-    // push event onto back of full_event vector
-    event.push_back(particle);
-  }
-}
