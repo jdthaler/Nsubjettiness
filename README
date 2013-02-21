@@ -1,0 +1,108 @@
+The Nsubjettiness package includes three different ways to access Nsubjettiness variables as described in:
+
+   Identifying Boosted Objects with N-subjettiness.
+   Jesse Thaler and Ken Van Tilburg.
+   JHEP 1103:015 (2011), arXiv:1011.2268.
+
+   Maximizing Boosted Top Identification by Minimizing N-subjettiness. 
+   Jesse Thaler and Ken Van Tilburg. 
+   JHEP 1202:093 (2012), arXiv:1108.2701.
+
+(JDT-- This is the readme from the version prior to FastJet contrib, and must be updated.)
+
+Files included:
+   README:  This file
+   Njettiness.hh:  Core code for N-(sub)jettiness minimization
+   NjettinessPlugin.hh:  A FastJet plugin for finding jets by minimizing N-jettiness
+   Nsubjettiness.hh:  A simple FunctionOfPseudoJet<float> interface to measure N-subjettiness
+   example.cc:  Example program
+   FJexample.cc:  Example program for FastJet tools
+   Makefile:  Basic makefile to compile example program
+   ttbar_sample.UW:  100 sample ttbar events in UW format for example program
+
+Example Program:
+
+   The example program assumes that you have FastJet 2.4.3 installed.
+   You can run the sample program (100 is the number of events to parse):
+
+   make example
+   ./example ttbar_sample.UW outfile.dat 100
+
+FastJet example program:
+
+   Works similarly, using new FastJet plugin for jet finding and Nsubjettiness
+   class for jet shape measurement.  FastJet 3 is required.
+
+   make FJexample
+   ./FJexample ttbar_sample.UW 100
+
+
+Njettiness plugin:
+
+The Njettiness FastJet plugin represents an exclusive jet finder (fixed N).
+The algorithm finds N axes, and jets are simply the sum of particles closest
+to a given axis.  Axes can be found by minimizing the event shape Njettiness,
+exclusive kT, or one-pass minimization from kT seeds, which is much cheaper
+than full minimization and nearly as effective.  See FJexample.cc for
+examples of how to use the plugin.
+
+The plugin does not yet provide any access to the value of Njettiness for the
+event or individual jets; this should be added soon.
+
+Nsubjettiness function:
+
+The Nsubjettiness class is essentially a simple wrapper that implements the
+fastjet::FunctionOfPseudoJet<float> interface for ease of plugging in to other
+analyses.  Since Nsubjettiness operates the same way as Njettiness, just on
+constituents instead of all particles in an event, the Nsubjettiness
+constructor is identical to the one for the plugin (other than the name).  See
+FJexample.cc for examples of use.
+
+
+Core Njettiness Class (most users shouldn't need to pry this deep):
+
+   The basic functionality is given by:
+
+   NsubParameters paraNsub(beta, R0, Rcutoff);
+   // beta = 1 for jet broadening, beta = 2 for thrust
+   // R0 = normalization jet radius
+   // Rcutoff = jet radius cutoff if doing jet finding through minimization
+   
+   Njettiness nSub(axesMode,paraNsub);
+   // axesMode is nsub_kt_axes, nsub_min_axes (100 iterations), nsub_1pass_from_kt_axes, etc..
+   
+   // get constituents of jet
+   vector<PseudoJet> jet_constituents = clust_seq.constituents(some jet);  
+
+   // get tau values
+   double tauN = nSub.getTau(N,jet_constituents);
+
+   // get axes used (if desired)
+   vector<fastjet::PseudoJet> axes = nSub.currentAxes();
+
+While the code is rather slow in nsub_min_axes mode, for most cases, running with nsub_1pass_from_kt_axes gives reasonable (though not optimal) results (and the results are IR safe).  Also, beta = 1.1 is faster than beta = 1.
+
+----
+
+
+ChangeLog (prior to transitioning to FastJet contrib)
+
+-- 0.5.1:  For Njettiness Plugin, added access to currentTau values and axes via
+           ClusterSequence::Extras class.  (thanks to Dinko Ferencek and John Paul Chou)
+-- 0.5.0:  Corrected fatal error in ConstituentTauValue (TauValue unaffected).
+           Started process of allowing for more general measures and alternative minimization schemes.
+           Extremely preliminary inclusion of alternative "geometric" measure.
+-- 0.4.1:  Corrected bug where a too-small value of Rcut would cause the minimization
+           procedure to fail (thanks Marat Freytsis, Brian Shuve)
+-- 0.4.0:  Adding Nsubjettiness FunctionOfPseudoJet<float>.  Re-organizing file
+           structure and doing some re-naming to clarify Njettiness vs.
+           Nsubjettiness.  Some speedup in UpdateAxes code. (CKV)
+-- 0.3.2:  Returns zero instead of a segmentation fault when the number of particles
+           in a jet is smaller than the N value in tau_N (thanks Grigory Ovanesyan)
+-- 0.3.2:  Fixed -Wshadow errors (thanks Grigory Ovanesyan)
+-- 0.3.1:  Fixed stray comma/semicolon compiler error (thanks Grigory Ovanesyan)
+-- 0.3.1:  Corrected tarbomb issue (thanks Jonathan Walsh)
+-- 0.3.1:  Added anti-kT seeds as option
+-- 0.3.1:  Fixed bug in minimization code with R_cutoff (thanks Chris Vermilion)
+-- 0.3.1:  Added getPartition() and getJets() functions as helper functions for
+           Chris Vermilion. (JT)
