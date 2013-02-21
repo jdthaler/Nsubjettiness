@@ -1,5 +1,3 @@
-// $Id$
-//
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
@@ -31,8 +29,8 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-// This is blank, since all of the information is in the header files.
-
+// This file is blank, since all of the code is contained in the header files.
+// TODO:  Allow for a fastjet contrib without a .cc file
 
 } // namespace contrib
 

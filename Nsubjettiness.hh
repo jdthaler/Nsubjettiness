@@ -1,6 +1,4 @@
-// $Id$
-//
-//  Nsubjettiness Package
+// Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
 //  Copyright (c) 2011-13

@@ -1,5 +1,3 @@
-// $Id$
-//
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
@@ -44,7 +42,6 @@ namespace contrib {
 //
 ///////
 
-
 inline double sq(double x) {return x*x;}
 
 // Parameters that define Njettiness
@@ -71,8 +68,6 @@ public:
    NsubGeometricParameters(const double myRcutoff=10000.0) : _Rcutoff(myRcutoff) {}
    double Rcutoff() const {return _Rcutoff;}
 };
-
-
 
 
 // Parameters that change minimization procedure.
@@ -383,8 +378,6 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
             
             double tempTau = _functor->tau(particles,newAxes);
 
-//            std::cout << seedTau << " " << tempTau << " " << fabs(tempTau - seedTau) << " " << _accuracy << " " << (fabs(tempTau - seedTau) < _accuracy) << true << std::endl; 
-
             if (fabs(tempTau - seedTau) < _accuracy) break;
             seedTau = tempTau;
          }
@@ -693,7 +686,6 @@ public:
    
    // setAxes for Manual mode
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
-//      assert((_axes == manual_axes) || (_axes == onepass_manual_axes));
       _currentAxes = myAxes;
    }
    
