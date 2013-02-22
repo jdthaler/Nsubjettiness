@@ -101,9 +101,10 @@ class MeasureFunctor {
 
    protected:
       MeasureFunctor() {}
-      virtual ~MeasureFunctor(){}
 
    public:
+      virtual ~MeasureFunctor(){}
+
       virtual bool doCluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
       virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
       virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
@@ -230,9 +231,10 @@ class AxesFinder {
 
    protected:
       AxesFinder() {}
-      virtual ~AxesFinder(){}
       
    public:
+      virtual ~AxesFinder(){}
+
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) = 0;
       
 };
@@ -322,7 +324,10 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
          _functor = new DefaultMeasure(paraNsub);
       }
       
-      ~AxesFinderFromKmeansMinimization() { delete _functor;}
+      ~AxesFinderFromKmeansMinimization() {
+         delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
+         delete _functor;
+      }
       
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
          std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputs, currentAxes);
@@ -754,6 +759,9 @@ Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
 Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 
    _functor = new DefaultMeasure(paraNsub);  //Is there a way to do this without pointers?
+
+   // memory management note, AxesFinderFromKmeansMinimization is responsible for deleting its subpointer.
+   // TODO: convert to smart pointers
 
    switch (axes) {
       case kt_axes:
