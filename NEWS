@@ -1,5 +1,5 @@
-Version 1.0.0:
-   New release using FastJet contrib framework.  This includes a new makefile and a simplified example program.
+-- 1.0.1: Fixed memory leak in Njettiness.hh (Thanks FJ authors)
+-- 1.0.0: New release using FastJet contrib framework.  This includes a new makefile and a simplified example program.
 
 Previous versions available from:
    http://jthaler.net/jets/Njettiness-0.5.1.tar.gz (Experimental Version)
