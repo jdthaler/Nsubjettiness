@@ -91,35 +91,35 @@ void PrintJets(const vector <PseudoJet>& jets) {
 
    if (jets[0].has_area()) {
       if (extras == NULL) {
-         printf("%5s %15s %15s %15s %15s %15s %15s\n","jet #", "rapidity", "phi", "pt","m","e","area"); // label the columns
+         printf("%5s %10s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e","area"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),(jets[i].has_area() ? jets[i].area() : 0.0 ));
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),(jets[i].has_area() ? jets[i].area() : 0.0 ));
          }
       }
       else {
          fastjet::PseudoJet total(0,0,0,0);
-         printf("%5s %15s %15s %15s %15s %15s %15s %15s\n","jet #", "rapidity", "phi", "pt","m","e","subTau","area"); // label the columns
+         printf("%5s %10s %10s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e","subTau","area"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]),(jets[i].has_area() ? jets[i].area() : 0.0 ));
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]),(jets[i].has_area() ? jets[i].area() : 0.0 ));
             total += jets[i];
          }   
-         printf("%5s %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau(),(total.has_area() ? total.area() : 0.0 ));
+         printf("%5s %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f %10.3f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau(),(total.has_area() ? total.area() : 0.0 ));
       }
    } else {
       if (extras == NULL) {
-         printf("%5s %15s %15s %15s %15s %15s\n","jet #", "rapidity", "phi", "pt","m","e"); // label the columns
+         printf("%5s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %15.8f %15.8f %15.8f %15.8f %15.8f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e());
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e());
          }
       }
       else {
          fastjet::PseudoJet total(0,0,0,0);
-         printf("%5s %15s %15s %15s %15s %15s %15s\n","jet #", "rapidity", "phi", "pt","m","e","subTau"); // label the columns
+         printf("%5s %10s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e","subTau"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]));
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]));
             total += jets[i];
          }   
-         printf("%5s %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau());
+         printf("%5s %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau());
       }
    }
 
@@ -237,7 +237,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          PrintJets(onepass2jets);
          PrintJets(onepass3jets);            
          printf("-------------------------------------------------------------------------------------"); printf("\n");
-         cout << "Beta = " << beta << endl;
+         cout << "Beta = " << beta << setprecision(6) << endl;
          cout << "     kT: " << "tau1: " << tau1 << "  tau2: " << tau2 << "  tau3: " << tau3 << "  tau2/tau1: " << tau2/tau1 << "  tau3/tau2: " << tau3/tau2 << endl;
          cout << "    Min: " << "tau1: " << tau1min << "  tau2: " << tau2min << "  tau3: " << tau3min << "  tau2/tau1: " << tau2min/tau1min << "  tau3/tau2: " << tau3min/tau2min << endl;
          cout << "OnePass: " << "tau1: " << tau1onepass << "  tau2: " << tau2onepass << "  tau3: " << tau3onepass << "  tau2/tau1: " << tau2onepass/tau1onepass << "  tau3/tau2: " << tau3onepass/tau2onepass << endl;
