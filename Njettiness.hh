@@ -101,6 +101,7 @@ class MeasureFunctor {
 
    protected:
       MeasureFunctor() {}
+      virtual ~MeasureFunctor(){}
 
    public:
       virtual bool doCluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
@@ -229,6 +230,7 @@ class AxesFinder {
 
    protected:
       AxesFinder() {}
+      virtual ~AxesFinder(){}
       
    public:
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) = 0;
