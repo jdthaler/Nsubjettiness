@@ -155,28 +155,36 @@ void analyze(const vector<PseudoJet> & input_particles) {
          // If you don't want subjets, you can use the simple functor Nsubjettiness:
          // Recommended usage is Njettiness::onepass_kt_axes mode.
          //
+         
+         //
+         // Note:  all instances of axes mode Njettiness::min_axes have been 
+         // commented out.  This method is not guarenteed to give a global
+         // minimum, only a local minimum, and different choices of the random
+         // number seed can give different results.  For that reason,
+         // Njettiness::onepass_kt_axes is the recommended usage.
+         //
 
          // 1-subjettiness
          Nsubjettiness nSub1KT(1, Njettiness::kt_axes, beta, R0, Rcut);
          double tau1 = nSub1KT(antikt_jets[j]);
-         Nsubjettiness nSub1Min(1, Njettiness::min_axes, beta, R0, Rcut);
-         double tau1min = nSub1Min(antikt_jets[j]);
+         //Nsubjettiness nSub1Min(1, Njettiness::min_axes, beta, R0, Rcut);
+         //double tau1min = nSub1Min(antikt_jets[j]);
          Nsubjettiness nSub1OnePass(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
          double tau1onepass = nSub1OnePass(antikt_jets[j]);
 
          // 2-subjettiness
          Nsubjettiness nSub2KT(2, Njettiness::kt_axes, beta, R0, Rcut);
          double tau2 = nSub2KT(antikt_jets[j]);
-         Nsubjettiness nSub2Min(2, Njettiness::min_axes, beta, R0, Rcut);
-         double tau2min = nSub2Min(antikt_jets[j]);
+         //Nsubjettiness nSub2Min(2, Njettiness::min_axes, beta, R0, Rcut);
+         //double tau2min = nSub2Min(antikt_jets[j]);
          Nsubjettiness nSub2OnePass(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
          double tau2onepass = nSub2OnePass(antikt_jets[j]);
 
          // 3-subjettiness
          Nsubjettiness nSub3KT(3, Njettiness::kt_axes, beta, R0, Rcut);
          double tau3 = nSub3KT(antikt_jets[j]);
-         Nsubjettiness nSub3Min(3, Njettiness::min_axes, beta, R0, Rcut);
-         double tau3min = nSub3Min(antikt_jets[j]);
+         //Nsubjettiness nSub3Min(3, Njettiness::min_axes, beta, R0, Rcut);
+         //double tau3min = nSub3Min(antikt_jets[j]);
          Nsubjettiness nSub3OnePass(3, Njettiness::onepass_kt_axes, beta, R0, Rcut);
          double tau3onepass = nSub3OnePass(antikt_jets[j]);
 
@@ -185,39 +193,49 @@ void analyze(const vector<PseudoJet> & input_particles) {
          // Recommended usage is Njettiness::onepass_kt_axes mode.
          //
          
-         JetDefinition nsub_jetDef1(new NjettinessPlugin(1, Njettiness::kt_axes, 1.0, 1.0, 1.0));
+         
+         NjettinessPlugin nsub_plugin1(1, Njettiness::kt_axes, 1.0, 1.0, 1.0);
+         JetDefinition nsub_jetDef1(&nsub_plugin1);
          ClusterSequence nsub_seq1(antikt_jets[j].constituents(), nsub_jetDef1);
          vector<PseudoJet> kt1jets = nsub_seq1.inclusive_jets();
          
-         JetDefinition nsub_jetDef2(new NjettinessPlugin(2, Njettiness::kt_axes, 1.0, 1.0, 1.0));
+         NjettinessPlugin nsub_plugin2(2, Njettiness::kt_axes, 1.0, 1.0, 1.0);
+         JetDefinition nsub_jetDef2(&nsub_plugin2);
          ClusterSequence nsub_seq2(antikt_jets[j].constituents(), nsub_jetDef2);
          vector<PseudoJet> kt2jets = nsub_seq2.inclusive_jets();
 
-         JetDefinition nsub_jetDef3(new NjettinessPlugin(3, Njettiness::kt_axes, 1.0, 1.0, 1.0));
+         NjettinessPlugin nsub_plugin3(3, Njettiness::kt_axes, 1.0, 1.0, 1.0);
+         JetDefinition nsub_jetDef3(&nsub_plugin3);
          ClusterSequence nsub_seq3(antikt_jets[j].constituents(), nsub_jetDef3);
          vector<PseudoJet> kt3jets = nsub_seq3.inclusive_jets();
         
-         JetDefinition nsubMin_jetDef1(new NjettinessPlugin(1, Njettiness::min_axes, 1.0, 1.0, 1.0));
-         ClusterSequence nsubMin_seq1(antikt_jets[j].constituents(), nsubMin_jetDef1);
-         vector<PseudoJet> min1jets = nsubMin_seq1.inclusive_jets();
+         //NjettinessPlugin nsubMin_plugin1(1, Njettiness::min_axes, 1.0, 1.0, 1.0);
+         //JetDefinition nsubMin_jetDef1(&nsubMin_plugin1);
+         //ClusterSequence nsubMin_seq1(antikt_jets[j].constituents(), nsubMin_jetDef1);
+         //vector<PseudoJet> min1jets = nsubMin_seq1.inclusive_jets();
          
-         JetDefinition nsubMin_jetDef2(new NjettinessPlugin(2, Njettiness::min_axes, 1.0, 1.0, 1.0));
-         ClusterSequence nsubMin_seq2(antikt_jets[j].constituents(), nsubMin_jetDef2);
-         vector<PseudoJet> min2jets = nsubMin_seq2.inclusive_jets();
+         //NjettinessPlugin nsubMin_plugin2(2, Njettiness::min_axes, 1.0, 1.0, 1.0);
+         //JetDefinition nsubMin_jetDef2(&nsubMin_plugin2);
+         //ClusterSequence nsubMin_seq2(antikt_jets[j].constituents(), nsubMin_jetDef2);
+         //vector<PseudoJet> min2jets = nsubMin_seq2.inclusive_jets();
 
-         JetDefinition nsubMin_jetDef3(new NjettinessPlugin(3, Njettiness::min_axes, 1.0, 1.0, 1.0));
-         ClusterSequence nsubMin_seq3(antikt_jets[j].constituents(), nsubMin_jetDef3);
-         vector<PseudoJet> min3jets = nsubMin_seq3.inclusive_jets();
+         //NjettinessPlugin nsubMin_plugin3(3, Njettiness::min_axes, 1.0, 1.0, 1.0);
+         //JetDefinition nsubMin_jetDef3(&nsubMin_plugin3);
+         //ClusterSequence nsubMin_seq3(antikt_jets[j].constituents(), nsubMin_jetDef3);
+         //vector<PseudoJet> min3jets = nsubMin_seq3.inclusive_jets();
 
-         JetDefinition nsubOnePass_jetDef1(new NjettinessPlugin(1, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0));
+         NjettinessPlugin nsubOnePass_plugin1(1, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
+         JetDefinition nsubOnePass_jetDef1(&nsubOnePass_plugin1);
          ClusterSequence nsubOnePass_seq1(antikt_jets[j].constituents(), nsubOnePass_jetDef1);
          vector<PseudoJet> onepass1jets = nsubOnePass_seq1.inclusive_jets();
 
-         JetDefinition nsubOnePass_jetDef2(new NjettinessPlugin(2, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0));
+         NjettinessPlugin nsubOnePass_plugin2(2, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
+         JetDefinition nsubOnePass_jetDef2(&nsubOnePass_plugin2);
          ClusterSequence nsubOnePass_seq2(antikt_jets[j].constituents(), nsubOnePass_jetDef2);
          vector<PseudoJet> onepass2jets = nsubOnePass_seq2.inclusive_jets();
          
-         JetDefinition nsubOnePass_jetDef3(new NjettinessPlugin(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0));
+         NjettinessPlugin nsubOnePass_plugin3(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
+         JetDefinition nsubOnePass_jetDef3(&nsubOnePass_plugin3);
          ClusterSequence nsubOnePass_seq3(antikt_jets[j].constituents(), nsubOnePass_jetDef3);
          vector<PseudoJet> onepass3jets = nsubOnePass_seq3.inclusive_jets();
                  
@@ -228,10 +246,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
          PrintJets(kt1jets);
          PrintJets(kt2jets);
          PrintJets(kt3jets);
-         cout << "Multi-Pass Minimization Axes:" << endl;
-         PrintJets(min1jets);
-         PrintJets(min2jets);
-         PrintJets(min3jets);
+         //cout << "Multi-Pass Minimization Axes:" << endl;
+         //PrintJets(min1jets);
+         //PrintJets(min2jets);
+         //PrintJets(min3jets);
          cout << "One Pass Minimization Axes from kT" << endl;
          PrintJets(onepass1jets);
          PrintJets(onepass2jets);
@@ -239,7 +257,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          printf("-------------------------------------------------------------------------------------"); printf("\n");
          cout << "Beta = " << beta << setprecision(6) << endl;
          cout << "     kT: " << "tau1: " << tau1 << "  tau2: " << tau2 << "  tau3: " << tau3 << "  tau2/tau1: " << tau2/tau1 << "  tau3/tau2: " << tau3/tau2 << endl;
-         cout << "    Min: " << "tau1: " << tau1min << "  tau2: " << tau2min << "  tau3: " << tau3min << "  tau2/tau1: " << tau2min/tau1min << "  tau3/tau2: " << tau3min/tau2min << endl;
+         //cout << "    Min: " << "tau1: " << tau1min << "  tau2: " << tau2min << "  tau3: " << tau3min << "  tau2/tau1: " << tau2min/tau1min << "  tau3/tau2: " << tau3min/tau2min << endl;
          cout << "OnePass: " << "tau1: " << tau1onepass << "  tau2: " << tau2onepass << "  tau3: " << tau3onepass << "  tau2/tau1: " << tau2onepass/tau1onepass << "  tau3/tau2: " << tau3onepass/tau2onepass << endl;
          cout << endl;
          printf("-------------------------------------------------------------------------------------"); printf("\n");
