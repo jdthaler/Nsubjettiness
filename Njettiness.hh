@@ -353,7 +353,10 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
          _functor = new GeometricMeasure(_Rcutoff);
       }
 
-      ~AxesFinderFromGeometricMinimization() { delete _functor;}
+      ~AxesFinderFromGeometricMinimization() {
+         delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
+         delete _functor;
+      }
       
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 

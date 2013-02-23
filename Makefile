@@ -38,7 +38,7 @@ install_SCRIPT  = $(install_script) -c
 # compilation of the code (default target)
 all: lib$(NAME).a
 
-lib$(NAME).a: $(OBJS) $(INSTALLED_HEADERS)
+lib$(NAME).a: $(OBJS)
 	ar cru lib$(NAME).a $(OBJS)
 	ranlib lib$(NAME).a
 
@@ -47,7 +47,7 @@ examples: $(EXAMPLES)
 
 # the following construct alloews to build each of the examples listed
 # in $EXAMPLES automatically
-$(EXAMPLES): % : %.o all $(INSTALLED_HEADERS)
+$(EXAMPLES): % : %.o all
 	$(CXX) -o $@ $< -L. -l$(NAME) $(LDFLAGS)
 
 # check that everything went fine
@@ -75,3 +75,7 @@ install: all
 
 depend:
 	makedepend -Y --   -- $(SRCS) $(EXAMPLES_SRCS)
+# DO NOT DELETE
+
+Nsubjettiness.o: Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh
+example.o: Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh
