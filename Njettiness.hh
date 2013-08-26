@@ -746,7 +746,7 @@ public:
 
 };
 
-void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
+inline void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
    //subTau values
    _currentTaus = _functor->subTaus(inputs, _currentAxes);
    
