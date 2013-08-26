@@ -1,3 +1,4 @@
+-- 1.0.3:  Added inlines to fix compile issue (thanks Matthew Low)
 -- 1.0.2:  Fixed potential dependency issue (thanks FJ authors)
 -- 1.0.1:  Fixed memory leak in Njettiness.hh (thanks FJ authors)
 -- 1.0.0:  New release using FastJet contrib framework.  This includes a new makefile and a simplified example program.

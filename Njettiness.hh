@@ -306,10 +306,9 @@ class AxesFinderFromUserInput : public AxesFinder {
 };
 
 /// Minimum Axes
-
-inline std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
-                                          NsubParameters paraNsub, MeasureFunctor* functor);
-                                          
+            
+class LightLikeAxis;                                          
+                                                                                                      
 class AxesFinderFromKmeansMinimization : public AxesFinder {
 
    private:
@@ -334,7 +333,19 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
          std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputs, currentAxes);
          return GetMinimumAxes(seedAxes, inputs, _paraKmeans, _paraNsub,_functor);
       }
+      
+      std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
+                                          NsubParameters paraNsub, MeasureFunctor* functor);
+                                          
+      template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
+                                  const std::vector <fastjet::PseudoJet> & inputJets,
+                                  NsubParameters paraNsub, double precision);
+                                  
+      std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
+                                      const std::vector <fastjet::PseudoJet> & inputJets, NsubParameters paraNsub, double precision);
+      
 };
+
 
 
 class AxesFinderFromGeometricMinimization : public AxesFinder {
@@ -455,14 +466,13 @@ public:
 ///////
 //
 // Functions for minimization.
-// TODO:  Wrap these in N-subjettiness class
 //
 ///////
 
 
 // Given starting axes, update to find better axes
 template <int N>
-std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
+std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
                                   const std::vector <fastjet::PseudoJet> & inputJets,
                                   NsubParameters paraNsub, double precision) {
    assert(old_axes.size() == N);
@@ -564,7 +574,7 @@ std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & ol
 
 // Given starting axes, update to find better axes
 // (This is just a wrapper for the templated version above.)
-inline std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
+inline std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
                                       const std::vector <fastjet::PseudoJet> & inputJets, NsubParameters paraNsub, double precision) {
    int N = old_axes.size();
    switch (N) {
@@ -616,7 +626,7 @@ inline std::vector<fastjet::PseudoJet> ConvertToPseudoJet(const std::vector <Lig
 
 
 // Get minimization axes
-inline std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
+inline std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
                                           NsubParameters paraNsub,MeasureFunctor* functor) {
    int n_jets = seedAxes.size();
    double noise = 0, tau = 10000.0, tau_tmp, cmp;
@@ -736,7 +746,7 @@ public:
 
 };
 
-void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
+inline void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
    //subTau values
    _currentTaus = _functor->subTaus(inputs, _currentAxes);
    

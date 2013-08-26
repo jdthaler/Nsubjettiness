@@ -1,3 +1,6 @@
+2013-08-26 <jthaler>
+   Added inlines to fix compile issue
+   Put some of the minimization code inside of the AxesFinderFromKmeansMinimization class
 2013-02-23 <jthaler>
    Fixed dependency issue (now using make depend)
 2013-02-22 <jthaler>
