@@ -90,14 +90,14 @@ class NjettinessExtras : public ClusterSequence::Extras {
 
 };
 
-const NjettinessExtras * njettiness_extras(const fastjet::PseudoJet& jet) {
+inline const NjettinessExtras * njettiness_extras(const fastjet::PseudoJet& jet) {
    const ClusterSequence * myCS = jet.associated_cluster_sequence();   
    if (myCS == NULL) return NULL;
    const NjettinessExtras* extras = dynamic_cast<const NjettinessExtras*>(myCS->extras());   
    return extras;   
 }
 
-const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence& myCS) {
+inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence& myCS) {
    const NjettinessExtras* extras = dynamic_cast<const NjettinessExtras*>(myCS.extras());   
    return extras;   
 }

@@ -116,7 +116,7 @@ class MeasureFunctor {
 };
 
 // N-subjettiness pieces
-std::vector<double> MeasureFunctor::subTaus(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes) {// Returns the sub-tau values, i.e. a std::vector of the contributions to tau_N of each Voronoi region (or region within R_0)
+inline std::vector<double> MeasureFunctor::subTaus(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes) {// Returns the sub-tau values, i.e. a std::vector of the contributions to tau_N of each Voronoi region (or region within R_0)
       
    std::vector<double> tauNum(axes.size(), 0.0), tau(axes.size());
    
@@ -138,7 +138,7 @@ std::vector<double> MeasureFunctor::subTaus(const std::vector <fastjet::PseudoJe
    return tau;
 }
 
-double MeasureFunctor::tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {// Calculates tau_N
+inline double MeasureFunctor::tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {// Calculates tau_N
    std::vector<double> tau_vec = subTaus(particles, axes);
    double tau = 0.0;
    for (unsigned j = 0; j < tau_vec.size(); j++) {tau += tau_vec[j];}
@@ -307,8 +307,9 @@ class AxesFinderFromUserInput : public AxesFinder {
 
 /// Minimum Axes
 
-std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
+inline std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
                                           NsubParameters paraNsub, MeasureFunctor* functor);
+                                          
 class AxesFinderFromKmeansMinimization : public AxesFinder {
 
    private:
@@ -563,7 +564,7 @@ std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & ol
 
 // Given starting axes, update to find better axes
 // (This is just a wrapper for the templated version above.)
-std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
+inline std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
                                       const std::vector <fastjet::PseudoJet> & inputJets, NsubParameters paraNsub, double precision) {
    int N = old_axes.size();
    switch (N) {
@@ -596,7 +597,7 @@ std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_ax
 
 // Go from internal LightLikeAxis to PseudoJet
 // TODO:  Make part of LightLikeAxis class.
-std::vector<fastjet::PseudoJet> ConvertToPseudoJet(const std::vector <LightLikeAxis>& axes) {
+inline std::vector<fastjet::PseudoJet> ConvertToPseudoJet(const std::vector <LightLikeAxis>& axes) {
    
    int n_jets = axes.size();
    
@@ -615,7 +616,7 @@ std::vector<fastjet::PseudoJet> ConvertToPseudoJet(const std::vector <LightLikeA
 
 
 // Get minimization axes
-std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
+inline std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
                                           NsubParameters paraNsub,MeasureFunctor* functor) {
    int n_jets = seedAxes.size();
    double noise = 0, tau = 10000.0, tau_tmp, cmp;
@@ -747,19 +748,19 @@ void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) 
 
 
 //Use NsubAxesMode to pick which type of axes to use
-void Njettiness::establishAxes(unsigned int n_jets, const std::vector <fastjet::PseudoJet> & inputs) {
+inline void Njettiness::establishAxes(unsigned int n_jets, const std::vector <fastjet::PseudoJet> & inputs) {
    _currentAxes = _axesFinder->getAxes(n_jets,inputs,_currentAxes);   
 }
 
 
-Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
+inline Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
    double Rcutoff = paraGeo.Rcutoff();
    _functor = new GeometricMeasure(Rcutoff);
    _axesFinder = new AxesFinderFromGeometricMinimization(new AxesFinderFromKT(),Rcutoff);
 }
 
 //Constructor sets KmeansParameters from NsubAxesMode input
-Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
+inline Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 
    _functor = new DefaultMeasure(paraNsub);  //Is there a way to do this without pointers?
 
@@ -801,7 +802,7 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 
 }
 
-Njettiness::~Njettiness() {
+inline Njettiness::~Njettiness() {
    delete _functor;
    delete _axesFinder;
 }
@@ -811,7 +812,7 @@ Njettiness::~Njettiness() {
 // Return a vector of length _currentAxes.size() (which should be N).
 // Each vector element is a list of ints corresponding to the indices in
 // particles of the particles belonging to that jet.
-std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
+inline std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
    std::vector<std::list<int> > partitions(_currentAxes.size());
 
    int j_min = -1;
@@ -833,7 +834,7 @@ std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet:
 
 // Having found axes, assign each particle in particles to an axis, and return a set of jets.
 // Each jet is the sum of particles closest to an axis (Njet = Naxes).
-std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
+inline std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
    
    std::vector<fastjet::PseudoJet> jets(_currentAxes.size());
 

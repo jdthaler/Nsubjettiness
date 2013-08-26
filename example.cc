@@ -39,6 +39,7 @@
 #include "Njettiness.hh"
 #include "NjettinessPlugin.hh"
 
+
 using namespace std;
 using namespace fastjet;
 using namespace fastjet::contrib;

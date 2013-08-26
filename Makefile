@@ -59,7 +59,7 @@ check: examples
 
 # cleaning the directory
 clean:
-	rm -f *~ *.o
+	rm -f *~ *.o *.a
 
 distclean: clean
 	rm -f lib$(NAME).a $(EXAMPLES)
