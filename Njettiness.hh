@@ -158,7 +158,8 @@ inline std::vector<double> MeasureFunctor::subtaus_numerator(const std::vector <
    return tauNum;
 }
 
-inline double MeasureFunctor::tau_numerator(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {// Calculates unnormalized tau_N
+// Calculates unnormalized tau_N
+inline double MeasureFunctor::tau_numerator(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
    std::vector<double> tau_vec = subtaus_numerator(particles, axes);
    double tauNum = 0.0;
    for (unsigned i = 0; i < tau_vec.size(); i++) {
@@ -167,7 +168,8 @@ inline double MeasureFunctor::tau_numerator(const std::vector <fastjet::PseudoJe
    return tauNum;
 }
 
-inline double MeasureFunctor::tau_denominator(const std::vector <fastjet::PseudoJet>& particles) { //Calculates normalization for tau and sub Tau --TJW
+//Calculates normalization for tau and sub Tau
+inline double MeasureFunctor::tau_denominator(const std::vector <fastjet::PseudoJet>& particles) {
    double tauDen = 0.0;
    for (unsigned i = 0; i < particles.size(); i++) {
       tauDen += denominator(particles[i]);
@@ -175,7 +177,8 @@ inline double MeasureFunctor::tau_denominator(const std::vector <fastjet::Pseudo
    return tauDen;
 }
 
-inline std::vector<double> MeasureFunctor::subtaus_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){ //calculates normalized subTaus --TJW
+ //calculates normalized subTaus
+inline std::vector<double> MeasureFunctor::subtaus_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){
    std::vector<double> tauNum = subtaus_numerator(particles, axes);
    std::vector<double> tau_normalized(axes.size(), 0.0);
    double tauDen = tau_denominator(particles);
@@ -185,7 +188,8 @@ inline std::vector<double> MeasureFunctor::subtaus_normalized(const std::vector 
    return tau_normalized;
 }
 
-inline double MeasureFunctor::tau_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){ //calculates normalized tau_N --TJW
+//calculates normalized tau_N
+inline double MeasureFunctor::tau_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){
    return tau_numerator(particles, axes)/tau_denominator(particles);
 }
 
@@ -271,7 +275,7 @@ class GeometricMeasure : public MeasureFunctor {
 //
 ///////
 
-//Class to define new recombination scheme used in Winner Take All axes (ADDED BY TJW)
+//Class to define new recombination scheme used in Winner Take All axes
 class WTARecombiner : public fastjet::JetDefinition::Recombiner {
 public:    
   virtual std::string description() const;
@@ -320,27 +324,27 @@ class AxesFinderFromExclusiveJetDefinition : public AxesFinder {
       }
 };
 
-  //Class for finding axes with WTA Recombination and Kt algorithm (ADDED BY TJW)
+  //Class for finding axes with WTA Recombination and Kt algorithm
 class AxesFinderFromWTA_KT : public AxesFinderFromExclusiveJetDefinition { 
    private: 
       const WTARecombiner *recomb;
    public:
       AxesFinderFromWTA_KT() : AxesFinderFromExclusiveJetDefinition(
          fastjet::JetDefinition(fastjet::kt_algorithm, 
-         M_PI/2.0, 
+         M_PI/2.0, //TODO: Want to use maximum jet radius constant here
          recomb = new WTARecombiner(), 
          fastjet::Best)) {}
       ~AxesFinderFromWTA_KT() {delete recomb;}
 };
 
-  //Class for finding axes with WTA Recombiner and Cambridge Algorithm (ADDED BY TJW)
+  //Class for finding axes with WTA Recombiner and Cambridge Algorithm
 class AxesFinderFromWTA_CA : public AxesFinderFromExclusiveJetDefinition {
    private: 
       const WTARecombiner *recomb;
    public:
       AxesFinderFromWTA_CA() : AxesFinderFromExclusiveJetDefinition(
          fastjet::JetDefinition(fastjet::cambridge_algorithm, 
-         M_PI/2.0, 
+         M_PI/2.0, //TODO: Want to use maximum jet radius constant here
          recomb = new WTARecombiner(), 
          fastjet::Best)) {}
       ~AxesFinderFromWTA_CA() {delete recomb;}
@@ -763,10 +767,10 @@ inline std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::GetMini
 class Njettiness {
 public:
    enum AxesMode {
-      WTA_kt_axes, //Winner Take All axes with kt (ADDED BY TJW)
-      WTA_ca_axes, // Winner Take All axes with CA (ADDED BY TJW)
-      WTA_onepass_kt_axes, //one-pass minimization of WTA axes with kt (ADDED BY TJW)
-      WTA_onepass_ca_axes, //one-pass minimization of WTA axes with ca (ADDED BY TJW)
+      WTA_kt_axes, //Winner Take All axes with kt
+      WTA_ca_axes, // Winner Take All axes with CA
+      WTA_onepass_kt_axes, //one-pass minimization of WTA axes with kt
+      WTA_onepass_ca_axes, //one-pass minimization of WTA axes with ca
       kt_axes,  // exclusive kt axes
       ca_axes,  // exclusive ca axes
       antikt_0p2_axes,  // inclusive hardest axes with antikt-0.2
@@ -784,12 +788,12 @@ private:
 
    std::vector<fastjet::PseudoJet> _currentAxes;
 
-   double _current_tau_numerator; //To return unnormalized values if wanted --TJW
-   double _current_tau_denominator; //To return normalization factor if wanted --TJW
    double _current_tau_normalized;
+   double _current_tau_numerator; //To return unnormalized values if wanted
+   double _current_tau_denominator; //To return normalization factor if wanted
 
-   std::vector<double> _current_subtaus_numerator; //To return unnormalized values if wanted --TJW
    std::vector<double> _current_subtaus_normalized; 
+   std::vector<double> _current_subtaus_numerator; //To return unnormalized values if wanted
    
    void establishAxes(unsigned n_jets, const std::vector <fastjet::PseudoJet> & inputs);
    void establishTaus(const std::vector <fastjet::PseudoJet> & inputs);
@@ -823,8 +827,9 @@ public:
       return _current_tau_normalized;
    }
 
-   // Alternative function call to get Numerator information
-   double getTauNumerator(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) { //Function for retrieving the unnormalized tau_N --TJW
+   // Alternative function call to return just numerator information
+   // Function for retrieving the unnormalized tau_N
+   double getTauNumerator(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) { 
       getTau(n_jets,inputJets);      
       return _current_tau_numerator;
    }
@@ -856,8 +861,8 @@ public:
 inline void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
 
    // These are the basic function calls
-   _current_subtaus_numerator = _functor->subtaus_numerator(inputs, _currentAxes); //Set numerator of subTaus from functor --TJW
-   _current_tau_denominator = _functor->tau_denominator(inputs); //Set denominator from functor --TJW
+   _current_subtaus_numerator = _functor->subtaus_numerator(inputs, _currentAxes); //Set numerator of subTaus from functor
+   _current_tau_denominator = _functor->tau_denominator(inputs); //Set denominator from functor
    
    // These are derived quantities
    // (Save some computational time by not recalculating in the _functor)
