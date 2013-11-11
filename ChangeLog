@@ -1,6 +1,8 @@
 2013-11-11 <TJ>
    Changed MeasureFunctor to separately treat tau numerator and denominator
-   Njettiness now allows finding unnormalized tau values (still need to work on interface)
+   Changed some of the function names in MeasureFunctor.  Should not affect users
+   Added more informative function names to Njettiness.
+   Njettiness now allows finding unnormalized tau values
    Added WTARecombiner to define winner-take-all axes
    Added various WTA options to AxesMode
    Added setAxes to Nsubjettiness
