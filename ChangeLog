@@ -1,3 +1,10 @@
+2013-11-11 <TJ>
+   Changed MeasureFunctor to separately treat tau numerator and denominator
+   Njettiness now allows finding unnormalized tau values (still need to work on interface)
+   Added WTARecombiner to define winner-take-all axes
+   Added various WTA options to AxesMode
+   Added setAxes to Nsubjettiness
+   Added NsubjettinessRatio function
 2013-08-26 <jthaler>
    Added inlines to fix compile issue
    Put some of the minimization code inside of the AxesFinderFromKmeansMinimization class
