@@ -1,3 +1,5 @@
+2013-11-12 <jthaler>
+   Debugging svn
 2013-11-11 <TJ>
    Changed MeasureFunctor to separately treat tau numerator and denominator
    Changed some of the function names in MeasureFunctor.  Should not affect users
