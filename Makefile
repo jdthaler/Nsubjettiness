@@ -15,7 +15,7 @@ check_script = ../utils/check.sh
 #------------------------------------------------------------------------
 # things that are specific to this contrib
 NAME=Nsubjettiness
-SRCS=Nsubjettiness.cc
+SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc
 EXAMPLES=example
 INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh
 #------------------------------------------------------------------------
