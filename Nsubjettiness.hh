@@ -52,6 +52,7 @@ class Nsubjettiness : public FunctionOfPseudoJet<Double32_t> {
 public:
 
    Nsubjettiness(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff=std::numeric_limits<double>::max(), bool normalized = true);
+
    
    /// returns tau_N, measured on the constituents of this jet
    Double32_t result(const PseudoJet& jet) const;
@@ -71,17 +72,11 @@ private:
 
 };
 
-inline Nsubjettiness::Nsubjettiness(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff, bool normalized)
-  : _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff)), _N(N), _normalized(normalized) {}
+//moved the constructor definition to Nsubjettiness.cc, but maybe easier to define it in class definition? -- TJW
+//inline Nsubjettiness::Nsubjettiness(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff, bool normalized)
+//  : _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff)), _N(N), _normalized(normalized) {}
 
-
-//result will allow user to choose whether they want numerator or normalized version
-inline Double32_t Nsubjettiness::result(const PseudoJet& jet) const
-{
-   std::vector<fastjet::PseudoJet> particles = jet.constituents();
-   if (_normalized) return _njettinessFinder.getTau(_N, particles); 
-   else return _njettinessFinder.getTauNumerator(_N, particles);
-} 
+//result definition moved to Nsubjettiness.cc -- TJW
 
 //Class NsubjettinessRatios
 //Used to Calculate tau_N/tau_M based off results from class Nsubjettiness
@@ -97,18 +92,15 @@ public:
    // TODO:  Set constant for R0 = 1.0 so that we don't have magic numbers
 
    //returns tau_N/tau_M based off the input jet, uses result function from Nsubjettiness 
-   double result(const PseudoJet& jet) const;
+   //changed return value from double to Double32_t to match Nsubjettiness class -- TJW
+   Double32_t result(const PseudoJet& jet) const;
 
 private: 
    Nsubjettiness _nsub_numerator;
    Nsubjettiness _nsub_denominator;
 };
 
-inline double NsubjettinessRatio::result(const PseudoJet& jet) const {
-   double numerator = _nsub_numerator.result(jet);
-   double denominator = _nsub_denominator.result(jet);
-   return numerator/denominator;
-}
+//ratio result definition moved to Nsubjettiness.cc --TJW
 
 } // namespace contrib
 
