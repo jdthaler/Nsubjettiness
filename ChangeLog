@@ -1,3 +1,6 @@
+2013-12-22 <TJ>
+   Created .cc files and moved all function definitions into .cc files
+   Updated Makefile to account for new .cc files
 2013-11-12 <TJ>
    Added to fjcontrib svn
 2013-11-12 <jthaler>
