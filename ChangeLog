@@ -1,3 +1,9 @@
+2013-12-30 <TJ>
+   Changed name of MeasureFunctor to MeasureFunction
+   Created separate .hh/.cc files for MeasureFunction, AxesFinder, and WinnerTakeAllRecombiner
+   Updated Makefile to account for new files
+   Removed getMinimumAxes in AxesFinderFromKMeansMinimization, consolidated with getAxes
+   Updated comments on classes and major functions
 2013-12-22 <TJ>
    Created .cc files and moved all function definitions into .cc files
    Updated Makefile to account for new .cc files
