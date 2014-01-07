@@ -1,13 +1,8 @@
-//NEW FILE CREATED BY TJW
-//Update to NsubjettinessPlugin so that all inline functions are declared explicitly in this file
-
-//legal info below copied directly from Njettiness.hh
-
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -26,17 +21,16 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-//UPDATES FROM TJW:
+//NEW FILE CREATED BY TJW 12/22
+//Update to NsubjettinessPlugin so that all inline functions are declared explicitly in this file
 
-#include "Nsubjettiness.hh"
-#include "Njettiness.hh"
 #include "NjettinessPlugin.hh"
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-//NjettinessPlugin constructors (moved from NjettinessPlugin.hh -- TJW)
+//NjettinessPlugin constructors (moved from NjettinessPlugin.hh -- TJW 12/22)
 NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff)
   : _N(N), _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff))
 {}
@@ -45,9 +39,10 @@ NjettinessPlugin::NjettinessPlugin(int N, NsubGeometricParameters paraGeo)
   : _N(N), _njettinessFinder(paraGeo)
 {}
 
-//NjettinessPlugin functions (moved from NjettinessPlugin.hh -- TJW)
+//NjettinessPlugin functions (moved from NjettinessPlugin.hh -- TJW 12/22)
 std::string NjettinessPlugin::description() const {return "NJettiness";}
 
+//clusters the particles according to the Njettiness jet algorithm
 void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
 {
    std::vector<fastjet::PseudoJet> particles = cs.jets();
