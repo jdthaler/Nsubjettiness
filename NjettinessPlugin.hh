@@ -3,8 +3,8 @@
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -27,6 +27,8 @@
 #define __FASTJET_CONTRIB_NJETTINESSPLUGIN_HH__
 
 #include "Njettiness.hh"
+#include "MeasureFunction.hh" //new .hh file added by TJW 12/25
+#include "AxesFinder.hh" //new .hh file added by TJW 12/25
 
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/JetDefinition.hh"
@@ -39,8 +41,10 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-///Redoing in terms of ClusterSequence::Extras
-
+//------------------------------------------------------------------------
+/// \class NjettinessExtras
+// This class contains the same information as Njettiness, but redoes it in terms of the ClusterSequence::EXtras class.
+// This is done in order to help improve the interface for the main NjettinessPlugin class. -- comment added by TJ
 class NjettinessExtras : public ClusterSequence::Extras {
    private:
    
@@ -153,7 +157,7 @@ private:
 
 };
 
-//definition of functions moved over to NjettinessPlugin.cc -- TJW
+//definition of functions moved over to NjettinessPlugin.cc -- TJW 12/22
 
 } // namespace contrib
 
