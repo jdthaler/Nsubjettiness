@@ -1,13 +1,8 @@
-//NEW FILE CREATED BY TJW 12/25
-//Update to move MeasureFunction class and definitions into separate .cc/.hh files
-
-//legal info below copied directly from Njettiness.hh
-
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -25,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
+
+//NEW FILE CREATED BY TJW 12/25
+//Update to move MeasureFunction class and definitions into separate .cc/.hh files
 
 #include "MeasureFunction.hh" //new .hh file added by TJW 12/25
 
