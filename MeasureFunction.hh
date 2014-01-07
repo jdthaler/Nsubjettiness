@@ -1,13 +1,8 @@
-//NEW FILE CREATED BY TJW 12/25
-//Update to move MeasureFunction class and definitions into separate .cc/.hh files
-
-//legal info below copied directly from Njettiness.hh
-
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -25,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
+
+//NEW FILE CREATED BY TJW 12/25
+//Update to move MeasureFunction class and definitions into separate .cc/.hh files
 
 #ifndef __FASTJET_CONTRIB_MEASUREFUNCTION_HH__
 #define __FASTJET_CONTRIB_MEASUREFUNCTION_HH__
@@ -77,26 +75,7 @@ public:
    double Rcutoff() const {return _Rcutoff;}
 };
 
-//------------------------------------------------------------------------
-/// \class KmeansParameters
-// Parameters that change minimization procedure. They are used in the functions that find axes by Kmeans minimization.
-// They are set automatically when you choose NsubAxesMode, but can be adjusted manually as well -- comment added by TJ
-class KmeansParameters {
-private:
-   int _n_iterations;  // Number of iterations to run  (0 for no minimization, 1 for one-pass, >>1 for global minimum)
-   double _precision;  // Desired precision in axes alignment
-   int _halt;          // maximum number of steps per iteration
-   double _noise_range;// noise range for random initialization
-   
-public:
-   KmeansParameters() : _n_iterations(0), _precision(0.0), _halt(0), _noise_range(0.0) {}
-   KmeansParameters(const int my_n_iterations, double my_precision, int my_halt, double my_noise_range) :
-   _n_iterations(my_n_iterations),  _precision(my_precision), _halt(my_halt), _noise_range(my_noise_range) {}
-   int n_iterations() const { return _n_iterations;}
-   double precision() const {return _precision;}
-   int halt() const {return _halt;}
-   double noise_range() const {return _noise_range;}
-};
+//KmeansParameters class moved to AxesFinder.hh -- TJW 12/31
 
 ///////
 //
@@ -145,6 +124,7 @@ class MeasureFunction {
       
       //returns normalized tau
       double tau_normalized(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
+      
       double tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
          return tau_normalized(particles,axes);
       }
