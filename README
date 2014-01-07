@@ -47,3 +47,19 @@ Most users will want to use the Nsubjettiness.hh or NjettinessPlugin.hh headers.
    vector<fastjet::PseudoJet> axes = nSub.currentAxes();
 
 While the code is rather slow in nsub_min_axes mode, for most cases, running with nsub_1pass_from_kt_axes gives reasonable results (and the results are IR safe).  Also, beta = 1.1 is faster than beta = 1, with comparable performance.
+
+The following three header files are used as helper classes for the calculation of N-jettiness and N-subjettiness:
+
+WinnerTakeAllRecombiner.hh:
+
+The WinnerTakeAllRecombiner class defines a new recombination scheme for clustering particles. This scheme recombines
+two PseudoJets into a PseudoJet with pT of the sum of the two input PseudoJet pTs and direction of the harder PseudoJet.
+
+AxesFinder.hh:
+
+The AxesFinder class (and derived classes) defines the axes used in the calculation of the event shape N-jettiness. These
+axes can be defined from the exclusive jets from a kT or CA algorithm, the hardest jets from an anti-kT algorithm, manually, or from minimization of N-jettiness. 
+
+MeasureFunction.hh:
+
+The MeasureFunction class (and derived classes) defines the measure by which N-jettiness is calculated. This measure is calculated between each particle and its corresponding axis, and then summed and normalized to produce N-jettiness. The default measure for this calculation is pT*dR, where dR is the eta-phi distance between the particle and its axis.
