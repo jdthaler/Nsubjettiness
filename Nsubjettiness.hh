@@ -1,8 +1,8 @@
 // Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -27,6 +27,7 @@
 #include <fastjet/internal/base.hh>
 
 #include "Njettiness.hh"
+
 #include "fastjet/FunctionOfPseudoJet.hh"
 #include <string>
 #include <climits>
@@ -51,10 +52,16 @@ namespace contrib {
 class Nsubjettiness : public FunctionOfPseudoJet<Double32_t> {
 public:
 
-   Nsubjettiness(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff=std::numeric_limits<double>::max(), bool normalized = true);
+   //moved constructor definition to here to clean up code -- TJW 12/25
+   Nsubjettiness(int N, 
+      Njettiness::AxesMode mode, 
+      double beta, 
+      double R0, 
+      double Rcutoff=std::numeric_limits<double>::max(), 
+      bool normalized = true)
+   : _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff)), _N(N), _normalized(normalized) {}
 
-   
-   /// returns tau_N, measured on the constituents of this jet
+   /// returns tau_N, measured on the constituents of this jet 
    Double32_t result(const PseudoJet& jet) const;
 
    //To set axes for manual use 
@@ -72,27 +79,28 @@ private:
 
 };
 
-//moved the constructor definition to Nsubjettiness.cc, but maybe easier to define it in class definition? -- TJW
-//inline Nsubjettiness::Nsubjettiness(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff, bool normalized)
-//  : _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff)), _N(N), _normalized(normalized) {}
+//result definition moved to Nsubjettiness.cc -- TJW 12/22
 
-//result definition moved to Nsubjettiness.cc -- TJW
+//------------------------------------------------------------------------
+/// \class NsubjettinessRatios
+// NsubjettinessRatios Calculates uses the results from Nsubjettiness to calculate the ratio
+// tau_N/tau_M, where N and M are specified by the user. The ratio of different tau values
+// proves to be an interesting value for analysis, and this class allows these values
+// to be calculated with ease. -- comment added by TJW
 
-//Class NsubjettinessRatios
-//Used to Calculate tau_N/tau_M based off results from class Nsubjettiness
-//Requires two integers in constructor (N, M)
 class NsubjettinessRatio : public FunctionOfPseudoJet<Double32_t> {
 public:
-   NsubjettinessRatio(int N, 
-      int M, 
+
+   NsubjettinessRatio(int N, int M, 
       Njettiness::AxesMode mode, 
       double beta, 
+      double R0 = 1.0, //added R0 to constructor arguments and default it to 1.0 since it is unimportant for ratio -- TJW 12/28
       double Rcutoff=std::numeric_limits<double>::max())
-   : _nsub_numerator(N, mode, beta, 1.0, Rcutoff), _nsub_denominator(M, mode, beta, 1.0, Rcutoff) {};
+   : _nsub_numerator(N, mode, beta, R0, Rcutoff), _nsub_denominator(M, mode, beta, R0, Rcutoff) {};
    // TODO:  Set constant for R0 = 1.0 so that we don't have magic numbers
 
-   //returns tau_N/tau_M based off the input jet, uses result function from Nsubjettiness 
-   //changed return value from double to Double32_t to match Nsubjettiness class -- TJW
+   //changed return value from double to Double32_t to match Nsubjettiness class -- TJW 12/22
+   //returns tau_N/tau_M based off the input jet using result function from Nsubjettiness 
    Double32_t result(const PseudoJet& jet) const;
 
 private: 
@@ -100,7 +108,7 @@ private:
    Nsubjettiness _nsub_denominator;
 };
 
-//ratio result definition moved to Nsubjettiness.cc --TJW
+//ratio result definition moved to Nsubjettiness.cc --TJW 12/22
 
 } // namespace contrib
 
