@@ -1,13 +1,8 @@
-//NEW FILE CREATED BY TJW 12/22
-//Update to nsubjettiness so that all inline functions are declared explicitly in this file
-
-//legal info below copied directly from Njettiness.hh
-
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -25,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
+
+//NEW FILE CREATED BY TJW 12/22
+//Update to nsubjettiness so that all inline functions are declared explicitly in this file
 
 #include "Njettiness.hh"
 
@@ -86,16 +84,16 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
    // TODO: convert to smart pointers
 
    switch (axes) {
-      case WTA_kt_axes:
+      case wta_kt_axes:
          _axesFinder = new AxesFinderFromWTA_KT(); 
          break;
-      case WTA_ca_axes:
+      case wta_ca_axes:
          _axesFinder = new AxesFinderFromWTA_CA(); 
          break;
-      case WTA_onepass_kt_axes:
+      case wta_onepass_kt_axes:
          _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
          break;
-      case WTA_onepass_ca_axes:
+      case wta_onepass_ca_axes:
          _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
          break;
       case kt_axes:
