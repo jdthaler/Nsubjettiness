@@ -1,8 +1,8 @@
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -28,8 +28,8 @@
 #include "AxesFinder.hh" //new file added by TJW 12/25
 
 #include "fastjet/PseudoJet.hh"
-#include "fastjet/ClusterSequence.hh"
-#include "fastjet/JetDefinition.hh"
+//#include "fastjet/ClusterSequence.hh"
+//#include "fastjet/JetDefinition.hh"
 #include <cmath>
 #include <vector>
 #include <list>
@@ -69,10 +69,10 @@ namespace contrib {
 class Njettiness {
 public:
    enum AxesMode {
-      WTA_kt_axes, //Winner Take All axes with kt
-      WTA_ca_axes, // Winner Take All axes with CA
-      WTA_onepass_kt_axes, //one-pass minimization of WTA axes with kt
-      WTA_onepass_ca_axes, //one-pass minimization of WTA axes with ca
+      wta_kt_axes, //Winner Take All axes with kt
+      wta_ca_axes, // Winner Take All axes with CA
+      wta_onepass_kt_axes, //one-pass minimization of WTA axes with kt
+      wta_onepass_ca_axes, //one-pass minimization of WTA axes with ca
       kt_axes,  // exclusive kt axes
       ca_axes,  // exclusive ca axes
       antikt_0p2_axes,  // inclusive hardest axes with antikt-0.2
@@ -105,7 +105,7 @@ public:
 
    Njettiness(AxesMode axes, NsubParameters paraNsub);
    Njettiness(NsubGeometricParameters paraGeo);
-      
+
    ~Njettiness();
    
    void setMeasureFunction(MeasureFunction* newFunctor) {_functor = newFunctor;}
