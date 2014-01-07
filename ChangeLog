@@ -1,3 +1,8 @@
+2014-1-6 <TJ>
+   Updated copyright information
+   Fixed bug in WinnerTakeAllRecombiner
+   Moved KMeansParameters to AxesFinder
+   Updated README with descriptions of new header files
 2013-12-30 <TJ>
    Changed name of MeasureFunctor to MeasureFunction
    Created separate .hh/.cc files for MeasureFunction, AxesFinder, and WinnerTakeAllRecombiner
