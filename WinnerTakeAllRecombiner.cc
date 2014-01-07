@@ -1,13 +1,8 @@
-//NEW FILE CREATED BY TJW 12/28
-//Update to move WinnerTakeAllRecombiner class into separate .cc/.hh files
-
-//legal info below copied directly from Njettiness.hh
-
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
-//  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Copyright (c) 2011-14
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -26,6 +21,9 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
+//NEW FILE CREATED BY TJW 12/28
+//Update to move WinnerTakeAllRecombiner class into separate .cc/.hh files
+
 #include "WinnerTakeAllRecombiner.hh" //new .hh file added by TJW 12/28
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
@@ -40,7 +38,7 @@ namespace contrib{
 
   // recombine pa and pb by creating pab with energy of the sum of particle energies in the direction of the harder particle -- comment added by TJW
   void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
-      if (pa.perp() > pb.perp()) {
+      if (pa.perp() >= pb.perp()) {
          pab.reset_PtYPhiM(pa.perp() + pb.perp(), pa.rap(), pa.phi());
       }
       else if (pb.perp() > pa.perp()) {
