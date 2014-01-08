@@ -78,7 +78,7 @@ Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
 //Constructor sets KmeansParameters from NsubAxesMode input
 Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 
-   _functor = new DefaultMeasure(paraNsub);  //Is there a way to do this without pointers?
+   _functor = new DefaultNormalizedMeasure(paraNsub);  //Is there a way to do this without pointers?
 
    // memory management note, AxesFinderFromKmeansMinimization is responsible for deleting its subpointer.
    // TODO: convert to smart pointers
@@ -182,16 +182,16 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
          break;
    }   
 
-   //choose which MeasureFunction to use 
+   //choose which MeasureFunction to use (added separate DefaultNormalizatedMeasure and DefaultUnnormalizedMeasure classes in MeasureFunction -- TJW 1/8)
    switch (measure_mode) {
       case normalized_measure:
-         _functor = new DefaultMeasure(paraNsub); 
+         _functor = new DefaultNormalizedMeasure(paraNsub); //DefaultNormalizedMeasure currently requires a NsubParameter argument in its constructor
          break;
       case unnormalized_measure:
-         _functor = new DefaultMeasure(paraNsub); //normalization currently done in Nsubjettiness class; maybe smarter to have separate class for unnormalized default measure? -- TJW
+         _functor = new DefaultUnnormalizedMeasure(para1, para2); //Unnormalized measure only requires two parameters, beta and Rcutoff
          break;
       case geometric_measure:
-         _functor = new GeometricMeasure(para1); 
+         _functor = new GeometricMeasure(para1); //geometric measure only requires 1 parameter, Rcutoff
          break;
       default:
          assert(false);
