@@ -64,7 +64,7 @@ public:
 };
 //------------------------------------------------------------------------
 /// \class NsubGeometricParameters
-// Parameters that define GeometricMeasure. This parameter is used in the classes that that find axes through
+// Parameters that define GeometricMeasure. This parameter is used in the classes that find axes through
 // geometric minimization. -- comment added by TJ
 class NsubGeometricParameters {
 private:
@@ -94,7 +94,13 @@ public:
 class MeasureFunction {
 
    protected:
-      MeasureFunction() {}
+      //bool set by derived classes to choose whether or not to use the denominator -- TJW 1/7
+      bool _has_denominator; 
+
+      //MeasureFunction() {} //removed since it is overloaded with constructor below -- TJW 1/7
+
+      //new constructor to allow _has_denominator to be set by derived classes -- TJW 1/7
+      MeasureFunction(bool has_denominator = true) : _has_denominator(has_denominator) {} 
 
    public:
       virtual ~MeasureFunction(){}
@@ -132,19 +138,21 @@ class MeasureFunction {
 };
 
 // moved from Njettiness.hh -- TJW 12/28
+// name changed to DefaultNormalizedMeasure -- TJW 1/7
 //------------------------------------------------------------------------
-/// \class DefaultMeasure
+/// \class DefaultNormalizedMeasure
 // This class is the default measure, inheriting from the class above. This class will calculate tau_N 
 // of a jet according to this measure. This measure is defined as the pT of the particle multiplied by deltaR 
-// to the power of beta. This class includes normalization of tau_N -- comment added by TJW
-class DefaultMeasure : public MeasureFunction {
+// to the power of beta. This class includes normalization -- comment added by TJW
+class DefaultNormalizedMeasure : public MeasureFunction {
 
    private:
       NsubParameters _paraNsub;
 
    public:
-      DefaultMeasure(NsubParameters paraNsub): _paraNsub(paraNsub) {}
-      
+      DefaultNormalizedMeasure(NsubParameters paraNsub, bool normalized = true) : MeasureFunction(normalized), _paraNsub(paraNsub) {}
+      //MeasureFunction(true) tells MeasureFunction to use the denominator, since this value is normalized. -- TJW
+
       virtual bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
          return (distance(particle,axis) <= _paraNsub.Rcutoff());
       }
@@ -163,6 +171,20 @@ class DefaultMeasure : public MeasureFunction {
          return particle.perp() * std::pow(_paraNsub.R0(),_paraNsub.beta());
       }
 
+};
+
+// Class added by TJW 1/7
+//------------------------------------------------------------------------
+/// \class DefaultUnnormalizedMeasure
+// This class is the unnormalized default measure, inheriting from the class above. The only difference from above is that the denominator is defined to be
+// 1.0 by setting _has_denominator to false. -- comment added by TJW
+class DefaultUnnormalizedMeasure : public DefaultNormalizedMeasure {
+
+   public:
+      DefaultUnnormalizedMeasure(double beta, double Rcutoff) : DefaultNormalizedMeasure(NsubParameters(beta, NAN, Rcutoff), false) {}
+      // Since all methods are identical, UnnormalizedMeasure inherits directly from NormalizedMeasure. R0 is defaulted to NAN since the value of R0 is unecessary for this class. 
+      // the "false" flag sets _has_denominator in MeasureFunction to false so no denominator is used. -- TJW
+      
 };
 
 // moved from Njettiness.hh -- TJW 12/28
