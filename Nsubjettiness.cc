@@ -32,10 +32,10 @@ namespace contrib{
 //result moved from Nsubjettiness.hh file -- TJW 12/22
 
 //result returns tau_N with normalization dependent on what is specified in constructor -- comment added by TJW
+//modified so that it only returns getTau, no longer has option of tau vs tau_numerator -- TJW 1/8
 Double32_t Nsubjettiness::result(const PseudoJet& jet) const {
    std::vector<fastjet::PseudoJet> particles = jet.constituents();
-   if (_normalized) return _njettinessFinder.getTau(_N, particles); 
-   else return _njettinessFinder.getTauNumerator(_N, particles);
+   return _njettinessFinder.getTau(_N, particles); 
 } 
 
 //ratio result moved from Nsubjettiness.hh file -- TJW 12/22
