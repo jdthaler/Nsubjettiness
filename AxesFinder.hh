@@ -239,7 +239,7 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
    public:
       AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, NsubParameters paraNsub)
          : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _paraNsub(paraNsub) {
-         _functor = new DefaultMeasure(paraNsub);
+         _functor = new DefaultNormalizedMeasure(paraNsub); //name changed to DefaultNormalizedMeasure -- TJW 1/7
       }
       
       ~AxesFinderFromKmeansMinimization() {
