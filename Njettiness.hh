@@ -84,6 +84,13 @@ public:
       onepass_manual_axes  // one-pass minimization from manual starting point
    };
 
+   //new MeasureMode enum added by TJW 1/7
+   enum MeasureMode {
+      normalized_measure, //default normalized measure
+      unnormalized_measure, //default unnormalized measure
+      geometric_measure //geometric measure
+   };
+
 private:
    MeasureFunction* _functor;
    AxesFinder* _axesFinder;
@@ -105,6 +112,9 @@ public:
 
    Njettiness(AxesMode axes, NsubParameters paraNsub);
    Njettiness(NsubGeometricParameters paraGeo);
+
+   //new constructor to include both AxesMode and MeasureMode enums, and parameters for them -- TJW 1/7
+   Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN);
 
    ~Njettiness();
    
