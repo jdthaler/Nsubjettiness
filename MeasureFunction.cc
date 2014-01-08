@@ -68,13 +68,16 @@ double MeasureFunction::tau_numerator(const std::vector <fastjet::PseudoJet>& pa
    return tauNum;
 }
 
-//Calculates normalization for tau and subTau  
+//Calculates normalization for tau and subTau if _has_denominator is true, otherwise returns 1.0 (i.e. no normalization) -- TJW 1/7
 double MeasureFunction::tau_denominator(const std::vector <fastjet::PseudoJet>& particles) {
-   double tauDen = 0.0;
-   for (unsigned i = 0; i < particles.size(); i++) {
-      tauDen += denominator(particles[i]);
+   if (_has_denominator) {
+      double tauDen = 0.0;
+      for (unsigned i = 0; i < particles.size(); i++) {
+         tauDen += denominator(particles[i]);
+      }
+      return tauDen;
    }
-   return tauDen;
+   else return 1.0;
 }
 
 //normalizes subTaus according to the denominator calculated above
