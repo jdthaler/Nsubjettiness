@@ -1,3 +1,7 @@
+2014-1-8 <TJ>
+   Removed normalization information from Nsubjettiness
+   Added flag to MeasureFunction to give option of using the denominator
+   Split DefaultMeasure into separate normalized and unnormalized classes
 2014-1-7 <TJ>
    Added capability of choosing a specific Measure in Njettiness
    Added new Nsubjettiness constructor to allow choice of both AxesMode and MeasureMode
