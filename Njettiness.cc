@@ -130,6 +130,76 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 
 }
 
+//new constructor added to include both AxesMode and MeasureMode enums -- TJW 1/7
+Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3) {
+
+   //parameters needed since DefaultMeasure and KmeansMinization require NsubParameters in their constructor; should add new constructors in order to get rid of dependence on these parameters -- TJW
+   NsubParameters paraNsub(para1, para2, para3);
+
+   //choose which AxesFinder to use 
+   switch (axes_mode) {
+      case wta_kt_axes:
+         _axesFinder = new AxesFinderFromWTA_KT(); 
+         break;
+      case wta_ca_axes:
+         _axesFinder = new AxesFinderFromWTA_CA(); 
+         break;
+      case wta_onepass_kt_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
+         break;
+      case wta_onepass_ca_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
+         break;
+      case kt_axes:
+         _axesFinder = new AxesFinderFromKT();
+         break;
+      case ca_axes:
+         _axesFinder = new AxesFinderFromCA();
+         break;
+      case antikt_0p2_axes:
+         _axesFinder = new AxesFinderFromAntiKT(0.2);      
+         break;
+      case onepass_kt_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);      
+         break;
+      case onepass_ca_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         break;
+      case onepass_antikt_0p2_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         break;
+      case onepass_manual_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         break;
+      case min_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), paraNsub);
+         break;
+      case manual_axes:
+         _axesFinder = new AxesFinderFromUserInput();
+         break;
+      default:
+         assert(false);
+         break;
+   }   
+
+   //choose which MeasureFunction to use 
+   switch (measure_mode) {
+      case normalized_measure:
+         _functor = new DefaultMeasure(paraNsub); 
+         break;
+      case unnormalized_measure:
+         _functor = new DefaultMeasure(paraNsub); //normalization currently done in Nsubjettiness class; maybe smarter to have separate class for unnormalized default measure? -- TJW
+         break;
+      case geometric_measure:
+         _functor = new GeometricMeasure(para1); 
+         break;
+      default:
+         assert(false);
+         break;
+   }   
+
+}
+
 Njettiness::~Njettiness() {
    delete _functor;
    delete _axesFinder;
