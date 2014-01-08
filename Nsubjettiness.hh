@@ -61,6 +61,13 @@ public:
       bool normalized = true)
    : _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff)), _N(N), _normalized(normalized) {}
 
+   //new constructor definition added by TJW 1/7 (normalization done by checking if the measure_mode is set to unnormalized_measure or not, seems a bit messy)
+   Nsubjettiness(int N, 
+      Njettiness::AxesMode axes_mode, 
+      Njettiness::MeasureMode measure_mode, 
+      double para1 = NAN, double para2 = NAN, double para3 = NAN) 
+   : _njettinessFinder(axes_mode, measure_mode, para1, para2, para3), _N(N), _normalized(measure_mode != Njettiness::unnormalized_measure) {}
+
    /// returns tau_N, measured on the constituents of this jet 
    Double32_t result(const PseudoJet& jet) const;
 
