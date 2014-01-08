@@ -1,3 +1,6 @@
+2014-1-7 <TJ>
+   Added capability of choosing a specific Measure in Njettiness
+   Added new Nsubjettiness constructor to allow choice of both AxesMode and MeasureMode
 2014-1-6 <TJ>
    Updated copyright information
    Fixed bug in WinnerTakeAllRecombiner
