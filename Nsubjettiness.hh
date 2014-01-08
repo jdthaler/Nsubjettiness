@@ -53,20 +53,20 @@ class Nsubjettiness : public FunctionOfPseudoJet<Double32_t> {
 public:
 
    //moved constructor definition to here to clean up code -- TJW 12/25
+   //removed normalization bool argument -- TJW 1/8
    Nsubjettiness(int N, 
-      Njettiness::AxesMode mode, 
+      Njettiness::AxesMode axes_mode, 
       double beta, 
       double R0, 
-      double Rcutoff=std::numeric_limits<double>::max(), 
-      bool normalized = true)
-   : _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff)), _N(N), _normalized(normalized) {}
+      double Rcutoff=std::numeric_limits<double>::max())
+   : _njettinessFinder(axes_mode, NsubParameters(beta, R0, Rcutoff)), _N(N) {}
 
-   //new constructor definition added by TJW 1/7 (normalization done by checking if the measure_mode is set to unnormalized_measure or not, seems a bit messy)
+   //new constructor definition added by TJW 1/7
    Nsubjettiness(int N, 
       Njettiness::AxesMode axes_mode, 
       Njettiness::MeasureMode measure_mode, 
       double para1 = NAN, double para2 = NAN, double para3 = NAN) 
-   : _njettinessFinder(axes_mode, measure_mode, para1, para2, para3), _N(N), _normalized(measure_mode != Njettiness::unnormalized_measure) {}
+   : _njettinessFinder(axes_mode, measure_mode, para1, para2, para3), _N(N) {}
 
    /// returns tau_N, measured on the constituents of this jet 
    Double32_t result(const PseudoJet& jet) const;
@@ -82,8 +82,7 @@ private:
    mutable Njettiness _njettinessFinder; // should muck with this so result can be const without this mutable
 
    int _N;
-   bool _normalized;
-
+   //_normalization bool removed -- TJW 1/8
 };
 
 //result definition moved to Nsubjettiness.cc -- TJW 12/22
