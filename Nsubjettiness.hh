@@ -54,12 +54,13 @@ public:
 
    //moved constructor definition to here to clean up code -- TJW 12/25
    //removed normalization bool argument -- TJW 1/8
+   //removed NsubParameters in Njettiness constructor -- TJW 1/9
    Nsubjettiness(int N, 
       Njettiness::AxesMode axes_mode, 
       double beta, 
       double R0, 
       double Rcutoff=std::numeric_limits<double>::max())
-   : _njettinessFinder(axes_mode, NsubParameters(beta, R0, Rcutoff)), _N(N) {}
+   : _njettinessFinder(axes_mode, beta, R0, Rcutoff), _N(N) {}
 
    //new constructor definition added by TJW 1/7
    Nsubjettiness(int N, 
