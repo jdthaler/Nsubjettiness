@@ -110,7 +110,8 @@ private:
 public:
    Njettiness(MeasureFunction* functor, AxesFinder* axesFinder) : _functor(functor), _axesFinder(axesFinder) {}
 
-   Njettiness(AxesMode axes, NsubParameters paraNsub);
+   //updated constructor to use three separate parameters instead of NsubParameters -- TJW 1/9
+   Njettiness(AxesMode axes, double beta, double R0, double Rcutoff);
    Njettiness(NsubGeometricParameters paraGeo);
 
    //new constructor to include both AxesMode and MeasureMode enums, and parameters for them -- TJW 1/7
