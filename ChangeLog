@@ -1,3 +1,6 @@
+2014-1-9 <TJ>
+   Removed NsubParameters in all functions/constructors, replaced with three separate parameters
+   Added checks for correct number of parameters in Njettiness constructor
 2014-1-8 <TJ>
    Removed normalization information from Nsubjettiness
    Added flag to MeasureFunction to give option of using the denominator
