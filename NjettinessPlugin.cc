@@ -31,8 +31,9 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 namespace contrib{
 
 //NjettinessPlugin constructors (moved from NjettinessPlugin.hh -- TJW 12/22)
+//constructor updated to remove NsubParameters -- TJW 1/9
 NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff)
-  : _N(N), _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff))
+  : _N(N), _njettinessFinder(mode, beta, R0, Rcutoff)
 {}
 
 NjettinessPlugin::NjettinessPlugin(int N, NsubGeometricParameters paraGeo)
