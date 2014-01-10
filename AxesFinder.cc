@@ -39,10 +39,11 @@ namespace contrib{
 // Minimization function definitions moved from Njettiness.hh -- TJW 12/22
 
 // Given starting axes, update to find better axes by using Kmeans clustering around the old axes --comment added by TJW
+//updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
 template <int N>
 std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
                                   const std::vector <fastjet::PseudoJet> & inputJets,
-                                  NsubParameters paraNsub, double precision) {
+                                  double beta, double R0, double Rcutoff, double precision) {
    assert(old_axes.size() == N);
    
    // some storage, declared static to save allocation/re-allocation costs
@@ -58,8 +59,9 @@ std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxesFast(cons
 #endif
    }
 
-   double beta = paraNsub.beta();
-   double Rcutoff = paraNsub.Rcutoff();
+   // no longer necessary since beta and Rcutoff are defined in arguments -- TJW 1/9
+   // double beta = paraNsub.beta();
+   // double Rcutoff = paraNsub.Rcutoff();
    
    /////////////// Assignment Step //////////////////////////////////////////////////////////
    std::vector<int> assignment_index(inputJets.size()); 
@@ -140,30 +142,31 @@ std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxesFast(cons
 
 // Given N starting axes, this function updates all axes to find N better axes. 
 // (This is just a wrapper for the templated version above.)
+//updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
 std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
-                                      const std::vector <fastjet::PseudoJet> & inputJets, NsubParameters paraNsub, double precision) {
+                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double R0, double Rcutoff, double precision) {
    int N = old_axes.size();
    switch (N) {
-      case 1: return UpdateAxesFast<1>(old_axes, inputJets, paraNsub, precision);
-      case 2: return UpdateAxesFast<2>(old_axes, inputJets, paraNsub, precision);
-      case 3: return UpdateAxesFast<3>(old_axes, inputJets, paraNsub, precision);
-      case 4: return UpdateAxesFast<4>(old_axes, inputJets, paraNsub, precision);
-      case 5: return UpdateAxesFast<5>(old_axes, inputJets, paraNsub, precision);
-      case 6: return UpdateAxesFast<6>(old_axes, inputJets, paraNsub, precision);
-      case 7: return UpdateAxesFast<7>(old_axes, inputJets, paraNsub, precision);
-      case 8: return UpdateAxesFast<8>(old_axes, inputJets, paraNsub, precision);
-      case 9: return UpdateAxesFast<9>(old_axes, inputJets, paraNsub, precision);
-      case 10: return UpdateAxesFast<10>(old_axes, inputJets, paraNsub, precision);
-      case 11: return UpdateAxesFast<11>(old_axes, inputJets, paraNsub, precision);
-      case 12: return UpdateAxesFast<12>(old_axes, inputJets, paraNsub, precision);
-      case 13: return UpdateAxesFast<13>(old_axes, inputJets, paraNsub, precision);
-      case 14: return UpdateAxesFast<14>(old_axes, inputJets, paraNsub, precision);
-      case 15: return UpdateAxesFast<15>(old_axes, inputJets, paraNsub, precision);
-      case 16: return UpdateAxesFast<16>(old_axes, inputJets, paraNsub, precision);
-      case 17: return UpdateAxesFast<17>(old_axes, inputJets, paraNsub, precision);
-      case 18: return UpdateAxesFast<18>(old_axes, inputJets, paraNsub, precision);
-      case 19: return UpdateAxesFast<19>(old_axes, inputJets, paraNsub, precision);
-      case 20: return UpdateAxesFast<20>(old_axes, inputJets, paraNsub, precision);
+      case 1: return UpdateAxesFast<1>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 2: return UpdateAxesFast<2>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 3: return UpdateAxesFast<3>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 4: return UpdateAxesFast<4>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 5: return UpdateAxesFast<5>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 6: return UpdateAxesFast<6>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 7: return UpdateAxesFast<7>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 8: return UpdateAxesFast<8>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 9: return UpdateAxesFast<9>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 10: return UpdateAxesFast<10>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 11: return UpdateAxesFast<11>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 12: return UpdateAxesFast<12>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 13: return UpdateAxesFast<13>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 14: return UpdateAxesFast<14>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 15: return UpdateAxesFast<15>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 16: return UpdateAxesFast<16>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 17: return UpdateAxesFast<17>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 18: return UpdateAxesFast<18>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 19: return UpdateAxesFast<19>(old_axes, inputJets, beta, R0, Rcutoff, precision);
+      case 20: return UpdateAxesFast<20>(old_axes, inputJets, beta, R0, Rcutoff, precision);
       default: std::cout << "N-jettiness is hard-coded to only allow up to 20 jets!" << std::endl;
          return std::vector<LightLikeAxis>();
    }
@@ -197,8 +200,11 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
 	
 	std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);   
 	KmeansParameters para = _paraKmeans;
-	NsubParameters paraNsub = _paraNsub;
-	MeasureFunction* functor = _functor;
+  // parameter definitions added and paraNsub definition removed -- TJW 1/9
+	double beta = _beta;
+  double R0 = _R0;
+  double Rcutoff = _Rcutoff;
+  MeasureFunction* functor = _functor;
     double noise = 0, tau = 10000.0, tau_tmp, cmp;
     std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
     std::vector<fastjet::PseudoJet> tmp_min_axes, min_axes;
@@ -218,7 +224,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
       cmp = 100.0; int h = 0;
       while (cmp > para.precision() && h < para.halt()) { // Keep updating axes until near-convergence or too many update steps
          cmp = 0.0; h++;
-         new_axes = UpdateAxes(old_axes, inputJets, paraNsub, para.precision()); // Update axes
+         new_axes = UpdateAxes(old_axes, inputJets, beta, R0, Rcutoff, para.precision()); // Update axes //updated to use separate parameters instead of NsubParameters -- TJW 1/9
          for (int k = 0; k < n_jets; k++) {
             cmp += old_axes[k].Distance(new_axes[k]);
          }
