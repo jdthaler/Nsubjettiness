@@ -232,14 +232,20 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
    private:
       AxesFinder* _startingFinder;
       KmeansParameters _paraKmeans;
-      NsubParameters _paraNsub;
       
       MeasureFunction* _functor;
+
+      //use separate beta, R0, Rcutoff since NsubParameters is no longer used -- TJW 1/9
+      double _beta;
+      double _R0;
+      double _Rcutoff;
       
    public:
-      AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, NsubParameters paraNsub)
-         : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _paraNsub(paraNsub) {
-         _functor = new DefaultNormalizedMeasure(paraNsub); //name changed to DefaultNormalizedMeasure -- TJW 1/7
+
+      //updated constructor to use three separate parameters instead of NsubParameters in definition of DefaultNormalizedMeasure -- TJW 1/9
+      AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, double beta, double R0, double Rcutoff)
+         : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {
+         _functor = new DefaultNormalizedMeasure(beta, R0, Rcutoff); //name changed to DefaultNormalizedMeasure -- TJW 1/7
       }
       
       ~AxesFinderFromKmeansMinimization() {
@@ -249,12 +255,14 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
 
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
 
+      //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9
       template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
                                   const std::vector <fastjet::PseudoJet> & inputJets,
-                                  NsubParameters paraNsub, double precision);
-                                  
+                                  double beta, double R0, double Rcutoff, double precision);
+
+      //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
       std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
-                                      const std::vector <fastjet::PseudoJet> & inputJets, NsubParameters paraNsub, double precision);
+                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double R0, double Rcutoff, double precision);
       
 };
 
