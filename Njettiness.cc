@@ -76,9 +76,11 @@ Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
 }
 
 //Constructor sets KmeansParameters from NsubAxesMode input
-Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 
-   _functor = new DefaultNormalizedMeasure(paraNsub);  //Is there a way to do this without pointers?
+//updated constructor to take in three parameter values instead of NsubParameters -- TJW 1/9
+Njettiness::Njettiness(AxesMode axes, double beta, double R0, double Rcutoff) {
+
+   _functor = new DefaultNormalizedMeasure(beta, R0, Rcutoff);  //Is there a way to do this without pointers?
 
    // memory management note, AxesFinderFromKmeansMinimization is responsible for deleting its subpointer.
    // TODO: convert to smart pointers
@@ -91,10 +93,10 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
          _axesFinder = new AxesFinderFromWTA_CA(); 
          break;
       case wta_onepass_kt_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff); 
          break;
       case wta_onepass_ca_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff); 
          break;
       case kt_axes:
          _axesFinder = new AxesFinderFromKT();
@@ -106,19 +108,19 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
          _axesFinder = new AxesFinderFromAntiKT(0.2);      
          break;
       case onepass_kt_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);      
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);      
          break;
       case onepass_ca_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);
          break;
       case onepass_antikt_0p2_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);
          break;
       case onepass_manual_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);
          break;
       case min_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), paraNsub);
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), beta, R0, Rcutoff);
          break;
       case manual_axes:
          _axesFinder = new AxesFinderFromUserInput();
@@ -133,10 +135,8 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
 //new constructor added to include both AxesMode and MeasureMode enums -- TJW 1/7
 Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3) {
 
-   //parameters needed since DefaultMeasure and KmeansMinization require NsubParameters in their constructor; should add new constructors in order to get rid of dependence on these parameters -- TJW
-   NsubParameters paraNsub(para1, para2, para3);
-
    //choose which AxesFinder to use 
+   // cerr outputs are added to make sure minimization axes finders are only used when all three parameters are given -- TJW 1/9
    switch (axes_mode) {
       case wta_kt_axes:
          _axesFinder = new AxesFinderFromWTA_KT(); 
@@ -145,10 +145,18 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
          _axesFinder = new AxesFinderFromWTA_CA(); 
          break;
       case wta_onepass_kt_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3); 
+         else { 
+            std::cerr << "wta_onepass_kt_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case wta_onepass_ca_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), paraNsub); 
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3); 
+         else { 
+            std::cerr << "wta_onepass_ca_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case kt_axes:
          _axesFinder = new AxesFinderFromKT();
@@ -160,19 +168,39 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
          _axesFinder = new AxesFinderFromAntiKT(0.2);      
          break;
       case onepass_kt_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);      
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);      
+         else { 
+            std::cerr << "onepass_kt_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case onepass_ca_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);
+         else { 
+            std::cerr << "onepass_ca_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case onepass_antikt_0p2_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);
+         else { 
+            std::cerr << "onepass_antikt_0p2_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case onepass_manual_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);
+         else { 
+            std::cerr << "onepass_manual_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case min_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), paraNsub);
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), para1, para2, para3);
+         else { 
+            std::cerr << "min_axes has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case manual_axes:
          _axesFinder = new AxesFinderFromUserInput();
@@ -185,13 +213,25 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
    //choose which MeasureFunction to use (added separate DefaultNormalizatedMeasure and DefaultUnnormalizedMeasure classes in MeasureFunction -- TJW 1/8)
    switch (measure_mode) {
       case normalized_measure:
-         _functor = new DefaultNormalizedMeasure(paraNsub); //DefaultNormalizedMeasure currently requires a NsubParameter argument in its constructor
+         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _functor = new DefaultNormalizedMeasure(para1, para2, para3); //updated constructor that uses three parameter values instead of paraNsub
+         else { 
+            std::cerr << "normalized_measure has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case unnormalized_measure:
-         _functor = new DefaultUnnormalizedMeasure(para1, para2); //Unnormalized measure only requires two parameters, beta and Rcutoff
+         if(!isnan(para1) && !isnan(para2) && isnan(para3)) _functor = new DefaultUnnormalizedMeasure(para1, para2); //Unnormalized measure only requires two parameters, beta and Rcutoff
+         else {
+            std::cerr << "unnormalized_measure has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       case geometric_measure:
-         _functor = new GeometricMeasure(para1); //geometric measure only requires 1 parameter, Rcutoff
+         if(!isnan(para1) && isnan(para2) && isnan(para3)) _functor = new GeometricMeasure(para1); //geometric measure only requires 1 parameter, Rcutoff
+         else {
+            std::cerr << "geometric_measure has incorrect number of parameters!" << std::endl;
+            exit(1);
+         }
          break;
       default:
          assert(false);
