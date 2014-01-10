@@ -45,23 +45,8 @@ inline double sq(double x) {return x*x;}
 ///////
 //classes moved from Njettiness in order to avoid cross-references in AxesFinder and MeasureFunctor -- TJW 12/28
 
-//------------------------------------------------------------------------
-/// \class NsubParameters
-// These parameters define Njettiness. These characteristic parameters are used to define how tau_N is calculated
-// using MeasureFunction -- comment added by TJ 
-class NsubParameters {
-private:
-   double _beta;  // angular weighting exponent
-   double _R0;    // characteristic jet radius (for normalization)
-   double _Rcutoff;  // Cutoff scale for cone jet finding (default is large number such that no boundaries are used)
-   
-public:
-   NsubParameters(const double mybeta, const double myR0, const double myRcutoff=10000.0) :
-   _beta(mybeta), _R0(myR0), _Rcutoff(myRcutoff) {}
-   double beta() const {return _beta;}
-   double R0() const {return _R0;}
-   double Rcutoff() const {return _Rcutoff;}
-};
+// NsubParameters class removed since it is no longer necessary -- TJW 1/9
+
 //------------------------------------------------------------------------
 /// \class NsubGeometricParameters
 // Parameters that define GeometricMeasure. This parameter is used in the classes that find axes through
@@ -139,6 +124,7 @@ class MeasureFunction {
 
 // moved from Njettiness.hh -- TJW 12/28
 // name changed to DefaultNormalizedMeasure -- TJW 1/7
+// updated to use three separate parameters in constructor instead of NsubParameters, changed all constructor definitions in other files -- TJW 1/9
 //------------------------------------------------------------------------
 /// \class DefaultNormalizedMeasure
 // This class is the default measure, inheriting from the class above. This class will calculate tau_N 
@@ -147,14 +133,18 @@ class MeasureFunction {
 class DefaultNormalizedMeasure : public MeasureFunction {
 
    private:
-      NsubParameters _paraNsub;
+      double _beta;
+      double _R0;
+      double _Rcutoff;
 
    public:
-      DefaultNormalizedMeasure(NsubParameters paraNsub, bool normalized = true) : MeasureFunction(normalized), _paraNsub(paraNsub) {}
+
+      //new constructor to use three separate parameters intead of NsubParameters -- TJW 1/9
+      DefaultNormalizedMeasure(double beta, double R0, double Rcutoff, bool normalized = true) : MeasureFunction(normalized), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
       //MeasureFunction(true) tells MeasureFunction to use the denominator, since this value is normalized. -- TJW
 
       virtual bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         return (distance(particle,axis) <= _paraNsub.Rcutoff());
+         return (distance(particle,axis) <= _Rcutoff);
       }
 
       virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
@@ -163,12 +153,12 @@ class DefaultNormalizedMeasure : public MeasureFunction {
 
       virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
          double deltaR = std::sqrt(particle.squared_distance(axis));
-         if (deltaR > _paraNsub.Rcutoff()) deltaR = _paraNsub.Rcutoff();
-         return particle.perp() * std::pow(deltaR,_paraNsub.beta());
+         if (deltaR > _Rcutoff) deltaR = _Rcutoff;
+         return particle.perp() * std::pow(deltaR,_beta);
       }
 
       virtual double denominator(const fastjet::PseudoJet& particle) {
-         return particle.perp() * std::pow(_paraNsub.R0(),_paraNsub.beta());
+         return particle.perp() * std::pow(_R0,_beta);
       }
 
 };
@@ -181,7 +171,8 @@ class DefaultNormalizedMeasure : public MeasureFunction {
 class DefaultUnnormalizedMeasure : public DefaultNormalizedMeasure {
 
    public:
-      DefaultUnnormalizedMeasure(double beta, double Rcutoff) : DefaultNormalizedMeasure(NsubParameters(beta, NAN, Rcutoff), false) {}
+      //removed NsubParameters from DefaultNormalizedMeasure constructor -- TJW 1/9
+      DefaultUnnormalizedMeasure(double beta, double Rcutoff) : DefaultNormalizedMeasure(beta, NAN, Rcutoff, false) {}
       // Since all methods are identical, UnnormalizedMeasure inherits directly from NormalizedMeasure. R0 is defaulted to NAN since the value of R0 is unecessary for this class. 
       // the "false" flag sets _has_denominator in MeasureFunction to false so no denominator is used. -- TJW
       
