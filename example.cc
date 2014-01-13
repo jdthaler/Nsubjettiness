@@ -278,7 +278,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    ClusterSequence njet_seq(input_particles, njet_jetDef);
    vector<PseudoJet> njet_jets = njet_seq.inclusive_jets();
 
-   NjettinessPlugin geo_plugin(3, NsubGeometricParameters(1.0));
+   // NjettinessPlugin geo_plugin(3, NsubGeometricParameters(1.0));
+   NjettinessPlugin geo_plugin(3, 1.0);
    JetDefinition geo_jetDef(&geo_plugin);
    ClusterSequence geo_seq(input_particles, geo_jetDef);
    vector<PseudoJet> geo_jets = geo_seq.inclusive_jets();
