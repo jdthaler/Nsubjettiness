@@ -101,9 +101,17 @@ public:
    NsubjettinessRatio(int N, int M, 
       Njettiness::AxesMode mode, 
       double beta, 
-      double R0 = 1.0, //added R0 to constructor arguments and default it to 1.0 since it is unimportant for ratio -- TJW 12/28
       double Rcutoff=std::numeric_limits<double>::max())
-   : _nsub_numerator(N, mode, beta, R0, Rcutoff), _nsub_denominator(M, mode, beta, R0, Rcutoff) {};
+   : _nsub_numerator(N, mode, beta, 1.0, Rcutoff), _nsub_denominator(M, mode, beta, 1.0, Rcutoff) {};
+   // TODO:  Set constant for R0 = 1.0 so that we don't have magic numbers
+
+   // new constructor to match new Nsubjettiness constructor -- TJW 1/10
+   NsubjettinessRatio(int N, int M, 
+      Njettiness::AxesMode axes_mode, 
+      Njettiness::MeasureMode measure_mode,
+      double beta, 
+      double Rcutoff=std::numeric_limits<double>::max())
+   : _nsub_numerator(N, axes_mode, measure_mode, beta, 1.0, Rcutoff), _nsub_denominator(M, axes_mode, measure_mode, beta, 1.0, Rcutoff) {};
    // TODO:  Set constant for R0 = 1.0 so that we don't have magic numbers
 
    //changed return value from double to Double32_t to match Nsubjettiness class -- TJW 12/22
