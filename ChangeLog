@@ -1,3 +1,12 @@
+2014-1-12 <TJ>
+   Removed NsubGeometricParameters in all functions/constructors, replaced with Rcutoff double
+   Added three new measure mode options where Rcutoff is declared explicitly in parameters
+   Added checks so minimization axes finders are not used for geometric measures
+   AxesFinderFromOnePassMinimization class created as child of AxesFinderFromKmeansMinimization
+   Added new NsubjettinessRatio constructor to include MeasureMode option
+   Moved AxesFinder and MeasureFunction declarations from AxesMode and MeasureMode into separate Njettiness function
+   Removed R0 from AxesFinderFromKmeansMinimization
+   Changed example.cc to get rid of use of NsubGeometricParameters
 2014-1-9 <TJ>
    Removed NsubParameters in all functions/constructors, replaced with three separate parameters
    Added checks for correct number of parameters in Njettiness constructor
