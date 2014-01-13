@@ -46,19 +46,7 @@ inline double sq(double x) {return x*x;}
 //classes moved from Njettiness in order to avoid cross-references in AxesFinder and MeasureFunctor -- TJW 12/28
 
 // NsubParameters class removed since it is no longer necessary -- TJW 1/9
-
-//------------------------------------------------------------------------
-/// \class NsubGeometricParameters
-// Parameters that define GeometricMeasure. This parameter is used in the classes that find axes through
-// geometric minimization. -- comment added by TJ
-class NsubGeometricParameters {
-private:
-   double _Rcutoff;  // Cutoff scale for cone jet finding (default is large number such that no boundaries are used)
-   
-public:
-   NsubGeometricParameters(const double myRcutoff=10000.0) : _Rcutoff(myRcutoff) {}
-   double Rcutoff() const {return _Rcutoff;}
-};
+// NsubGeometricParameters class removed since it is no longer necessary -- TJW 1/10
 
 //KmeansParameters class moved to AxesFinder.hh -- TJW 12/31
 
