@@ -68,75 +68,74 @@ void Njettiness::establishAxes(unsigned int n_jets, const std::vector <fastjet::
    _currentAxes = _axesFinder->getAxes(n_jets,inputs,_currentAxes);   
 }
 
+//created separate function to set MeasureFunction and AxesFinder from modes in order to reduce redundant code in Njettiness constructors -- TJW 1/11
+void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3) {
 
-Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
-   double Rcutoff = paraGeo.Rcutoff();
-   _functor = new GeometricMeasure(Rcutoff);
-   _axesFinder = new AxesFinderFromGeometricMinimization(new AxesFinderFromKT(),Rcutoff);
-}
+   // definition of maximum Rcutoff for non-cutoff measures -- TJW 1/11
+   double max_Rcutoff = std::numeric_limits<double>::max();
 
-//Constructor sets KmeansParameters from NsubAxesMode input
+   //choose which MeasureFunction to use (added separate DefaultNormalizatedMeasure and DefaultUnnormalizedMeasure classes in MeasureFunction -- TJW 1/8)
+   // added normalized_cutoff_measure, unnormalized_cutoff_measure, and geometric_cutoff_measure to use an explicit Rcutoff (as opposed to the largest possible number) -- TJW 1/10
+   // value of Rcutoff set differently depending on measure chosen to reduce the number of measure checks necessary in the AxesFinder section -- TJW 1/11
+   double Rcutoff;
 
-//updated constructor to take in three parameter values instead of NsubParameters -- TJW 1/9
-Njettiness::Njettiness(AxesMode axes, double beta, double R0, double Rcutoff) {
-
-   _functor = new DefaultNormalizedMeasure(beta, R0, Rcutoff);  //Is there a way to do this without pointers?
-
-   // memory management note, AxesFinderFromKmeansMinimization is responsible for deleting its subpointer.
-   // TODO: convert to smart pointers
-
-   switch (axes) {
-      case wta_kt_axes:
-         _axesFinder = new AxesFinderFromWTA_KT(); 
+   switch (measure_mode) {
+      case normalized_measure:
+         Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
+         if(correctParameterCount(2, para1, para2, para3)) 
+            _functor = new DefaultNormalizedMeasure(para1, para2, Rcutoff); //normalized_measure requires 2 parameters, beta and R0
+         else { 
+            std::cerr << "normalized_measure needs 2 parameters (beta and R0)" << std::endl;
+            exit(1); }
          break;
-      case wta_ca_axes:
-         _axesFinder = new AxesFinderFromWTA_CA(); 
+      case unnormalized_measure:
+         Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
+         if(correctParameterCount(1, para1, para2, para3)) 
+            _functor = new DefaultUnnormalizedMeasure(para1, Rcutoff); //unnormalized_measure requires 1 parameter, beta
+         else {
+            std::cerr << "unnormalized_measure needs 1 parameter (beta)" << std::endl;
+            exit(1); }
          break;
-      case wta_onepass_kt_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff); 
+      case geometric_measure:
+         Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
+         if(correctParameterCount(0, para1, para2, para3)) 
+            _functor = new GeometricMeasure(Rcutoff); //geometric_measure requires 0 parameters
+         else {
+            std::cerr << "geometric_measure needs 0 parameters" << std::endl;
+            exit(1); }
          break;
-      case wta_onepass_ca_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff); 
+      case normalized_cutoff_measure:
+         Rcutoff = para3; //Rcutoff parameter is 3rd parameter in normalized_cutoff_measure 
+         if(correctParameterCount(3, para1, para2, para3)) 
+            _functor = new DefaultNormalizedMeasure(para1, para2, Rcutoff); //normalized_cutoff_measure requires 3 parameters, beta, R0, and Rcutoff
+         else { 
+            std::cerr << "normalized_cutoff_measure has 3 parameters (beta, R0, Rcutoff)" << std::endl;
+            exit(1); }
          break;
-      case kt_axes:
-         _axesFinder = new AxesFinderFromKT();
+      case unnormalized_cutoff_measure:
+         Rcutoff = para2; //Rcutoff parameter is 2nd parameter in normalized_cutoff_measure
+         if(correctParameterCount(2, para1, para2, para3)) 
+            _functor = new DefaultUnnormalizedMeasure(para1, para2); //unnormalized_cutoff_measure requires 2 parameters, beta and Rcutoff
+         else {
+            std::cerr << "unnormalized_cutoff_measure has 2 parameters (beta, Rcutoff)" << std::endl;
+            exit(1); }
          break;
-      case ca_axes:
-         _axesFinder = new AxesFinderFromCA();
-         break;
-      case antikt_0p2_axes:
-         _axesFinder = new AxesFinderFromAntiKT(0.2);      
-         break;
-      case onepass_kt_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);      
-         break;
-      case onepass_ca_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);
-         break;
-      case onepass_antikt_0p2_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);
-         break;
-      case onepass_manual_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), beta, R0, Rcutoff);
-         break;
-      case min_axes:
-         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), beta, R0, Rcutoff);
-         break;
-      case manual_axes:
-         _axesFinder = new AxesFinderFromUserInput();
+      case geometric_cutoff_measure:
+         Rcutoff = para1; //Rcutoff parameter is 1st parameter in normalized_cutoff_measure
+         if(correctParameterCount(1, para1, para2, para3)) 
+            _functor = new GeometricMeasure(para1); //geometric_cutoff_measure only requires 1 parameter, Rcutoff
+         else {
+            std::cerr << "geometric_cutoff_measure has 1 parameter (Rcutoff)" << std::endl;
+            exit(1); }
          break;
       default:
          assert(false);
          break;
-   }
+   }   
 
-}
-
-//new constructor added to include both AxesMode and MeasureMode enums -- TJW 1/7
-Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3) {
-
-   //choose which AxesFinder to use 
-   // cerr outputs are added to make sure minimization axes finders are only used when all three parameters are given -- TJW 1/9
+   //choose which AxesFinder to use
+   // cerr outputs are added to make sure minimization axes finders are only used with normalized_measure, unnormalized_measure, normalized_cutoff_measure, and unnormalized_cutoff_measure -- TJW 1/11
+   // Rcutoff is set differently based on measure, so Rcutoff here is already set appropriately; para1 is always beta for non-geometric measures -- TJW 1/11
    switch (axes_mode) {
       case wta_kt_axes:
          _axesFinder = new AxesFinderFromWTA_KT(); 
@@ -144,19 +143,17 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
       case wta_ca_axes:
          _axesFinder = new AxesFinderFromWTA_CA(); 
          break;
-      case wta_onepass_kt_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_KT(), KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3); 
-         else { 
-            std::cerr << "wta_onepass_kt_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+      case onepass_wta_kt_axes:
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromOnePassMinimization(new AxesFinderFromWTA_KT(), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
-      case wta_onepass_ca_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromWTA_CA(), KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3); 
-         else { 
-            std::cerr << "wta_onepass_ca_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+      case onepass_wta_ca_axes:
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromOnePassMinimization(new AxesFinderFromWTA_CA(), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
       case kt_axes:
          _axesFinder = new AxesFinderFromKT();
@@ -165,42 +162,37 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
          _axesFinder = new AxesFinderFromCA();
          break;
       case antikt_0p2_axes:
-         _axesFinder = new AxesFinderFromAntiKT(0.2);      
+         _axesFinder = new AxesFinderFromAntiKT(0.2);     
          break;
       case onepass_kt_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);      
-         else { 
-            std::cerr << "onepass_kt_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromOnePassMinimization(new AxesFinderFromKT(), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
       case onepass_ca_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);
-         else { 
-            std::cerr << "onepass_ca_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromOnePassMinimization(new AxesFinderFromCA(), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
       case onepass_antikt_0p2_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);
-         else { 
-            std::cerr << "onepass_antikt_0p2_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromOnePassMinimization(new AxesFinderFromAntiKT(0.2), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
       case onepass_manual_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), para1, para2, para3);
-         else { 
-            std::cerr << "onepass_manual_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromOnePassMinimization(new AxesFinderFromUserInput(), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
       case min_axes:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), para1, para2, para3);
-         else { 
-            std::cerr << "min_axes has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
+         if (measure_mode != geometric_measure && measure_mode != geometric_cutoff_measure) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), para1, Rcutoff);
+         else {
+            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
+            exit(1); }
          break;
       case manual_axes:
          _axesFinder = new AxesFinderFromUserInput();
@@ -208,41 +200,7 @@ Njettiness::Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para
       default:
          assert(false);
          break;
-   }   
-
-   //choose which MeasureFunction to use (added separate DefaultNormalizatedMeasure and DefaultUnnormalizedMeasure classes in MeasureFunction -- TJW 1/8)
-   switch (measure_mode) {
-      case normalized_measure:
-         if(!isnan(para1) && !isnan(para2) && !isnan(para3)) _functor = new DefaultNormalizedMeasure(para1, para2, para3); //updated constructor that uses three parameter values instead of paraNsub
-         else { 
-            std::cerr << "normalized_measure has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
-         break;
-      case unnormalized_measure:
-         if(!isnan(para1) && !isnan(para2) && isnan(para3)) _functor = new DefaultUnnormalizedMeasure(para1, para2); //Unnormalized measure only requires two parameters, beta and Rcutoff
-         else {
-            std::cerr << "unnormalized_measure has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
-         break;
-      case geometric_measure:
-         if(!isnan(para1) && isnan(para2) && isnan(para3)) _functor = new GeometricMeasure(para1); //geometric measure only requires 1 parameter, Rcutoff
-         else {
-            std::cerr << "geometric_measure has incorrect number of parameters!" << std::endl;
-            exit(1);
-         }
-         break;
-      default:
-         assert(false);
-         break;
-   }   
-
-}
-
-Njettiness::~Njettiness() {
-   delete _functor;
-   delete _axesFinder;
+      }   
 }
 
 // Partition a list of particles according to which N-jettiness axis they are closest to.
