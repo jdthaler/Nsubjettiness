@@ -235,17 +235,19 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
       
       MeasureFunction* _functor;
 
-      //use separate beta, R0, Rcutoff since NsubParameters is no longer used -- TJW 1/9
+      // use separate beta, R0, Rcutoff since NsubParameters is no longer used -- TJW 1/9
+      // R0 removed since it is unnecessary -- TJW 1/9
       double _beta;
-      double _R0;
       double _Rcutoff;
       
    public:
 
       //updated constructor to use three separate parameters instead of NsubParameters in definition of DefaultNormalizedMeasure -- TJW 1/9
-      AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, double beta, double R0, double Rcutoff)
-         : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {
-         _functor = new DefaultNormalizedMeasure(beta, R0, Rcutoff); //name changed to DefaultNormalizedMeasure -- TJW 1/7
+      AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, double beta, double Rcutoff)
+         : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _beta(beta), _Rcutoff(Rcutoff) {
+         // _functor = new DefaultNormalizedMeasure(beta, 1.0, Rcutoff); // name changed to DefaultNormalizedMeasure -- TJW 1/7
+         //_functor changed to unnormalized because minimization is independent of R0 -- TJW 1/11
+         _functor = new DefaultUnnormalizedMeasure(beta, Rcutoff); 
       }
       
       ~AxesFinderFromKmeansMinimization() {
@@ -258,12 +260,25 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
       //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9
       template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
                                   const std::vector <fastjet::PseudoJet> & inputJets,
-                                  double beta, double R0, double Rcutoff, double precision);
+                                  double beta, double Rcutoff, double precision);
 
       //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
       std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
-                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double R0, double Rcutoff, double precision);
+                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double Rcutoff, double precision);
       
+};
+
+// class added by TJW 1/10
+//------------------------------------------------------------------------
+/// \class AxesFinderFromOnePassMinimization
+// This class defines an AxesFinder that uses Kmeans minimization, but only on a single pass. It inherits from the class above and defines a set of
+// KMeansParameters such that only one pass is made. -- comment added by TJW
+class AxesFinderFromOnePassMinimization : public AxesFinderFromKmeansMinimization {
+
+   public:
+      AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff) 
+      : AxesFinderFromKmeansMinimization(startingFinder, KmeansParameters(1,0.0001,1000,0.8), beta, Rcutoff) {}
+
 };
 
 //------------------------------------------------------------------------
