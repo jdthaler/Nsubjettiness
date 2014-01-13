@@ -140,8 +140,8 @@ class NjettinessPlugin : public JetDefinition::Plugin {
 public:
 
    NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff=std::numeric_limits<double>::max());
-   NjettinessPlugin(int N, NsubGeometricParameters);
-
+   //updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters -- TJW 1/10
+   NjettinessPlugin(int N, double Rcutoff);
 
    // The things that are required by base class.
    virtual std::string description () const;
