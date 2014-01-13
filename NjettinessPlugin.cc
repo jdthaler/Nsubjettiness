@@ -33,12 +33,11 @@ namespace contrib{
 //NjettinessPlugin constructors (moved from NjettinessPlugin.hh -- TJW 12/22)
 //constructor updated to remove NsubParameters -- TJW 1/9
 NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff)
-  : _N(N), _njettinessFinder(mode, beta, R0, Rcutoff)
-{}
+  : _N(N), _njettinessFinder(mode, beta, R0, Rcutoff) {}
 
-NjettinessPlugin::NjettinessPlugin(int N, NsubGeometricParameters paraGeo)
-  : _N(N), _njettinessFinder(paraGeo)
-{}
+// updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters for initialization of geometric measure-- TJW 1/10
+NjettinessPlugin::NjettinessPlugin(int N, double Rcutoff)
+  : _N(N), _njettinessFinder(Rcutoff) {}
 
 //NjettinessPlugin functions (moved from NjettinessPlugin.hh -- TJW 12/22)
 std::string NjettinessPlugin::description() const {return "NJettiness";}
@@ -56,7 +55,7 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    for (size_t i = 0; i < partition.size(); ++i) {
       std::list<int>& indices = partition[i];
       if (indices.size() == 0) continue;
-      std::list<int>::const_iterator it = indices.begin();
+      //std::list<int>::const_iterator it = indices.begin(); removed since unnecessary -- TJW 1/10
       while (indices.size() > 1) {
          int merge_i = indices.back(); indices.pop_back();
          int merge_j = indices.back(); indices.pop_back();
