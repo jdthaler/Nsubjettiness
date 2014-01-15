@@ -29,14 +29,11 @@ Most users will want to use the Nsubjettiness.hh or NjettinessPlugin.hh headers.
 
    The basic functionality is given by:
 
-   NsubParameters paraNsub(beta, R0, Rcutoff);
-   // beta = 1 for jet broadening, beta = 2 for thrust
-   // R0 = normalization jet radius
-   // Rcutoff = jet radius cutoff if doing jet finding through minimization
-   
-   Njettiness nSub(axesMode,paraNsub);
-   // axesMode is nsub_kt_axes, nsub_min_axes (100 iterations), nsub_1pass_from_kt_axes, etc..
-   
+   Nsubjettiness nSub(Njettiness::axesMode, Njettiness::measureMode, para1, para2, para3)
+   // axesMode is Njettiness::kt_axes, Njettiness::wta_kt_axes, Njettiness::onepass_kt_axes, etc.
+   // measureMode is Njettiness::normalized_measure, Njettiness::unnormalized_measure, Njettiness::geometric_measure, etc.
+   // para1, para2, para3 are specific to measure; normalized_measure will require 2 parameters, unnormalized_measure will require 1 parameter, etc.
+      
    // get constituents of jet
    vector<PseudoJet> jet_constituents = clust_seq.constituents(some jet);  
 
