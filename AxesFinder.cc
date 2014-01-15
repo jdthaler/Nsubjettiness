@@ -175,23 +175,18 @@ std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxes(const st
 }
 
 // Go from internal LightLikeAxis to PseudoJet
-// TODO:  Make part of LightLikeAxis class.
-std::vector<fastjet::PseudoJet> ConvertToPseudoJet(const std::vector <LightLikeAxis>& axes) {
+// function added to LightLikeAxis class, for loop moved from this function to getAxes to make function definition more natural -- TJW 1/14
+fastjet::PseudoJet LightLikeAxis::ConvertToPseudoJet(const LightLikeAxis axis) {
    
-   int n_jets = axes.size();
-   
-   double px, py, pz, E;
-   std::vector<fastjet::PseudoJet> FourVecJets;
-   for (int k = 0; k < n_jets; k++) {
-      E = axes[k].mom();
-      pz = (std::exp(2.0*axes[k].rap()) - 1.0) / (std::exp(2.0*axes[k].rap()) + 1.0) * E;
-      px = std::cos(axes[k].phi()) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
-      py = std::sin(axes[k].phi()) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
-      fastjet::PseudoJet temp = fastjet::PseudoJet(px,py,pz,E);
-      FourVecJets.push_back(temp);
-   }
-   return FourVecJets;
+     double px, py, pz, E;
+      E = axis.mom();
+      pz = (std::exp(2.0*axis.rap()) - 1.0) / (std::exp(2.0*axis.rap()) + 1.0) * E;
+      px = std::cos(axis.phi()) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
+      py = std::sin(axis.phi()) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
+      fastjet::PseudoJet FourVecJet = fastjet::PseudoJet(px,py,pz,E);
+      return FourVecJet;
 }
+
 
 // GetMinimumAxes replaced with getAxes, first 4 lines declare instances of parameters to match previous definition -- TJW 12/28  
 
@@ -204,7 +199,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
   // parameter definitions added and paraNsub definition removed -- TJW 1/9
 	double beta = _beta;
   double Rcutoff = _Rcutoff;
-  MeasureFunction* functor = _functor;
+  MeasureFunction* function = _function;
     double noise = 0, tau = 10000.0, tau_tmp, cmp;
     std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
     std::vector<fastjet::PseudoJet> tmp_min_axes, min_axes;
@@ -231,9 +226,17 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
          cmp = cmp / ((double) n_jets);
          old_axes = new_axes;
       }
-      tmp_min_axes = ConvertToPseudoJet(old_axes); // Convert axes directions into four-std::vectors
 
-      tau_tmp = functor->tau(inputJets, tmp_min_axes); 
+      int n_jets = old_axes.size();
+   
+      // updated to include for loop in this function since ConvertToPseudoJet is only defined for individual LightLikeAxis -- TJW 1/14
+      std::vector<fastjet::PseudoJet> tmp_min_axes;
+      for (int k = 0; k < n_jets; k++) {
+          fastjet::PseudoJet temp = old_axes[k].ConvertToPseudoJet(old_axes[k]);
+          tmp_min_axes.push_back(temp);
+      }
+
+      tau_tmp = function->tau(inputJets, tmp_min_axes); 
       if (tau_tmp < tau) {tau = tau_tmp; min_axes = tmp_min_axes;} // Keep axes and tau only if they are best so far
    }	
    return min_axes;
@@ -246,7 +249,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
 std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
     std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
-    double seedTau = _functor->tau(particles,seedAxes);
+    double seedTau = _function->tau(particles,seedAxes);
          
     for (int i = 0; i < _nAttempts; i++) {
             
@@ -256,21 +259,21 @@ std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int
             double minDist = 100000000.0; //large number    
             int minJ = -1; //bad ref
             for (unsigned int j = 0; j < seedAxes.size(); j++) {
-                double tempDist = _functor->distance(particles[i],seedAxes[j]);
+                double tempDist = _function->distance(particles[i],seedAxes[j]);
                 if (tempDist < minDist) {
                     minDist = tempDist;
                     minJ = j;
                 }
             }
                
-            if (_functor->do_cluster(particles[i],seedAxes[minJ])) {
+            if (_function->do_cluster(particles[i],seedAxes[minJ])) {
                 newAxes[minJ] += particles[i];
             }
         }
 
         seedAxes = newAxes;
             
-        double tempTau = _functor->tau(particles,newAxes);
+        double tempTau = _function->tau(particles,newAxes);
 
         if (fabs(tempTau - seedTau) < _accuracy) break;
         seedTau = tempTau;
