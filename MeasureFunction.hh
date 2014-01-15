@@ -110,6 +110,47 @@ class MeasureFunction {
 
 };
 
+// class added by TJW 1/14
+//------------------------------------------------------------------------
+/// \class NjettinessComponents
+// This class creates a wrapped for the various tau/subtau values defined in MeasureFunction above. This class allows Njettiness access to these variables
+// without ever having to do the calculation itself.
+class NjettinessComponents {
+   private:
+
+      MeasureFunction* _function;
+
+      std::vector<double> _subtaus_numerator;
+      double _tau_numerator;
+      double _denom;
+
+      std::vector<double> _subtaus_norm;
+      double _tau_norm;
+
+   public: 
+      NjettinessComponents(MeasureFunction *function, std::vector<fastjet::PseudoJet> inputs, std::vector<fastjet::PseudoJet> current_axes) : _function(function) {
+         _subtaus_numerator = function->subtaus_numerator(inputs, current_axes);
+         _denom = function->tau_denominator(inputs);
+
+         _tau_norm = 0.0;
+         _tau_numerator = 0.0;
+         _subtaus_norm.resize(_subtaus_numerator.size(),0.0);
+         for (unsigned j = 0; j < _subtaus_numerator.size(); j++) {
+            _subtaus_norm[j] = _subtaus_numerator[j]/_denom;
+            _tau_numerator += _subtaus_numerator[j];
+            _tau_norm += _subtaus_norm[j];
+         }
+      }
+
+      std::vector<double> get_subtaus_numerator() { return _subtaus_numerator; }
+      double get_tau_numerator() { return _tau_numerator; }
+      double get_denom() { return _denom; }
+
+      std::vector<double> get_subtaus_norm() { return _subtaus_norm; }
+      double get_tau_norm() { return _tau_norm; }
+
+};
+
 // moved from Njettiness.hh -- TJW 12/28
 // name changed to DefaultNormalizedMeasure -- TJW 1/7
 // updated to use three separate parameters in constructor instead of NsubParameters, changed all constructor definitions in other files -- TJW 1/9
