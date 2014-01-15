@@ -233,7 +233,7 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
       AxesFinder* _startingFinder;
       KmeansParameters _paraKmeans;
       
-      MeasureFunction* _functor;
+      MeasureFunction* _function;
 
       // use separate beta, R0, Rcutoff since NsubParameters is no longer used -- TJW 1/9
       // R0 removed since it is unnecessary -- TJW 1/9
@@ -245,14 +245,13 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
       //updated constructor to use three separate parameters instead of NsubParameters in definition of DefaultNormalizedMeasure -- TJW 1/9
       AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, double beta, double Rcutoff)
          : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _beta(beta), _Rcutoff(Rcutoff) {
-         // _functor = new DefaultNormalizedMeasure(beta, 1.0, Rcutoff); // name changed to DefaultNormalizedMeasure -- TJW 1/7
-         //_functor changed to unnormalized because minimization is independent of R0 -- TJW 1/11
-         _functor = new DefaultUnnormalizedMeasure(beta, Rcutoff); 
+         //_function changed to unnormalized because minimization is independent of R0 -- TJW 1/11
+         _function = new DefaultUnnormalizedMeasure(beta, Rcutoff); 
       }
       
       ~AxesFinderFromKmeansMinimization() {
          delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
-         delete _functor;
+         delete _function;
       }
 
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
@@ -275,9 +274,10 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
 // KMeansParameters such that only one pass is made. -- comment added by TJW
 class AxesFinderFromOnePassMinimization : public AxesFinderFromKmeansMinimization {
 
+   // noise parameter changed to NAN -- TJW 1/13
    public:
       AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff) 
-      : AxesFinderFromKmeansMinimization(startingFinder, KmeansParameters(1,0.0001,1000,0.8), beta, Rcutoff) {}
+      : AxesFinderFromKmeansMinimization(startingFinder, KmeansParameters(1,0.0001,1000,NAN), beta, Rcutoff) {}
 
 };
 
@@ -289,7 +289,7 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
 
    private:
       AxesFinder* _startingFinder;
-      MeasureFunction* _functor;
+      MeasureFunction* _function;
       double _Rcutoff;
       double _nAttempts;
       double _accuracy;
@@ -299,12 +299,12 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
       AxesFinderFromGeometricMinimization(AxesFinder* startingFinder, double Rcutoff) : _startingFinder(startingFinder), _Rcutoff(Rcutoff) {
          _nAttempts = 100;
          _accuracy = 0.000000001;
-         _functor = new GeometricMeasure(_Rcutoff);
+         _function = new GeometricMeasure(_Rcutoff);
       }
 
       ~AxesFinderFromGeometricMinimization() {
          delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
-         delete _functor;
+         delete _function;
       }
 
       //definition of getAxes moved to AxesFinder.cc, since it is a large function -- TJW 12/28      
@@ -347,6 +347,9 @@ public:
    void set_weight(double my_set_weight) {_weight = my_set_weight;}
    void set_mom(double my_set_mom) {_mom = my_set_mom;}
    void reset(double my_rap, double my_phi, double my_weight, double my_mom) {_rap=my_rap; _phi=my_phi; _weight=my_weight; _mom=my_mom;}
+
+   // floating function moved to LightLikeAxis class -- TJW 1/14
+   fastjet::PseudoJet ConvertToPseudoJet(LightLikeAxis axis);
    
    double DistanceSq(const fastjet::PseudoJet& input) const {
       return DistanceSq(input.rap(),input.phi());
