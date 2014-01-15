@@ -1,3 +1,10 @@
+2014-1-14 <TJ>
+   Added NjettinessComponents class so Njettiness does not recalculate tau values
+   Removed old Njettiness constructors, updated Nsubjettiness and NjettinessPlugin constructors to use new constructor
+   Added geometric minimization to OnePassAxesFinders
+   Created new Njettiness function to set OnePassAxesFinders to reduce code
+   Updated LightLikeAxis with ConvertToPseudoJet function
+   Updated README with new functionality of code
 2014-1-12 <TJ>
    Removed NsubGeometricParameters in all functions/constructors, replaced with Rcutoff double
    Added three new measure mode options where Rcutoff is declared explicitly in parameters
