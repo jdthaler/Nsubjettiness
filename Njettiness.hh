@@ -95,8 +95,9 @@ public:
    };
 
 private:
-   MeasureFunction* _functor;
+   MeasureFunction* _function;
    AxesFinder* _axesFinder;
+   NjettinessComponents *njet_components;
 
    std::vector<fastjet::PseudoJet> _currentAxes;
 
@@ -110,48 +111,68 @@ private:
    void establishAxes(unsigned n_jets, const std::vector <fastjet::PseudoJet> & inputs);
    void establishTaus(const std::vector <fastjet::PseudoJet> & inputs);
 
-   //created separate function to set MeasureFunction and AxesFinder in order to reduce redundant code in Njettiness constructors -- TJW 1/11
-   void setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3);
-
    //created new function to check to make sure input has correct number of parameters -- TJW 1/10
-   bool correctParameterCount(int n, double para1, double para2, double para3){
+   bool correctParameterCount(int n, double para1, double para2, double para3, double para4){
       int numpara;
-      if (!isnan(para1) && !isnan(para2) && !isnan(para3)) numpara = 3;
-      else if (!isnan(para1) && !isnan(para2) && isnan(para3)) numpara = 2;
-      else if (!isnan(para1) && isnan(para2) && isnan(para3)) numpara = 1;
+      if (!isnan(para1) && !isnan(para2) && !isnan(para3) && !isnan(para4)) numpara = 4;
+      if (!isnan(para1) && !isnan(para2) && !isnan(para3) && isnan(para4)) numpara = 3;
+      else if (!isnan(para1) && !isnan(para2) && isnan(para3) && isnan(para4)) numpara = 2;
+      else if (!isnan(para1) && isnan(para2) && isnan(para3) && isnan(para4)) numpara = 1;
       else numpara = 0;
       return n == numpara;
    }
-   
+
+   // created new function to set onepass_axes depending on input measure_mode and startingFinder-- TJW 1/13
+   AxesFinder* setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double para1, double Rcutoff) {
+      AxesFinder *onepass_axes;
+      if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure) {
+         onepass_axes = new AxesFinderFromOnePassMinimization(startingFinder, para1, Rcutoff);
+      }
+      else if (measure_mode == geometric_measure || measure_mode == geometric_cutoff_measure) {
+         onepass_axes = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
+      }
+      else {
+         std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
+         exit(1); }
+      return onepass_axes;
+
+   }
+ 
+   //created separate function to set MeasureFunction and AxesFinder in order to reduce redundant code in Njettiness constructors -- TJW 1/11
+   void setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4);
+
 public:
-   Njettiness(MeasureFunction* functor, AxesFinder* axesFinder) : _functor(functor), _axesFinder(axesFinder) {}
+   Njettiness(MeasureFunction* function, AxesFinder* axesFinder) : _function(function), _axesFinder(axesFinder) {}
 
    // updated constructor to use three separate parameters instead of NsubParameters -- TJW 1/9
    // updated to use new private function defined above -- TJW 1/11
-   Njettiness(AxesMode axes_mode, double beta, double R0, double Rcutoff) {
-      setMeasureFunctionandAxesFinder(axes_mode, normalized_cutoff_measure, beta, R0, Rcutoff);
-   }
+   // constructor removed since it is never explicitly used by the user -- TJW 1/13
+   // Njettiness(AxesMode axes_mode, double beta, double R0, double Rcutoff) {
+   //    setMeasureFunctionandAxesFinder(axes_mode, normalized_cutoff_measure, beta, R0, Rcutoff);
+   // }
 
    //new constructor to include both AxesMode and MeasureMode enums, and parameters for them -- TJW 1/7
    // updated to use new private function defined above -- TJW 1/11
-   Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN) {
-      setMeasureFunctionandAxesFinder(axes_mode, measure_mode, para1, para2, para3);      
+   // updated to include 4th parameter (if necessary) -- TJW 
+   Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN, double para4 = NAN) {
+      setMeasureFunctionandAxesFinder(axes_mode, measure_mode, para1, para2, para3, para4);      
    }
    
    // updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters for initialization of geometric measure-- TJW 1/10
-   // constructor definition moved from Njettiness.cc -- TJW 1/11
-   Njettiness(double Rcutoff) {
-      _functor = new GeometricMeasure(Rcutoff);
-      _axesFinder = new AxesFinderFromGeometricMinimization(new AxesFinderFromKT(),Rcutoff);
-   }
+   // constructor definition moved from Njettiness.cc -- TJW 1/11   
+   // this constructor should no longer exist because the user should specify geometric_measure with above constructor. -- TJW 1/14
+   // Njettiness(double Rcutoff) {
+   //    _function = new GeometricMeasure(Rcutoff);
+   //    _axesFinder = new AxesFinderFromGeometricMinimization(new AxesFinderFromKT(),Rcutoff);
+   // }
 
    // constructor definition moved from Njettiness.cc -- TJW 1/11
    ~Njettiness() {
-      delete _functor;
+      delete _function;
       delete _axesFinder;
    }
 
-   void setMeasureFunction(MeasureFunction* newFunctor) {_functor = newFunctor;}
+   void setMeasureFunction(MeasureFunction* newFunction) {_function = newFunction;}
    void setAxesFinder(AxesFinder* newAxesFinder) {_axesFinder = newAxesFinder;}
    
    // setAxes for Manual mode
