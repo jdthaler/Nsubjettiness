@@ -55,19 +55,20 @@ public:
    //moved constructor definition to here to clean up code -- TJW 12/25
    //removed normalization bool argument -- TJW 1/8
    //removed NsubParameters in Njettiness constructor -- TJW 1/9
+   // updated to use new Njettiness constructor with normalized_cutoff_measure default -- TJW 1/13
    Nsubjettiness(int N, 
       Njettiness::AxesMode axes_mode, 
       double beta, 
       double R0, 
       double Rcutoff=std::numeric_limits<double>::max())
-   : _njettinessFinder(axes_mode, beta, R0, Rcutoff), _N(N) {}
+   : _njettinessFinder(axes_mode, Njettiness::normalized_cutoff_measure, beta, R0, Rcutoff), _nsub_axes_mode(axes_mode), _nsub_measure_mode(Njettiness::normalized_cutoff_measure), _N(N) {}
 
    //new constructor definition added by TJW 1/7
    Nsubjettiness(int N, 
       Njettiness::AxesMode axes_mode, 
       Njettiness::MeasureMode measure_mode, 
       double para1 = NAN, double para2 = NAN, double para3 = NAN) 
-   : _njettinessFinder(axes_mode, measure_mode, para1, para2, para3), _N(N) {}
+   : _njettinessFinder(axes_mode, measure_mode, para1, para2, para3), _nsub_axes_mode(axes_mode), _nsub_measure_mode(measure_mode), _N(N) {}
 
    /// returns tau_N, measured on the constituents of this jet 
    Double32_t result(const PseudoJet& jet) const;
@@ -75,12 +76,21 @@ public:
    //To set axes for manual use 
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
       // TODO:  Have this test that manual axes are being used
-   	_njettinessFinder.setAxes(myAxes);
+      //updated so that setAxes is only used if manual_axes option is chosen -- TJW 1/13
+      if (_nsub_axes_mode == Njettiness::manual_axes || _nsub_axes_mode == Njettiness::onepass_manual_axes)
+      	_njettinessFinder.setAxes(myAxes);
+      else {
+         std::cerr << "setAxes can only be used with manual_axes or onepass_manual_axes measure options" << std::endl;
+         exit(1);
+      }
    }
 
 private:
 
    mutable Njettiness _njettinessFinder; // should muck with this so result can be const without this mutable
+   // enum information added so Nsubjettiness knows which options it is using -- TJW 1/13
+   Njettiness::AxesMode _nsub_axes_mode;
+   Njettiness::MeasureMode _nsub_measure_mode;
 
    int _N;
    //_normalization bool removed -- TJW 1/8
@@ -98,21 +108,14 @@ private:
 class NsubjettinessRatio : public FunctionOfPseudoJet<Double32_t> {
 public:
 
-   NsubjettinessRatio(int N, int M, 
-      Njettiness::AxesMode mode, 
-      double beta, 
-      double Rcutoff=std::numeric_limits<double>::max())
-   : _nsub_numerator(N, mode, beta, 1.0, Rcutoff), _nsub_denominator(M, mode, beta, 1.0, Rcutoff) {};
-   // TODO:  Set constant for R0 = 1.0 so that we don't have magic numbers
+   // old constructor removed since it isn't necessary for backwards compatibility -- TJW 1/13
 
    // new constructor to match new Nsubjettiness constructor -- TJW 1/10
    NsubjettinessRatio(int N, int M, 
       Njettiness::AxesMode axes_mode, 
       Njettiness::MeasureMode measure_mode,
-      double beta, 
-      double Rcutoff=std::numeric_limits<double>::max())
-   : _nsub_numerator(N, axes_mode, measure_mode, beta, 1.0, Rcutoff), _nsub_denominator(M, axes_mode, measure_mode, beta, 1.0, Rcutoff) {};
-   // TODO:  Set constant for R0 = 1.0 so that we don't have magic numbers
+      double para1 = NAN, double para2 = NAN, double para3 = NAN)
+   : _nsub_numerator(N, axes_mode, measure_mode, para1, para2, para3), _nsub_denominator(M, axes_mode, measure_mode, para1, para2, para3) {};
 
    //changed return value from double to Double32_t to match Nsubjettiness class -- TJW 12/22
    //returns tau_N/tau_M based off the input jet using result function from Nsubjettiness 
