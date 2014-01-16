@@ -227,6 +227,8 @@ class LightLikeAxis;
 /// \class AxesFinderFromKmeansMinimization
 // This class finds finds axes by using Kmeans clustering to minimizaiton N-jettiness. Given a first set of 
 // starting axes, it updates n times to get as close to the global minimum as possible. -- comment added by TJW
+
+// TODO: swap places with AxesFinderFromOnePassMinimization so AxesFinderFromKmeansMinimization calls OnePass many times -- TJW
 class AxesFinderFromKmeansMinimization : public AxesFinder {
 
    private:
@@ -349,7 +351,8 @@ public:
    void reset(double my_rap, double my_phi, double my_weight, double my_mom) {_rap=my_rap; _phi=my_phi; _weight=my_weight; _mom=my_mom;}
 
    // floating function moved to LightLikeAxis class -- TJW 1/14
-   fastjet::PseudoJet ConvertToPseudoJet(LightLikeAxis axis);
+   // removed unnecessary argument -- TJW 1/15
+   fastjet::PseudoJet ConvertToPseudoJet();
    
    double DistanceSq(const fastjet::PseudoJet& input) const {
       return DistanceSq(input.rap(),input.phi());
