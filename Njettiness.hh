@@ -97,25 +97,39 @@ public:
 private:
    MeasureFunction* _function;
    AxesFinder* _axesFinder;
-   NjettinessComponents *njet_components;
+   // new class added to contain all various components of tau -- TJW 1/14
+   TauComponents _current_tau_components; //automatically set to have components of 0; these values will be set by the getTau function call -- TJW 1/15
+
+   // added enum information so functions can specify output based on specific options, primarily for setAxes -- TJW 1/15
+   AxesMode _current_axes_mode;
+   MeasureMode _current_measure_mode;
 
    std::vector<fastjet::PseudoJet> _currentAxes;
 
-   double _current_tau_normalized;
-   double _current_tau_numerator; //To return unnormalized values if wanted
-   double _current_tau_denominator; //To return normalization factor if wanted
-
-   std::vector<double> _current_subtaus_normalized; 
-   std::vector<double> _current_subtaus_numerator; //To return unnormalized values if wanted
+   // these values are no longer necessary -- TJW 1/15
+   // double _current_tau_normalized;
+   // double _current_tau_numerator; //To return unnormalized values if wanted
+   // double _current_tau_denominator; //To return normalization factor if wanted
+   // std::vector<double> _current_subtaus_normalized; 
+   // std::vector<double> _current_subtaus_numerator; //To return unnormalized values if wanted
    
-   void establishAxes(unsigned n_jets, const std::vector <fastjet::PseudoJet> & inputs);
-   void establishTaus(const std::vector <fastjet::PseudoJet> & inputs);
+   //Use NsubAxesMode to pick which type of axes to use
+   // function definition moved from Njettiness.cc -- TJW 1/15
+   void establishAxes(unsigned n_jets, const std::vector <fastjet::PseudoJet> & inputs) {
+      _currentAxes = _axesFinder->getAxes(n_jets,inputs,_currentAxes);   
+   }
+
+   // function removed since it is no longer necessary -- TJW 1/15
+   // void establishTaus(const std::vector <fastjet::PseudoJet> & inputs);
+
+   // added for compilation of non C++11 users -- TJW 1/15
+   bool isnan(double para) { return para != para; }
 
    //created new function to check to make sure input has correct number of parameters -- TJW 1/10
    bool correctParameterCount(int n, double para1, double para2, double para3, double para4){
       int numpara;
       if (!isnan(para1) && !isnan(para2) && !isnan(para3) && !isnan(para4)) numpara = 4;
-      if (!isnan(para1) && !isnan(para2) && !isnan(para3) && isnan(para4)) numpara = 3;
+      else if (!isnan(para1) && !isnan(para2) && !isnan(para3) && isnan(para4)) numpara = 3;
       else if (!isnan(para1) && !isnan(para2) && isnan(para3) && isnan(para4)) numpara = 2;
       else if (!isnan(para1) && isnan(para2) && isnan(para3) && isnan(para4)) numpara = 1;
       else numpara = 0;
@@ -123,26 +137,24 @@ private:
    }
 
    // created new function to set onepass_axes depending on input measure_mode and startingFinder-- TJW 1/13
-   AxesFinder* setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double para1, double Rcutoff) {
-      AxesFinder *onepass_axes;
+   // made void so that it just sets _axesFinder instead of returning AxesFinder -- TJW 1/15
+   void setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double para1, double Rcutoff) {
       if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure) {
-         onepass_axes = new AxesFinderFromOnePassMinimization(startingFinder, para1, Rcutoff);
+         _axesFinder = new AxesFinderFromOnePassMinimization(startingFinder, para1, Rcutoff);
       }
       else if (measure_mode == geometric_measure || measure_mode == geometric_cutoff_measure) {
-         onepass_axes = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
+         _axesFinder = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
       }
       else {
          std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
          exit(1); }
-      return onepass_axes;
-
    }
  
    //created separate function to set MeasureFunction and AxesFinder in order to reduce redundant code in Njettiness constructors -- TJW 1/11
    void setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4);
 
 public:
-   Njettiness(MeasureFunction* function, AxesFinder* axesFinder) : _function(function), _axesFinder(axesFinder) {}
+   Njettiness(AxesFinder* axesFinder, MeasureFunction* function) : _function(function), _axesFinder(axesFinder) {}
 
    // updated constructor to use three separate parameters instead of NsubParameters -- TJW 1/9
    // updated to use new private function defined above -- TJW 1/11
@@ -154,7 +166,7 @@ public:
    //new constructor to include both AxesMode and MeasureMode enums, and parameters for them -- TJW 1/7
    // updated to use new private function defined above -- TJW 1/11
    // updated to include 4th parameter (if necessary) -- TJW 
-   Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN, double para4 = NAN) {
+   Njettiness(AxesMode axes_mode, MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN, double para4 = NAN) : _current_axes_mode(axes_mode), _current_measure_mode(measure_mode) {
       setMeasureFunctionandAxesFinder(axes_mode, measure_mode, para1, para2, para3, para4);      
    }
    
@@ -177,7 +189,13 @@ public:
    
    // setAxes for Manual mode
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
-      _currentAxes = myAxes;
+      if (_current_axes_mode == manual_axes || _current_axes_mode == onepass_manual_axes) {
+         _currentAxes = myAxes;
+      }
+      else {
+         std::cerr << "You can only use setAxes if using manual_axes or onepass_manual_axes measure mode" << std::endl;
+         exit(1);
+      }
    }
    
    // The value of N-subjettiness
@@ -188,32 +206,46 @@ public:
          return 0.0;
       }
       establishAxes(n_jets, inputJets);  // sets current Axes
-      establishTaus(inputJets); // sets current Tau Values
+      _current_tau_components = _function->result(inputJets, _currentAxes);  // sets current Tau Values
+      //establishTaus(inputJets); //no longer necessary -- TJW 1/15
       
-      return _current_tau_normalized;
+      // return _current_tau_normalized;
+      return _current_tau_components.tau_normalized();
+   }
+
+   // new function to return all TauComponents that user would want -- TJW 1/15
+   TauComponents getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
+      getTau(n_jets, inputJets);
+      return _current_tau_components;
    }
 
    // Alternative function call to return just numerator information
    // Function for retrieving the unnormalized tau_N
-   double getTauNumerator(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) { 
-      getTau(n_jets,inputJets);      
-      return _current_tau_numerator;
-   }
+   // removed since nothing uses it -- TJW 1/15
+   // double getTauNumerator(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) { 
+   //    getTau(n_jets,inputJets);      
+   //    return _current_tau_numerator;
+   // }
 
    // get axes used by getTau.
    std::vector<fastjet::PseudoJet> currentAxes() { return _currentAxes;}
    
    // get subTau values calculated in getTau.
-   std::vector<double> currentTaus() { return _current_subtaus_normalized; }
+   // std::vector<double> currentTaus() { return _current_subtaus_normalize; }
+   std::vector<double> currentTaus() { return _current_tau_components.subtaus_normalized(); }
 
    // get total Tau value calculated in getTau.
-   double currentTau() { return _current_tau_normalized; }
+   // double currentTau() { return _current_tau_normalized; }
+   double currentTau() { return _current_tau_components.tau_normalized(); }
 
-   double currentTauNormalized() { return _current_tau_normalized; }
-   double currentTauNumerator() { return _current_tau_numerator; }
-   double currentTauDenominator() { return _current_tau_denominator; }
-   std::vector<double> currentSubTausNumerator() { return _current_subtaus_numerator; }
-   std::vector<double> currentSubTausNormalized() { return _current_subtaus_normalized; }
+//   TauComponents currentTauComponents() {return _current_tau_components; }
+
+   // these functions aren't used by anyone and can be replaced by NjettinessComponents function -- TJW 1/15
+   // double currentTauNormalized() { return _current_tau_normalized; }
+   // double currentTauNumerator() { return _current_tau_numerator; }
+   // double currentTauDenominator() { return _current_tau_denominator; }
+   // std::vector<double> currentSubTausNumerator() { return _current_subtaus_numerator; }
+   // std::vector<double> currentSubTausNormalized() { return _current_subtaus_normalized; }
 
 
    // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
