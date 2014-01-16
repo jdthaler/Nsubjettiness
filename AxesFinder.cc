@@ -176,15 +176,15 @@ std::vector<LightLikeAxis> AxesFinderFromKmeansMinimization::UpdateAxes(const st
 
 // Go from internal LightLikeAxis to PseudoJet
 // function added to LightLikeAxis class, for loop moved from this function to getAxes to make function definition more natural -- TJW 1/14
-fastjet::PseudoJet LightLikeAxis::ConvertToPseudoJet(const LightLikeAxis axis) {
-   
-     double px, py, pz, E;
-      E = axis.mom();
-      pz = (std::exp(2.0*axis.rap()) - 1.0) / (std::exp(2.0*axis.rap()) + 1.0) * E;
-      px = std::cos(axis.phi()) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
-      py = std::sin(axis.phi()) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
-      fastjet::PseudoJet FourVecJet = fastjet::PseudoJet(px,py,pz,E);
-      return FourVecJet;
+// removed unnecessary argument -- TJW 1/15
+fastjet::PseudoJet LightLikeAxis::ConvertToPseudoJet() {
+    double px, py, pz, E;
+    E = _mom;
+    pz = (std::exp(2.0*_rap) - 1.0) / (std::exp(2.0*_rap) + 1.0) * E;
+    px = std::cos(_phi) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
+    py = std::sin(_phi) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
+    fastjet::PseudoJet FourVecJet = fastjet::PseudoJet(px,py,pz,E);
+    return FourVecJet;
 }
 
 
@@ -200,6 +200,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
 	double beta = _beta;
   double Rcutoff = _Rcutoff;
   MeasureFunction* function = _function;
+
     double noise = 0, tau = 10000.0, tau_tmp, cmp;
     std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
     std::vector<fastjet::PseudoJet> tmp_min_axes, min_axes;
@@ -232,11 +233,14 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
       // updated to include for loop in this function since ConvertToPseudoJet is only defined for individual LightLikeAxis -- TJW 1/14
       std::vector<fastjet::PseudoJet> tmp_min_axes;
       for (int k = 0; k < n_jets; k++) {
-          fastjet::PseudoJet temp = old_axes[k].ConvertToPseudoJet(old_axes[k]);
+          fastjet::PseudoJet temp = old_axes[k].ConvertToPseudoJet();
           tmp_min_axes.push_back(temp);
       }
 
-      tau_tmp = function->tau(inputJets, tmp_min_axes); 
+      //updated to include new TauComponents class -- TJW 1/15
+      // tau_tmp = function->tau(inputJets, tmp_min_axes);
+      TauComponents tau_components = function->result(inputJets, tmp_min_axes);
+      tau_tmp = tau_components.tau_normalized();
       if (tau_tmp < tau) {tau = tau_tmp; min_axes = tmp_min_axes;} // Keep axes and tau only if they are best so far
    }	
    return min_axes;
@@ -249,7 +253,11 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
 std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
     std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
-    double seedTau = _function->tau(particles,seedAxes);
+
+    //updated to include new TauComponents class -- TJW 1/15
+    // double seedTau = _function->tau(particles,seedAxes);
+    TauComponents tau_components_seed = _function->result(particles, seedAxes);
+    double seedTau = tau_components_seed.tau_normalized();
          
     for (int i = 0; i < _nAttempts; i++) {
             
@@ -273,7 +281,10 @@ std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int
 
         seedAxes = newAxes;
             
-        double tempTau = _function->tau(particles,newAxes);
+        //updated to include new TauComponents class -- TJW 1/15
+        // double tempTau = _function->tau(particles,newAxes);
+        TauComponents tau_components_new = _function->result(particles, newAxes);
+        double tempTau = tau_components_new.tau_normalized();
 
         if (fabs(tempTau - seedTau) < _accuracy) break;
         seedTau = tempTau;
