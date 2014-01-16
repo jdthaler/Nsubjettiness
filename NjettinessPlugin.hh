@@ -142,7 +142,8 @@ public:
    NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff=std::numeric_limits<double>::max());
 
    // added constructor to use new MeasureMode option -- TJW 1/11
-   NjettinessPlugin(int N, Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN);
+   // added possibility of 4th parameter -- TJW 1/15
+   NjettinessPlugin(int N, Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN, double para4 = NAN);
 
    //updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters -- TJW 1/10
    // constructor removed since user needs to specify geometric_measure -- TJW 1/13
