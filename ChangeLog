@@ -1,3 +1,9 @@
+2014-1-15 <TJ>
+   Changed NjettinessComponents to TauComponents
+   Updated MeasureFunction with "result" function that returns TauComponents object
+   TauComponents changed to calculate all tau components given subtaus_numerator and tau_denominator
+   Njettiness updated to return TauComponents object rather than individual components
+   Nsubjettiness and NjettinessPlugin updated to have option for 4th parameter
 2014-1-14 <TJ>
    Added NjettinessComponents class so Njettiness does not recalculate tau values
    Removed old Njettiness constructors, updated Nsubjettiness and NjettinessPlugin constructors to use new constructor
