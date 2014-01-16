@@ -36,8 +36,9 @@ NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta
   : _N(N), _njettinessFinder(mode, Njettiness::normalized_cutoff_measure, beta, R0, Rcutoff) {}
 
 // added constructor to use new MeasureMode option -- TJW 1/11
-NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3)
-  : _N(N), _njettinessFinder(axes_mode, measure_mode, para1, para2, para3) {}
+// added possibility of 4th parameter -- TJW 1/15
+NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3, double para4)
+  : _N(N), _njettinessFinder(axes_mode, measure_mode, para1, para2, para3, para4) {}
 
 // updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters for initialization of geometric measure-- TJW 1/10
 // This constructor should be removed since user would have to specify geometric_measure -- TJW 1/13
