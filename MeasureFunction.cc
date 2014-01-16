@@ -58,16 +58,6 @@ std::vector<double> MeasureFunction::subtaus_numerator(const std::vector <fastje
    return tauNum;
 }
 
-// Calculates unnormalized tau_N by summing over subtaus
-double MeasureFunction::tau_numerator(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
-   std::vector<double> tau_vec = subtaus_numerator(particles, axes);
-   double tauNum = 0.0;
-   for (unsigned i = 0; i < tau_vec.size(); i++) {
-      tauNum += tau_vec[i];
-   }
-   return tauNum;
-}
-
 //Calculates normalization for tau and subTau if _has_denominator is true, otherwise returns 1.0 (i.e. no normalization) -- TJW 1/7
 double MeasureFunction::tau_denominator(const std::vector <fastjet::PseudoJet>& particles) {
    if (_has_denominator) {
@@ -80,21 +70,33 @@ double MeasureFunction::tau_denominator(const std::vector <fastjet::PseudoJet>& 
    else return 1.0;
 }
 
+// below functions are no longer necessary, as the calculations have been moved over to TauComponents -- TJW 1/15
+
+// Calculates unnormalized tau_N by summing over subtaus
+// double MeasureFunction::tau_numerator(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+//    std::vector<double> tau_vec = subtaus_numerator(particles, axes);
+//    double tauNum = 0.0;
+//    for (unsigned i = 0; i < tau_vec.size(); i++) {
+//       tauNum += tau_vec[i];
+//    }
+//    return tauNum;
+// }
+
 //normalizes subTaus according to the denominator calculated above
-std::vector<double> MeasureFunction::subtaus_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){
-   std::vector<double> tauNum = subtaus_numerator(particles, axes);
-   std::vector<double> tau_normalized(axes.size(), 0.0);
-   double tauDen = tau_denominator(particles);
-   for (unsigned i = 0; i < axes.size(); i++) {
-      tau_normalized[i] = tauNum[i]/tauDen;
-   }
-   return tau_normalized;
-}
+// std::vector<double> MeasureFunction::subtaus_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){
+//    std::vector<double> tauNum = subtaus_numerator(particles, axes);
+//    std::vector<double> tau_normalized(axes.size(), 0.0);
+//    double tauDen = tau_denominator(particles);
+//    for (unsigned i = 0; i < axes.size(); i++) {
+//       tau_normalized[i] = tauNum[i]/tauDen;
+//    }
+//    return tau_normalized;
+// }
 
 //normalizes tau_N according to denominator calculated above.
-double MeasureFunction::tau_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){
-   return tau_numerator(particles, axes)/tau_denominator(particles);
-}
+// double MeasureFunction::tau_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet> &axes){
+//    return tau_numerator(particles, axes)/tau_denominator(particles);
+// }
 
 } //namespace contrib
 
