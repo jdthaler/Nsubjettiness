@@ -38,11 +38,6 @@ namespace contrib{
 
 inline double sq(double x) {return x*x;}
 
-///////
-//
-// Parameter classes
-//
-///////
 //classes moved from Njettiness in order to avoid cross-references in AxesFinder and MeasureFunctor -- TJW 12/28
 
 // NsubParameters class removed since it is no longer necessary -- TJW 1/9
@@ -58,6 +53,52 @@ inline double sq(double x) {return x*x;}
 
 //name of MeasureFunctor changed to MeasureFunction -- TJW 12/25
 //base MeasureFunction class definition moved from Nsubjettiness.hh -- TJW 12/25
+
+// class added by TJW 1/14
+//------------------------------------------------------------------------
+/// \class TauComponents
+// This class creates a wrapper for the various tau/subtau values calculated in Njettiness. This class allows Njettiness access to these variables
+// without ever having to do the calculation itself. It takes in subtau numerators and tau denominator from MeasureFunction
+// and outputs tau numerator, and normalized tau and subtau.
+class TauComponents {
+   private:
+
+      std::vector<double> _subtaus_numerator;
+      double _tau_numerator;
+      double _tau_denominator;
+
+      std::vector<double> _subtaus_normalized;
+      double _tau_normalized;
+
+   public: 
+      // empty constructor necessary to initialize tau_components in Njettiness; set correctly in Njettiness::getTau function -- TJW 1/15
+      TauComponents() {
+         _subtaus_numerator.resize(1, 0.0);
+         _tau_denominator = 0;
+         _tau_numerator = 0;
+         _subtaus_normalized.resize(1, 0.0);
+         _tau_normalized = 0;
+      }
+
+      TauComponents(std::vector<double> subtaus_numerator, double tau_denominator) : _subtaus_numerator(subtaus_numerator), _tau_denominator(tau_denominator) {
+         _tau_numerator = 0.0;
+         _tau_normalized = 0.0;
+         _subtaus_normalized.resize(_subtaus_numerator.size(),0.0);
+         for (unsigned j = 0; j < _subtaus_numerator.size(); j++) {
+            _subtaus_normalized[j] = _subtaus_numerator[j]/_tau_denominator;
+            _tau_numerator += _subtaus_numerator[j];
+            _tau_normalized += _subtaus_normalized[j];
+         }
+      }
+
+      std::vector<double> subtaus_numerator() { return _subtaus_numerator; }
+      double tau_numerator() { return _tau_numerator; }
+      double tau_denominator() { return _tau_denominator; }
+
+      std::vector<double> subtaus_normalized() { return _subtaus_normalized; }
+      double tau_normalized() { return _tau_normalized; }
+
+};
 
 //------------------------------------------------------------------------
 /// \class MeasureFunction
@@ -75,6 +116,12 @@ class MeasureFunction {
       //new constructor to allow _has_denominator to be set by derived classes -- TJW 1/7
       MeasureFunction(bool has_denominator = true) : _has_denominator(has_denominator) {} 
 
+      //function to calculate unnormalized subTau values
+      std::vector<double> subtaus_numerator(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes);
+
+      //function to calculate normalization factor for tau and subTau
+      double tau_denominator(const std::vector <fastjet::PseudoJet>& particles);
+
    public:
       virtual ~MeasureFunction(){}
 
@@ -86,70 +133,31 @@ class MeasureFunction {
       virtual double denominator(const fastjet::PseudoJet& particle) = 0;
 
       // Functions below call the virtual functions to implement the desired measures
-
-      //function to calculate unnormalized subTau values
-      std::vector<double> subtaus_numerator(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes);
-
-      //function to calculate normalization factor for tau and subTau
-      double tau_denominator(const std::vector <fastjet::PseudoJet>& particles);
       
-      // These functions are built out of the above functions. 
-      
+      // The calculation of these values has been moved over to TauComponents; result() will return all necessary TauComponents -- TJW 1/15
       //function to calculate unnormalized taus
-      double tau_numerator(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
+      // double tau_numerator(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
 
       //return normalized  subTaus
-      std::vector<double> subtaus_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes); 
+      // std::vector<double> subtaus_normalized(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes); 
       
       //returns normalized tau
-      double tau_normalized(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
+      // double tau_normalized(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
       
-      double tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
-         return tau_normalized(particles,axes);
+      // double tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+      //    return tau_normalized(particles,axes);
+      // }
+
+      // new function to return all of the necessary TauComponents for specific input particles and axes -- TJW 1/15
+      TauComponents result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+         std::vector<double> _subtaus_numerator = subtaus_numerator(particles, axes);
+         double _tau_denominator = tau_denominator(particles);
+         TauComponents _tau_components(_subtaus_numerator, _tau_denominator);
+         return _tau_components;
       }
 
 };
 
-// class added by TJW 1/14
-//------------------------------------------------------------------------
-/// \class NjettinessComponents
-// This class creates a wrapped for the various tau/subtau values defined in MeasureFunction above. This class allows Njettiness access to these variables
-// without ever having to do the calculation itself.
-class NjettinessComponents {
-   private:
-
-      MeasureFunction* _function;
-
-      std::vector<double> _subtaus_numerator;
-      double _tau_numerator;
-      double _denom;
-
-      std::vector<double> _subtaus_norm;
-      double _tau_norm;
-
-   public: 
-      NjettinessComponents(MeasureFunction *function, std::vector<fastjet::PseudoJet> inputs, std::vector<fastjet::PseudoJet> current_axes) : _function(function) {
-         _subtaus_numerator = function->subtaus_numerator(inputs, current_axes);
-         _denom = function->tau_denominator(inputs);
-
-         _tau_norm = 0.0;
-         _tau_numerator = 0.0;
-         _subtaus_norm.resize(_subtaus_numerator.size(),0.0);
-         for (unsigned j = 0; j < _subtaus_numerator.size(); j++) {
-            _subtaus_norm[j] = _subtaus_numerator[j]/_denom;
-            _tau_numerator += _subtaus_numerator[j];
-            _tau_norm += _subtaus_norm[j];
-         }
-      }
-
-      std::vector<double> get_subtaus_numerator() { return _subtaus_numerator; }
-      double get_tau_numerator() { return _tau_numerator; }
-      double get_denom() { return _denom; }
-
-      std::vector<double> get_subtaus_norm() { return _subtaus_norm; }
-      double get_tau_norm() { return _tau_norm; }
-
-};
 
 // moved from Njettiness.hh -- TJW 12/28
 // name changed to DefaultNormalizedMeasure -- TJW 1/7
