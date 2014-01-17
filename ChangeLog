@@ -1,3 +1,8 @@
+2014-1-16 <TJ>
+   Moved minimization functions to OnePassMinimization, changed KMeansMinimization class to simply call OnePassMinimization a specified number of times
+   Added extra tau function in TauComponents for users to get tau directly
+   Changed radius parameter in AxesFinderFromExclusiveJet subclasses to use max_allowable_R
+   Updated example.ref to account for changes due to change in radius parameter
 2014-1-15 <TJ>
    Changed NjettinessComponents to TauComponents
    Updated MeasureFunction with "result" function that returns TauComponents object
