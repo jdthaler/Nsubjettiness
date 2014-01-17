@@ -63,12 +63,16 @@ inline double sq(double x) {return x*x;}
 class TauComponents {
    private:
 
+      // these values are input in the constructor -- TJW 1/16
       std::vector<double> _subtaus_numerator;
-      double _tau_numerator;
       double _tau_denominator;
+      bool _has_denominator; //added so that TauComponents knows if denominator is used or not -- TJW 1/16
 
+      // these values are calculated from above values -- TJW 1/16
       std::vector<double> _subtaus_normalized;
+      double _tau_numerator;
       double _tau_normalized;
+
 
    public: 
       // empty constructor necessary to initialize tau_components in Njettiness; set correctly in Njettiness::getTau function -- TJW 1/15
@@ -80,7 +84,9 @@ class TauComponents {
          _tau_normalized = 0;
       }
 
-      TauComponents(std::vector<double> subtaus_numerator, double tau_denominator) : _subtaus_numerator(subtaus_numerator), _tau_denominator(tau_denominator) {
+      // this constructor takes input vector and double and calculates all necessary tau components -- TJW 1/16
+      TauComponents(std::vector<double> subtaus_numerator, double tau_denominator, bool has_denominator) : _subtaus_numerator(subtaus_numerator), _tau_denominator(tau_denominator), _has_denominator(has_denominator) {
+         if (!_has_denominator) assert(tau_denominator == 1); //added to make sure that tau_denominator is 1 is _has_denominator is flagged -- TJW 1/16
          _tau_numerator = 0.0;
          _tau_normalized = 0.0;
          _subtaus_normalized.resize(_subtaus_numerator.size(),0.0);
@@ -97,6 +103,9 @@ class TauComponents {
 
       std::vector<double> subtaus_normalized() { return _subtaus_normalized; }
       double tau_normalized() { return _tau_normalized; }
+
+      //separate function for ease of user -- TJW 1/16
+      double tau() { return _tau_normalized; }
 
 };
 
@@ -152,7 +161,7 @@ class MeasureFunction {
       TauComponents result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
          std::vector<double> _subtaus_numerator = subtaus_numerator(particles, axes);
          double _tau_denominator = tau_denominator(particles);
-         TauComponents _tau_components(_subtaus_numerator, _tau_denominator);
+         TauComponents _tau_components(_subtaus_numerator, _tau_denominator, _has_denominator); //updated to include _has_denominator information -- TJW 1/16
          return _tau_components;
       }
 
