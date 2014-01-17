@@ -94,14 +94,14 @@ void PrintJets(const vector <PseudoJet>& jets) {
       if (extras == NULL) {
          printf("%5s %10s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e","area"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),(jets[i].has_area() ? jets[i].area() : 0.0 ));
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),max(jets[i].m(),0.0),jets[i].e(),(jets[i].has_area() ? jets[i].area() : 0.0 ));
          }
       }
       else {
          fastjet::PseudoJet total(0,0,0,0);
          printf("%5s %10s %10s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e","subTau","area"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]),(jets[i].has_area() ? jets[i].area() : 0.0 ));
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),max(jets[i].m(),0.0),jets[i].e(),extras->subTau(jets[i]),(jets[i].has_area() ? jets[i].area() : 0.0 ));
             total += jets[i];
          }   
          printf("%5s %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f %10.3f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau(),(total.has_area() ? total.area() : 0.0 ));
@@ -110,14 +110,14 @@ void PrintJets(const vector <PseudoJet>& jets) {
       if (extras == NULL) {
          printf("%5s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e());
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),max(jets[i].m(),0.0),jets[i].e());
          }
       }
       else {
          fastjet::PseudoJet total(0,0,0,0);
          printf("%5s %10s %10s %10s %10s %10s %10s\n","jet #", "rapidity", "phi", "pt","m","e","subTau"); // label the columns
          for (unsigned int i = 0; i < jets.size(); i++) {
-            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),jets[i].m(),jets[i].e(),extras->subTau(jets[i]));
+            printf("%5u %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f\n",i, jets[i].rap(),jets[i].phi(),jets[i].perp(),max(jets[i].m(),0.0),jets[i].e(),extras->subTau(jets[i]));
             total += jets[i];
          }   
          printf("%5s %10.3f %10.3f %10.3f %10.3f %10.3f %10.6f\n","total", total.rap(), total.phi(), total.perp(),total.m(),total.e(),extras->totalTau());
@@ -146,7 +146,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // Defining Nsubjettiness parameters
    double beta = 1.0; // power for angular dependence, e.g. beta = 1 --> linear k-means, beta = 2 --> quadratic/classic k-means
    double R0 = 1.0; // Characteristic jet radius for normalization	      
-   double Rcut = 1.0; // maximum R particles can be from axis to be included in jet	      
+//   double Rcut = 1.0; // maximum R particles can be from axis to be included in jet	      
    
    for (int j = 0; j < 2; j++) { // Two hardest jets per event
       if (antikt_jets[j].perp() > 200) {
@@ -165,37 +165,41 @@ void analyze(const vector<PseudoJet> & input_particles) {
          // Njettiness::onepass_kt_axes is the recommended usage.
          //
 
-         // All Nsubjettiness constructors updated to use specific normalized_cutoff_measure (should produce same result) -- TJW 1/14
+         // All Nsubjettiness constructors updated to use specific normalized_measure with no cutoff (should produce same result) -- TJW 1/14
+         // WTA axes options added to example -- TJW 1/16
 
          // 1-subjettiness
          // Nsubjettiness nSub1KT(1, Njettiness::kt_axes, beta, R0, Rcut);
-         Nsubjettiness nSub1KT(1, Njettiness::kt_axes, Njettiness::normalized_cutoff_measure, beta, R0, Rcut);
+         Nsubjettiness nSub1KT(1, Njettiness::kt_axes, Njettiness::normalized_measure, beta, R0);
          double tau1 = nSub1KT(antikt_jets[j]);
          //Nsubjettiness nSub1Min(1, Njettiness::min_axes, beta, R0, Rcut);
          //double tau1min = nSub1Min(antikt_jets[j]);
-         // Nsubjettiness nSub1OnePass(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
-         Nsubjettiness nSub1OnePass(1, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, beta, R0, Rcut);
+         Nsubjettiness nSub1OnePass(1, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, beta, R0);
          double tau1onepass = nSub1OnePass(antikt_jets[j]);
+         Nsubjettiness nSub1WTAKT(1, Njettiness::wta_kt_axes, Njettiness::normalized_measure, beta, R0);
+         double tau1WTA = nSub1WTAKT(antikt_jets[j]);
 
          // 2-subjettiness
          // Nsubjettiness nSub2KT(2, Njettiness::kt_axes, beta, R0, Rcut);
-         Nsubjettiness nSub2KT(2, Njettiness::kt_axes, Njettiness::normalized_cutoff_measure, beta, R0, Rcut);
+         Nsubjettiness nSub2KT(2, Njettiness::kt_axes, Njettiness::normalized_measure, beta, R0);
          double tau2 = nSub2KT(antikt_jets[j]);
          //Nsubjettiness nSub2Min(2, Njettiness::min_axes, beta, R0, Rcut);
          //double tau2min = nSub2Min(antikt_jets[j]);
-         // Nsubjettiness nSub2OnePass(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
-         Nsubjettiness nSub2OnePass(2, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, beta, R0, Rcut);
+         Nsubjettiness nSub2OnePass(2, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, beta, R0);
          double tau2onepass = nSub2OnePass(antikt_jets[j]);
+         Nsubjettiness nSub2WTAKT(2, Njettiness::wta_kt_axes, Njettiness::normalized_measure, beta, R0);
+         double tau2WTA = nSub2WTAKT(antikt_jets[j]);
 
          // 3-subjettiness
          // Nsubjettiness nSub3KT(3, Njettiness::kt_axes, beta, R0, Rcut);
-         Nsubjettiness nSub3KT(3, Njettiness::kt_axes, Njettiness::normalized_cutoff_measure, beta, R0, Rcut);
+         Nsubjettiness nSub3KT(3, Njettiness::kt_axes, Njettiness::normalized_measure, beta, R0);
          double tau3 = nSub3KT(antikt_jets[j]);
          //Nsubjettiness nSub3Min(3, Njettiness::min_axes, beta, R0, Rcut);
          //double tau3min = nSub3Min(antikt_jets[j]);
-         // Nsubjettiness nSub3OnePass(3, Njettiness::onepass_kt_axes, beta, R0, Rcut);
-         Nsubjettiness nSub3OnePass(3, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, beta, R0, Rcut);
+         Nsubjettiness nSub3OnePass(3, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, beta, R0);
          double tau3onepass = nSub3OnePass(antikt_jets[j]);
+         Nsubjettiness nSub3WTAKT(3, Njettiness::wta_kt_axes, Njettiness::normalized_measure, beta, R0);
+         double tau3WTA = nSub3WTAKT(antikt_jets[j]);
 
          //
          // Or, if you want subjets, use the FastJet plugin on a jet's constituents
@@ -203,20 +207,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
          //
          
          
-         // NjettinessPlugin nsub_plugin1(1, Njettiness::kt_axes, 1.0, 1.0, 1.0);
-         NjettinessPlugin nsub_plugin1(1, Njettiness::kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+         NjettinessPlugin nsub_plugin1(1, Njettiness::kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
          JetDefinition nsub_jetDef1(&nsub_plugin1);
          ClusterSequence nsub_seq1(antikt_jets[j].constituents(), nsub_jetDef1);
          vector<PseudoJet> kt1jets = nsub_seq1.inclusive_jets();
          
-         // NjettinessPlugin nsub_plugin2(2, Njettiness::kt_axes, 1.0, 1.0, 1.0);
-         NjettinessPlugin nsub_plugin2(2, Njettiness::kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+         NjettinessPlugin nsub_plugin2(2, Njettiness::kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
          JetDefinition nsub_jetDef2(&nsub_plugin2);
          ClusterSequence nsub_seq2(antikt_jets[j].constituents(), nsub_jetDef2);
          vector<PseudoJet> kt2jets = nsub_seq2.inclusive_jets();
 
-         // NjettinessPlugin nsub_plugin3(3, Njettiness::kt_axes, 1.0, 1.0, 1.0);
-         NjettinessPlugin nsub_plugin3(3, Njettiness::kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+         NjettinessPlugin nsub_plugin3(3, Njettiness::kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
          JetDefinition nsub_jetDef3(&nsub_plugin3);
          ClusterSequence nsub_seq3(antikt_jets[j].constituents(), nsub_jetDef3);
          vector<PseudoJet> kt3jets = nsub_seq3.inclusive_jets();
@@ -236,23 +237,35 @@ void analyze(const vector<PseudoJet> & input_particles) {
          //ClusterSequence nsubMin_seq3(antikt_jets[j].constituents(), nsubMin_jetDef3);
          //vector<PseudoJet> min3jets = nsubMin_seq3.inclusive_jets();
 
-         // NjettinessPlugin nsubOnePass_plugin1(1, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
-         NjettinessPlugin nsubOnePass_plugin1(1, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+         NjettinessPlugin nsubOnePass_plugin1(1, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
          JetDefinition nsubOnePass_jetDef1(&nsubOnePass_plugin1);
          ClusterSequence nsubOnePass_seq1(antikt_jets[j].constituents(), nsubOnePass_jetDef1);
          vector<PseudoJet> onepass1jets = nsubOnePass_seq1.inclusive_jets();
 
-         // NjettinessPlugin nsubOnePass_plugin2(2, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
-         NjettinessPlugin nsubOnePass_plugin2(2, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+         NjettinessPlugin nsubOnePass_plugin2(2, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
          JetDefinition nsubOnePass_jetDef2(&nsubOnePass_plugin2);
          ClusterSequence nsubOnePass_seq2(antikt_jets[j].constituents(), nsubOnePass_jetDef2);
          vector<PseudoJet> onepass2jets = nsubOnePass_seq2.inclusive_jets();
          
-         // NjettinessPlugin nsubOnePass_plugin3(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
-         NjettinessPlugin nsubOnePass_plugin3(3, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+         NjettinessPlugin nsubOnePass_plugin3(3, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
          JetDefinition nsubOnePass_jetDef3(&nsubOnePass_plugin3);
          ClusterSequence nsubOnePass_seq3(antikt_jets[j].constituents(), nsubOnePass_jetDef3);
          vector<PseudoJet> onepass3jets = nsubOnePass_seq3.inclusive_jets();
+                 
+         NjettinessPlugin nsubWTA_plugin1(1, Njettiness::wta_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
+         JetDefinition nsubWTA_jetDef1(&nsubWTA_plugin1);
+         ClusterSequence nsubWTA_seq1(antikt_jets[j].constituents(), nsubWTA_jetDef1);
+         vector<PseudoJet> wta1jets = nsubWTA_seq1.inclusive_jets();
+
+         NjettinessPlugin nsubWTA_plugin2(2, Njettiness::wta_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
+         JetDefinition nsubWTA_jetDef2(&nsubWTA_plugin2);
+         ClusterSequence nsubWTA_seq2(antikt_jets[j].constituents(), nsubWTA_jetDef2);
+         vector<PseudoJet> wta2jets = nsubWTA_seq2.inclusive_jets();
+         
+         NjettinessPlugin nsubWTA_plugin3(3, Njettiness::wta_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
+         JetDefinition nsubWTA_jetDef3(&nsubWTA_plugin3);
+         ClusterSequence nsubWTA_seq3(antikt_jets[j].constituents(), nsubWTA_jetDef3);
+         vector<PseudoJet> wta3jets = nsubWTA_seq3.inclusive_jets();
                  
          printf("-------------------------------------------------------------------------------------"); printf("\n");
          printf("-------------------------------------------------------------------------------------"); printf("\n");
@@ -269,11 +282,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
          PrintJets(onepass1jets);
          PrintJets(onepass2jets);
          PrintJets(onepass3jets);            
+         cout << "Winner Take All Axes with kT" << endl;
+         PrintJets(wta1jets);
+         PrintJets(wta2jets);
+         PrintJets(wta3jets);            
+
          printf("-------------------------------------------------------------------------------------"); printf("\n");
          cout << "Beta = " << beta << setprecision(6) << endl;
          cout << "     kT: " << "tau1: " << tau1 << "  tau2: " << tau2 << "  tau3: " << tau3 << "  tau2/tau1: " << tau2/tau1 << "  tau3/tau2: " << tau3/tau2 << endl;
          //cout << "    Min: " << "tau1: " << tau1min << "  tau2: " << tau2min << "  tau3: " << tau3min << "  tau2/tau1: " << tau2min/tau1min << "  tau3/tau2: " << tau3min/tau2min << endl;
          cout << "OnePass: " << "tau1: " << tau1onepass << "  tau2: " << tau2onepass << "  tau3: " << tau3onepass << "  tau2/tau1: " << tau2onepass/tau1onepass << "  tau3/tau2: " << tau3onepass/tau2onepass << endl;
+         cout << "WTA kT: " << "tau1: " << tau1WTA << "  tau2: " << tau2WTA << "  tau3: " << tau3WTA << "  tau2/tau1: " << tau2WTA/tau1WTA << "  tau3/tau2: " << tau3WTA/tau2WTA << endl;
          cout << endl;
          printf("-------------------------------------------------------------------------------------"); printf("\n");
          printf("-------------------------------------------------------------------------------------"); printf("\n");
@@ -288,14 +307,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // You can also find jets with Njettiness:
    
    // NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
-   NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+   NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
    JetDefinition njet_jetDef(&njet_plugin);
    ClusterSequence njet_seq(input_particles, njet_jetDef);
    vector<PseudoJet> njet_jets = njet_seq.inclusive_jets();
 
    // NjettinessPlugin geo_plugin(3, NsubGeometricParameters(1.0));
    // updated to use constructor where geometric_cutoff_measure is fully specified -- TJW 1/14
-   NjettinessPlugin geo_plugin(3, Njettiness::onepass_kt_axes, Njettiness::geometric_cutoff_measure, 1.0);
+   NjettinessPlugin geo_plugin(3, Njettiness::onepass_kt_axes, Njettiness::geometric_measure);
    JetDefinition geo_jetDef(&geo_plugin);
    ClusterSequence geo_seq(input_particles, geo_jetDef);
    vector<PseudoJet> geo_jets = geo_seq.inclusive_jets();
