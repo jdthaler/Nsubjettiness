@@ -138,17 +138,8 @@ private:
 
    // created new function to set onepass_axes depending on input measure_mode and startingFinder-- TJW 1/13
    // made void so that it just sets _axesFinder instead of returning AxesFinder -- TJW 1/15
-   void setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double para1, double Rcutoff) {
-      if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure) {
-         _axesFinder = new AxesFinderFromOnePassMinimization(startingFinder, para1, Rcutoff);
-      }
-      else if (measure_mode == geometric_measure || measure_mode == geometric_cutoff_measure) {
-         _axesFinder = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
-      }
-      else {
-         std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
-         exit(1); }
-   }
+   // moved function definition to Njettiness.cc -- TJW 1/16
+   void setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double para1, double Rcutoff);
  
    //created separate function to set MeasureFunction and AxesFinder in order to reduce redundant code in Njettiness constructors -- TJW 1/11
    void setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4);
@@ -198,25 +189,25 @@ public:
       }
    }
    
-   // The value of N-subjettiness
-   double getTau(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
-      if (inputJets.size() <= n_jets) {
-         _currentAxes = inputJets;
-         _currentAxes.resize(n_jets,fastjet::PseudoJet(0.0,0.0,0.0,0.0));
-         return 0.0;
-      }
-      establishAxes(n_jets, inputJets);  // sets current Axes
-      _current_tau_components = _function->result(inputJets, _currentAxes);  // sets current Tau Values
-      //establishTaus(inputJets); //no longer necessary -- TJW 1/15
-      
-      // return _current_tau_normalized;
-      return _current_tau_components.tau_normalized();
-   }
+   // roles of getTau and getTauComponents switched so that getTauComponents first sets _current_tau_components, then getTau returns only the specific tau value -- TJW 1/16
 
    // new function to return all TauComponents that user would want -- TJW 1/15
    TauComponents getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
-      getTau(n_jets, inputJets);
+      if (inputJets.size() <= n_jets) {
+         _currentAxes = inputJets;
+         _currentAxes.resize(n_jets,fastjet::PseudoJet(0.0,0.0,0.0,0.0));
+         return TauComponents();
+      }
+      establishAxes(n_jets, inputJets);  // sets current Axes
+      _current_tau_components = _function->result(inputJets, _currentAxes);  // sets current Tau Values
+
       return _current_tau_components;
+   }
+
+   // The value of N-subjettiness
+   // updated to only return the tau value from _current_tau_components
+   double getTau(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
+      return getTauComponents(n_jets, inputJets).tau();
    }
 
    // Alternative function call to return just numerator information
@@ -236,9 +227,10 @@ public:
 
    // get total Tau value calculated in getTau.
    // double currentTau() { return _current_tau_normalized; }
-   double currentTau() { return _current_tau_components.tau_normalized(); }
+   double currentTau() { return _current_tau_components.tau(); }
 
-//   TauComponents currentTauComponents() {return _current_tau_components; }
+   // function added to return all relevant information about tau components -- TJW 1/15
+   TauComponents currentTauComponents() {return _current_tau_components; }
 
    // these functions aren't used by anyone and can be replaced by NjettinessComponents function -- TJW 1/15
    // double currentTauNormalized() { return _current_tau_normalized; }
