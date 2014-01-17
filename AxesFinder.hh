@@ -123,7 +123,7 @@ class AxesFinderFromWTA_KT : public AxesFinderFromExclusiveJetDefinition {
    public:
       AxesFinderFromWTA_KT() : AxesFinderFromExclusiveJetDefinition(
          fastjet::JetDefinition(fastjet::kt_algorithm, 
-         M_PI/2.0, //TODO: Want to use maximum jet radius constant here
+         fastjet::JetDefinition::max_allowable_R, //updated to use maximum jet radius constant -- TJW 1/16
          recomb = new WinnerTakeAllRecombiner(), 
          fastjet::Best)) {}
       ~AxesFinderFromWTA_KT() {delete recomb;}
@@ -139,7 +139,7 @@ class AxesFinderFromWTA_CA : public AxesFinderFromExclusiveJetDefinition {
    public:
       AxesFinderFromWTA_CA() : AxesFinderFromExclusiveJetDefinition(
          fastjet::JetDefinition(fastjet::cambridge_algorithm, 
-         M_PI/2.0, //TODO: Want to use maximum jet radius constant here
+         fastjet::JetDefinition::max_allowable_R, //updated to use maximum jet radius constant -- TJW 1/16
          recomb = new WinnerTakeAllRecombiner(), 
          fastjet::Best)) {}
       ~AxesFinderFromWTA_CA() {delete recomb;}
@@ -153,7 +153,7 @@ class AxesFinderFromKT : public AxesFinderFromExclusiveJetDefinition {
    public:
       AxesFinderFromKT() : AxesFinderFromExclusiveJetDefinition(
          fastjet::JetDefinition(fastjet::kt_algorithm,
-         M_PI/2.0,
+         fastjet::JetDefinition::max_allowable_R, //updated to use maximum jet radius constant -- TJW 1/16
          fastjet::E_scheme,
          fastjet::Best)) {}
 };
@@ -166,7 +166,7 @@ class AxesFinderFromCA : public AxesFinderFromExclusiveJetDefinition {
    public:
       AxesFinderFromCA() : AxesFinderFromExclusiveJetDefinition(
          fastjet::JetDefinition(fastjet::cambridge_algorithm,
-         M_PI/2.0,
+         fastjet::JetDefinition::max_allowable_R, //updated to use maximum jet radius constant -- TJW 1/16
          fastjet::E_scheme,
          fastjet::Best)) {}
 };
@@ -222,14 +222,13 @@ class AxesFinderFromUserInput : public AxesFinder {
 //This is a helper class for the Minimum Axes Finders. It is defined later.
 class LightLikeAxis;                                          
 
-/// Minimum Axes moved from Njettiness.hh -- TJW 12/28
-//------------------------------------------------------------------------
-/// \class AxesFinderFromKmeansMinimization
-// This class finds finds axes by using Kmeans clustering to minimizaiton N-jettiness. Given a first set of 
-// starting axes, it updates n times to get as close to the global minimum as possible. -- comment added by TJW
 
-// TODO: swap places with AxesFinderFromOnePassMinimization so AxesFinderFromKmeansMinimization calls OnePass many times -- TJW
-class AxesFinderFromKmeansMinimization : public AxesFinder {
+// class added by TJW 1/10
+//------------------------------------------------------------------------
+/// \class AxesFinderFromOnePassMinimization
+// This class defines an AxesFinder that uses Kmeans minimization, but only on a single pass. It uses a default set of KMeansParameters such that it only minimizes once. -- comment added by TJW
+// updated so that all minimization functions are defined here with KMeansParameters default to 1 pass -- TJW 1/16
+class AxesFinderFromOnePassMinimization : public AxesFinder {
 
    private:
       AxesFinder* _startingFinder;
@@ -245,13 +244,15 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
    public:
 
       //updated constructor to use three separate parameters instead of NsubParameters in definition of DefaultNormalizedMeasure -- TJW 1/9
-      AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, double beta, double Rcutoff)
-         : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _beta(beta), _Rcutoff(Rcutoff) {
+      // constructor updated to include "n_iterations" value so that AxesFinderFromKMeansMinimization can set the number of iterations -- TJW 1/16
+      AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff, int n_iterations = 1)
+         // noise parameter changed to NAN -- TJW 1/13
+         : _startingFinder(startingFinder), _paraKmeans(KmeansParameters(n_iterations,0.0001,1000,NAN)), _beta(beta), _Rcutoff(Rcutoff) {
          //_function changed to unnormalized because minimization is independent of R0 -- TJW 1/11
          _function = new DefaultUnnormalizedMeasure(beta, Rcutoff); 
       }
       
-      ~AxesFinderFromKmeansMinimization() {
+      ~AxesFinderFromOnePassMinimization() {
          delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
          delete _function;
       }
@@ -266,20 +267,24 @@ class AxesFinderFromKmeansMinimization : public AxesFinder {
       //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
       std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
                                       const std::vector <fastjet::PseudoJet> & inputJets, double beta, double Rcutoff, double precision);
-      
+
 };
 
-// class added by TJW 1/10
-//------------------------------------------------------------------------
-/// \class AxesFinderFromOnePassMinimization
-// This class defines an AxesFinder that uses Kmeans minimization, but only on a single pass. It inherits from the class above and defines a set of
-// KMeansParameters such that only one pass is made. -- comment added by TJW
-class AxesFinderFromOnePassMinimization : public AxesFinderFromKmeansMinimization {
 
-   // noise parameter changed to NAN -- TJW 1/13
+/// Minimum Axes moved from Njettiness.hh -- TJW 12/28
+//------------------------------------------------------------------------
+/// \class AxesFinderFromKmeansMinimization
+// This class finds finds axes by using Kmeans clustering to minimizaiton N-jettiness. Given a first set of 
+// starting axes, it updates n times to get as close to the global minimum as possible. This class inherits from OnePass
+// minimization and is simply a wrapper that calls OnePass many times. -- comment added by TJW
+
+// updated to remove minimization functions and place them in OnePassMinimization -- TJW 1/16
+class AxesFinderFromKmeansMinimization : public AxesFinderFromOnePassMinimization {
+
    public:
-      AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff) 
-      : AxesFinderFromKmeansMinimization(startingFinder, KmeansParameters(1,0.0001,1000,NAN), beta, Rcutoff) {}
+      // updated to remove KMeansParameters and include n_iterations to describe how many times the minimization functions should be called -- TJW 1/16
+      AxesFinderFromKmeansMinimization(AxesFinder *startingFinder, double beta, double Rcutoff, int n_iterations) :
+         AxesFinderFromOnePassMinimization(startingFinder, beta, Rcutoff, n_iterations) {}
 
 };
 
