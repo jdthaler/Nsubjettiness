@@ -46,7 +46,7 @@ namespace contrib{
 template <int N>
 std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
                                   const std::vector <fastjet::PseudoJet> & inputJets,
-                                  double beta, double Rcutoff, double precision) {
+                                  double beta, double Rcutoff) {
    assert(old_axes.size() == N);
    
    // some storage, declared static to save allocation/re-allocation costs
@@ -62,9 +62,7 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(con
 #endif
    }
 
-   // no longer necessary since beta and Rcutoff are defined in arguments -- TJW 1/9
-   // double beta = paraNsub.beta();
-   // double Rcutoff = paraNsub.Rcutoff();
+   double precision = _precision;
    
    /////////////// Assignment Step //////////////////////////////////////////////////////////
    std::vector<int> assignment_index(inputJets.size()); 
@@ -147,29 +145,29 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(con
 // (This is just a wrapper for the templated version above.)
 //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
 std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
-                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double Rcutoff, double precision) {
+                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double Rcutoff) {
    int N = old_axes.size();
    switch (N) {
-      case 1: return UpdateAxesFast<1>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 2: return UpdateAxesFast<2>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 3: return UpdateAxesFast<3>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 4: return UpdateAxesFast<4>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 5: return UpdateAxesFast<5>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 6: return UpdateAxesFast<6>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 7: return UpdateAxesFast<7>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 8: return UpdateAxesFast<8>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 9: return UpdateAxesFast<9>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 10: return UpdateAxesFast<10>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 11: return UpdateAxesFast<11>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 12: return UpdateAxesFast<12>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 13: return UpdateAxesFast<13>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 14: return UpdateAxesFast<14>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 15: return UpdateAxesFast<15>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 16: return UpdateAxesFast<16>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 17: return UpdateAxesFast<17>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 18: return UpdateAxesFast<18>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 19: return UpdateAxesFast<19>(old_axes, inputJets, beta, Rcutoff, precision);
-      case 20: return UpdateAxesFast<20>(old_axes, inputJets, beta, Rcutoff, precision);
+      case 1: return UpdateAxesFast<1>(old_axes, inputJets, beta, Rcutoff);
+      case 2: return UpdateAxesFast<2>(old_axes, inputJets, beta, Rcutoff);
+      case 3: return UpdateAxesFast<3>(old_axes, inputJets, beta, Rcutoff);
+      case 4: return UpdateAxesFast<4>(old_axes, inputJets, beta, Rcutoff);
+      case 5: return UpdateAxesFast<5>(old_axes, inputJets, beta, Rcutoff);
+      case 6: return UpdateAxesFast<6>(old_axes, inputJets, beta, Rcutoff);
+      case 7: return UpdateAxesFast<7>(old_axes, inputJets, beta, Rcutoff);
+      case 8: return UpdateAxesFast<8>(old_axes, inputJets, beta, Rcutoff);
+      case 9: return UpdateAxesFast<9>(old_axes, inputJets, beta, Rcutoff);
+      case 10: return UpdateAxesFast<10>(old_axes, inputJets, beta, Rcutoff);
+      case 11: return UpdateAxesFast<11>(old_axes, inputJets, beta, Rcutoff);
+      case 12: return UpdateAxesFast<12>(old_axes, inputJets, beta, Rcutoff);
+      case 13: return UpdateAxesFast<13>(old_axes, inputJets, beta, Rcutoff);
+      case 14: return UpdateAxesFast<14>(old_axes, inputJets, beta, Rcutoff);
+      case 15: return UpdateAxesFast<15>(old_axes, inputJets, beta, Rcutoff);
+      case 16: return UpdateAxesFast<16>(old_axes, inputJets, beta, Rcutoff);
+      case 17: return UpdateAxesFast<17>(old_axes, inputJets, beta, Rcutoff);
+      case 18: return UpdateAxesFast<18>(old_axes, inputJets, beta, Rcutoff);
+      case 19: return UpdateAxesFast<19>(old_axes, inputJets, beta, Rcutoff);
+      case 20: return UpdateAxesFast<20>(old_axes, inputJets, beta, Rcutoff);
       default: std::cout << "N-jettiness is hard-coded to only allow up to 20 jets!" << std::endl;
          return std::vector<LightLikeAxis>();
    }
@@ -183,55 +181,78 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const s
 std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
 	
 	std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);   
-	KmeansParameters para = _paraKmeans;
-  // parameter definitions added and paraNsub definition removed -- TJW 1/9
+   // parameter definitions added and paraNsub definition removed -- TJW 1/9
 	double beta = _beta;
-  double Rcutoff = _Rcutoff;
-  MeasureFunction* function = _function;
+   double Rcutoff = _Rcutoff;
+   
+   double tau = 10000.0, tau_tmp, cmp;
+   std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
+   std::vector<fastjet::PseudoJet> tmp_min_axes, min_axes;
+   
+   for (int k = 0; k < n_jets; k++) {
+      old_axes[k].set_rap( seedAxes[k].rap() );
+      old_axes[k].set_phi( seedAxes[k].phi() );
+   }
+   cmp = 100.0; int h = 0;
+   while (cmp > _precision && h < _halt) { // Keep updating axes until near-convergence or too many update steps
+      cmp = 0.0;
+      h++;
+      new_axes = UpdateAxes(old_axes, inputJets, beta, Rcutoff); // Update axes //updated to use separate parameters instead of NsubParameters -- TJW 1/9
+      for (int k = 0; k < n_jets; k++) {
+         cmp += old_axes[k].Distance(new_axes[k]);
+      }
+      cmp = cmp / ((double) n_jets);
+      old_axes = new_axes;
+   }
+      
+   // updated to include for loop in this function since ConvertToPseudoJet is only defined for individual LightLikeAxis -- TJW 1/14
+   for (int k = 0; k < n_jets; k++) {
+      fastjet::PseudoJet temp = old_axes[k].ConvertToPseudoJet();
+      tmp_min_axes.push_back(temp);
+   }
+   
+   //updated to include new TauComponents class -- TJW 1/15
+   // tau_tmp = function->tau(inputJets, tmp_min_axes);
+   TauComponents tau_components = _measureFunction.result(inputJets, tmp_min_axes);
+   tau_tmp = tau_components.tau();
+   if (tau_tmp < tau) {tau = tau_tmp; min_axes = tmp_min_axes;} // Keep axes and tau only if they are best so far
+   
+   return min_axes;
+}
 
-    double noise = 0, tau = 10000.0, tau_tmp, cmp;
-    std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
-    std::vector<fastjet::PseudoJet> tmp_min_axes, min_axes;
-    for (int l = 0; l < para.n_iterations(); l++) { // Do minimization procedure multiple times
+
+//JDT:  adding get axes for multiple passes explicitly
+std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
+
+   // first iteration
+	std::vector<fastjet::PseudoJet> bestAxes = _onePassFinder.getAxes(n_jets, inputJets, currentAxes);
+   double bestTau = (_measureFunction.result(inputJets,bestAxes)).tau();
+   
+   for (int l = 1; l < _n_iterations; l++) { // Do minimization procedure multiple times (l = 1 to start since first iteration is done already)
+   
+      double noise = 0;
+      std::vector< PseudoJet > noiseAxes(n_jets, PseudoJet(0,0,0,0));
+
       // Add noise to guess for the axes
       for (int k = 0; k < n_jets; k++) {
-         if ( 0 == l ) { // Don't add noise on first pass
-            old_axes[k].set_rap( seedAxes[k].rap() );
-            old_axes[k].set_phi( seedAxes[k].phi() );
-         } else {
-            noise = ((double)rand()/(double)RAND_MAX) * para.noise_range() * 2 - para.noise_range();
-            old_axes[k].set_rap( seedAxes[k].rap() + noise );
-            noise = ((double)rand()/(double)RAND_MAX) * para.noise_range() * 2 - para.noise_range();
-            old_axes[k].set_phi( seedAxes[k].phi() + noise );
-         }
-      }
-      cmp = 100.0; int h = 0;
-      while (cmp > para.precision() && h < para.halt()) { // Keep updating axes until near-convergence or too many update steps
-         cmp = 0.0; h++;
-         new_axes = UpdateAxes(old_axes, inputJets, beta, Rcutoff, para.precision()); // Update axes //updated to use separate parameters instead of NsubParameters -- TJW 1/9
-         for (int k = 0; k < n_jets; k++) {
-            cmp += old_axes[k].Distance(new_axes[k]);
-         }
-         cmp = cmp / ((double) n_jets);
-         old_axes = new_axes;
+         LightLikeAxis tempLightLikeAxis(0,0,0,0);
+         noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2 - _noise_range;
+         tempLightLikeAxis.set_rap( bestAxes[k].rap() + noise );
+         noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2 - _noise_range;
+         tempLightLikeAxis.set_phi( bestAxes[k].phi() + noise );
+         noiseAxes[k] = tempLightLikeAxis.ConvertToPseudoJet();
       }
 
-      int n_jets = old_axes.size();
+      std::vector<fastjet::PseudoJet> testAxes = _onePassFinder.getAxes(n_jets, inputJets, noiseAxes);
+      double testTau = (_measureFunction.result(inputJets,testAxes)).tau();
+      
+      if (testTau < bestTau) {
+         bestTau = testTau;
+         bestAxes = testAxes;
+      }
+   }
    
-      // updated to include for loop in this function since ConvertToPseudoJet is only defined for individual LightLikeAxis -- TJW 1/14
-      std::vector<fastjet::PseudoJet> tmp_min_axes;
-      for (int k = 0; k < n_jets; k++) {
-          fastjet::PseudoJet temp = old_axes[k].ConvertToPseudoJet();
-          tmp_min_axes.push_back(temp);
-      }
-
-      //updated to include new TauComponents class -- TJW 1/15
-      // tau_tmp = function->tau(inputJets, tmp_min_axes);
-      TauComponents tau_components = function->result(inputJets, tmp_min_axes);
-      tau_tmp = tau_components.tau();
-      if (tau_tmp < tau) {tau = tau_tmp; min_axes = tmp_min_axes;} // Keep axes and tau only if they are best so far
-   }	
-   return min_axes;
+   return bestAxes;
 }
 
 //definition of getAxes moved from AxesFinder.hh -- TJW 12/28

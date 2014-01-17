@@ -48,27 +48,28 @@ namespace contrib{
 //
 ///////
 
+//JDT:  This class is no longer needed
 //KMeansParameters class moved from MeasureFunction.hh -- TJW 12/31
 //------------------------------------------------------------------------
 /// \class KmeansParameters
 // Parameters that change minimization procedure. They are used in the functions that find axes by Kmeans minimization.
 // They are set automatically when you choose NsubAxesMode, but can be adjusted manually as well -- comment added by TJ
-class KmeansParameters {
-private:
-   int _n_iterations;  // Number of iterations to run  (0 for no minimization, 1 for one-pass, >>1 for global minimum)
-   double _precision;  // Desired precision in axes alignment
-   int _halt;          // maximum number of steps per iteration
-   double _noise_range;// noise range for random initialization
-   
-public:
-   KmeansParameters() : _n_iterations(0), _precision(0.0), _halt(0), _noise_range(0.0) {}
-   KmeansParameters(const int my_n_iterations, double my_precision, int my_halt, double my_noise_range) :
-   _n_iterations(my_n_iterations),  _precision(my_precision), _halt(my_halt), _noise_range(my_noise_range) {}
-   int n_iterations() const { return _n_iterations;}
-   double precision() const {return _precision;}
-   int halt() const {return _halt;}
-   double noise_range() const {return _noise_range;}
-};
+//class KmeansParameters {
+//private:
+//   int _n_iterations;  // Number of iterations to run  (0 for no minimization, 1 for one-pass, >>1 for global minimum)
+//   double _precision;  // Desired precision in axes alignment
+//   int _halt;          // maximum number of steps per iteration
+//   double _noise_range;// noise range for random initialization
+//   
+//public:
+//   KmeansParameters() : _n_iterations(0), _precision(0.0), _halt(0), _noise_range(0.0) {}
+//   KmeansParameters(const int my_n_iterations, double my_precision, int my_halt, double my_noise_range) :
+//   _n_iterations(my_n_iterations),  _precision(my_precision), _halt(my_halt), _noise_range(my_noise_range) {}
+//   int n_iterations() const { return _n_iterations;}
+//   double precision() const {return _precision;}
+//   int halt() const {return _halt;}
+//   double noise_range() const {return _noise_range;}
+//};
 
 ///////
 //
@@ -232,29 +233,33 @@ class AxesFinderFromOnePassMinimization : public AxesFinder {
 
    private:
       AxesFinder* _startingFinder;
-      KmeansParameters _paraKmeans;
+      double _precision;  // Desired precision in axes alignment
+      int _halt;  // maximum number of steps per iteration
       
-      MeasureFunction* _function;
-
       // use separate beta, R0, Rcutoff since NsubParameters is no longer used -- TJW 1/9
       // R0 removed since it is unnecessary -- TJW 1/9
       double _beta;
       double _Rcutoff;
       
+      DefaultUnnormalizedMeasure _measureFunction;
+
+      
    public:
 
       //updated constructor to use three separate parameters instead of NsubParameters in definition of DefaultNormalizedMeasure -- TJW 1/9
       // constructor updated to include "n_iterations" value so that AxesFinderFromKMeansMinimization can set the number of iterations -- TJW 1/16
-      AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff, int n_iterations = 1)
+      AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff)
          // noise parameter changed to NAN -- TJW 1/13
-         : _startingFinder(startingFinder), _paraKmeans(KmeansParameters(n_iterations,0.0001,1000,NAN)), _beta(beta), _Rcutoff(Rcutoff) {
-         //_function changed to unnormalized because minimization is independent of R0 -- TJW 1/11
-         _function = new DefaultUnnormalizedMeasure(beta, Rcutoff); 
-      }
+         : _startingFinder(startingFinder), 
+           _precision(0.0001), //hard coded for now
+           _halt(1000), //hard coded for now
+           _beta(beta),
+           _Rcutoff(Rcutoff),
+           _measureFunction(beta, Rcutoff)
+           {}
       
       ~AxesFinderFromOnePassMinimization() {
          delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
-         delete _function;
       }
 
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
@@ -262,11 +267,11 @@ class AxesFinderFromOnePassMinimization : public AxesFinder {
       //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9
       template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
                                   const std::vector <fastjet::PseudoJet> & inputJets,
-                                  double beta, double Rcutoff, double precision);
+                                  double beta, double Rcutoff);
 
       //updated function arguments to use three separate parameters instead of NsubParameters-- TJW 1/9                                  
       std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes, 
-                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double Rcutoff, double precision);
+                                      const std::vector <fastjet::PseudoJet> & inputJets, double beta, double Rcutoff);
 
 };
 
@@ -279,12 +284,26 @@ class AxesFinderFromOnePassMinimization : public AxesFinder {
 // minimization and is simply a wrapper that calls OnePass many times. -- comment added by TJW
 
 // updated to remove minimization functions and place them in OnePassMinimization -- TJW 1/16
-class AxesFinderFromKmeansMinimization : public AxesFinderFromOnePassMinimization {
+class AxesFinderFromKmeansMinimization : public AxesFinder{
+
+   private:
+      int _n_iterations;   // Number of iterations to run  (0 for no minimization, 1 for one-pass, >>1 for global minimum)
+      double _noise_range; // noise range for random initialization
+   
+      DefaultUnnormalizedMeasure _measureFunction; //function to test whether minimum is reached
+      AxesFinderFromOnePassMinimization _onePassFinder;  //one pass finder for minimization
 
    public:
       // updated to remove KMeansParameters and include n_iterations to describe how many times the minimization functions should be called -- TJW 1/16
       AxesFinderFromKmeansMinimization(AxesFinder *startingFinder, double beta, double Rcutoff, int n_iterations) :
-         AxesFinderFromOnePassMinimization(startingFinder, beta, Rcutoff, n_iterations) {}
+         _n_iterations(n_iterations),
+         _noise_range(2.0*Rcutoff), // hard coded for the time being
+         _measureFunction(beta, Rcutoff), 
+         _onePassFinder(startingFinder, beta, Rcutoff)
+         {}
+
+      // JDT:  a different attempt at doing axes finding.
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
 
 };
 

@@ -1,3 +1,6 @@
+2014-1-17 <JDT>
+   Rewrote KMeansMinimization to call OnePassMinimization, adding noise explicitly.
+   Removed any nothing of noise from OnePassMinimization
 2014-1-16 <TJ>
    Moved minimization functions to OnePassMinimization, changed KMeansMinimization class to simply call OnePassMinimization a specified number of times
    Added extra tau function in TauComponents for users to get tau directly
