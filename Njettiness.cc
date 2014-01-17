@@ -55,6 +55,18 @@ namespace contrib{
 //    _current_tau_normalized = _current_tau_components.tau_normalized();
 // }
 
+void Njettiness::setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double beta, double Rcutoff) {
+   if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure) {
+      _axesFinder = new AxesFinderFromOnePassMinimization(startingFinder, beta, Rcutoff);
+   }
+   else if (measure_mode == geometric_measure || measure_mode == geometric_cutoff_measure) {
+      _axesFinder = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
+   }
+   else {
+      std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
+      exit(1); }
+}
+
 //created separate function to set MeasureFunction and AxesFinder from modes in order to reduce redundant code in Njettiness constructors -- TJW 1/11
 void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4) {
 
@@ -65,10 +77,12 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
    // added normalized_cutoff_measure, unnormalized_cutoff_measure, and geometric_cutoff_measure to use an explicit Rcutoff (as opposed to the largest possible number) -- TJW 1/10
    // value of Rcutoff set differently depending on measure chosen to reduce the number of measure checks necessary in the AxesFinder section -- TJW 1/11
    double Rcutoff;
+   double beta;
 
    switch (measure_mode) {
       case normalized_measure:
          Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
+         beta = para1;
          if(correctParameterCount(2, para1, para2, para3, para4)) 
             _function = new DefaultNormalizedMeasure(para1, para2, Rcutoff); //normalized_measure requires 2 parameters, beta and R0
          else { 
@@ -77,6 +91,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case unnormalized_measure:
          Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
+         beta = para1;
          if(correctParameterCount(1, para1, para2, para3, para4)) 
             _function = new DefaultUnnormalizedMeasure(para1, Rcutoff); //unnormalized_measure requires 1 parameter, beta
          else {
@@ -85,6 +100,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case geometric_measure:
          Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
+         beta = NAN;
          if(correctParameterCount(0, para1, para2, para3, para4)) 
             _function = new GeometricMeasure(Rcutoff); //geometric_measure requires 0 parameters
          else {
@@ -93,6 +109,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case normalized_cutoff_measure:
          Rcutoff = para3; //Rcutoff parameter is 3rd parameter in normalized_cutoff_measure 
+         beta = para1;
          if(correctParameterCount(3, para1, para2, para3, para4)) 
             _function = new DefaultNormalizedMeasure(para1, para2, Rcutoff); //normalized_cutoff_measure requires 3 parameters, beta, R0, and Rcutoff
          else { 
@@ -101,6 +118,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case unnormalized_cutoff_measure:
          Rcutoff = para2; //Rcutoff parameter is 2nd parameter in normalized_cutoff_measure
+         beta = para1;
          if(correctParameterCount(2, para1, para2, para3, para4)) 
             _function = new DefaultUnnormalizedMeasure(para1, para2); //unnormalized_cutoff_measure requires 2 parameters, beta and Rcutoff
          else {
@@ -109,6 +127,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case geometric_cutoff_measure:
          Rcutoff = para1; //Rcutoff parameter is 1st parameter in normalized_cutoff_measure
+         beta = NAN;
          if(correctParameterCount(1, para1, para2, para3, para4)) 
             _function = new GeometricMeasure(para1); //geometric_cutoff_measure only requires 1 parameter, Rcutoff
          else {
@@ -141,25 +160,27 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          _axesFinder = new AxesFinderFromAntiKT(0.2);     
          break;
       case onepass_wta_kt_axes:
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA_KT(), para1, Rcutoff);
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA_KT(), beta, Rcutoff);
          break;
       case onepass_wta_ca_axes:
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA_CA(), para1, Rcutoff);
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA_CA(), beta, Rcutoff);
          break;
       case onepass_kt_axes:
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromKT(), para1, Rcutoff);
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromKT(), beta, Rcutoff);
          break;
       case onepass_ca_axes:
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromCA(), para1, Rcutoff);
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromCA(), beta, Rcutoff);
          break;
       case onepass_antikt_0p2_axes:
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromAntiKT(0.2), para1, Rcutoff);
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromAntiKT(0.2), beta, Rcutoff);
          break;
       case onepass_manual_axes:
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromUserInput(), para1, Rcutoff);
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromUserInput(), beta, Rcutoff);
          break;
       case min_axes: //full minimization is not defined for geometric_measure.
-         if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure) _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), para1, Rcutoff);
+         if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure)
+            //updated constructor to use the n_iterations argument; set to 100 to match previous result -- TJW 1/16
+            _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(), beta, Rcutoff, 100);
          else {
             std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
             exit(1); }
