@@ -307,14 +307,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // You can also find jets with Njettiness:
    
    // NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
-   NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
+   NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
    JetDefinition njet_jetDef(&njet_plugin);
    ClusterSequence njet_seq(input_particles, njet_jetDef);
    vector<PseudoJet> njet_jets = njet_seq.inclusive_jets();
 
    // NjettinessPlugin geo_plugin(3, NsubGeometricParameters(1.0));
    // updated to use constructor where geometric_cutoff_measure is fully specified -- TJW 1/14
-   NjettinessPlugin geo_plugin(3, Njettiness::onepass_kt_axes, Njettiness::geometric_measure);
+   NjettinessPlugin geo_plugin(3, Njettiness::onepass_kt_axes, Njettiness::geometric_cutoff_measure, 1.0);
    JetDefinition geo_jetDef(&geo_plugin);
    ClusterSequence geo_seq(input_particles, geo_jetDef);
    vector<PseudoJet> geo_jets = geo_seq.inclusive_jets();
