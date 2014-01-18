@@ -1,6 +1,12 @@
 2014-1-17 <JDT>
    Rewrote KMeansMinimization to call OnePassMinimization, adding noise explicitly.
    Removed any nothing of noise from OnePassMinimization
+   Removed Double32_t for root usage is Nsubjettiness
+   Removed most of the TJW flags, after checking that the code was sensible
+   Clean up of many comments throughout the code, updating of README file
+   Removed unnecessary establishAxes in Njettiness
+   Removed bare constructor for Njettiness to avoid incompatibility with enum choices, may reinstate later.  Also removed setMeasureFunction, setAxesFinder for same reason
+   NjettinessExtras now calls TauComponents
 2014-1-16 <TJ>
    Moved minimization functions to OnePassMinimization, changed KMeansMinimization class to simply call OnePassMinimization a specified number of times
    Added extra tau function in TauComponents for users to get tau directly

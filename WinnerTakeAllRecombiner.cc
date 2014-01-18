@@ -21,30 +21,25 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-//NEW FILE CREATED BY TJW 12/28
-//Update to move WinnerTakeAllRecombiner class into separate .cc/.hh files
-
-#include "WinnerTakeAllRecombiner.hh" //new .hh file added by TJW 12/28
+#include "WinnerTakeAllRecombiner.hh"
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-  //function definitions moved from Njettiness.cc -- TJW 12/28
+std::string WinnerTakeAllRecombiner::description() const {
+   return "Winner Take All scheme recombination";
+}
 
-  std::string WinnerTakeAllRecombiner::description() const {
-      return "Winner Take All scheme recombination";
-  }
-
-  // recombine pa and pb by creating pab with energy of the sum of particle energies in the direction of the harder particle -- comment added by TJW
-  void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
-      if (pa.perp() >= pb.perp()) {
-         pab.reset_PtYPhiM(pa.perp() + pb.perp(), pa.rap(), pa.phi());
-      }
-      else if (pb.perp() > pa.perp()) {
-         pab.reset_PtYPhiM(pa.perp() + pb.perp(), pb.rap(), pb.phi());
-      }
+// recombine pa and pb by creating pab with energy of the sum of particle energies in the direction of the harder particle
+void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
+   if (pa.perp() >= pb.perp()) {
+      pab.reset_PtYPhiM(pa.perp() + pb.perp(), pa.rap(), pa.phi());
    }
+   else if (pb.perp() > pa.perp()) {
+      pab.reset_PtYPhiM(pa.perp() + pb.perp(), pb.rap(), pb.phi());
+   }
+}
 
 } //namespace contrib
 

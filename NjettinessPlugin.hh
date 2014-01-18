@@ -27,8 +27,8 @@
 #define __FASTJET_CONTRIB_NJETTINESSPLUGIN_HH__
 
 #include "Njettiness.hh"
-#include "MeasureFunction.hh" //new .hh file added by TJW 12/25
-#include "AxesFinder.hh" //new .hh file added by TJW 12/25
+#include "MeasureFunction.hh"
+#include "AxesFinder.hh"
 
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/JetDefinition.hh"
@@ -43,14 +43,15 @@ namespace contrib {
 
 //------------------------------------------------------------------------
 /// \class NjettinessExtras
-// This class contains the same information as Njettiness, but redoes it in terms of the ClusterSequence::EXtras class.
-// This is done in order to help improve the interface for the main NjettinessPlugin class. -- comment added by TJ
+// This class contains the same information as Njettiness, but redoes it in terms of the ClusterSequence::Extras class.
+// This is done in order to help improve the interface for the main NjettinessPlugin class.
+// TODO:  This class should probably be merged with TauComponents, since both have access
+// to similar information
 class NjettinessExtras : public ClusterSequence::Extras {
    private:
    
-      double _tau;
+      TauComponents _tau_components;
       std::vector<fastjet::PseudoJet> _jets;
-      std::vector<double> _taus;
       std::vector<fastjet::PseudoJet> _axes;
       
       int labelOf(const fastjet::PseudoJet& jet) const {
@@ -65,19 +66,19 @@ class NjettinessExtras : public ClusterSequence::Extras {
       }
       
    public:
-      NjettinessExtras(double tau, std::vector<fastjet::PseudoJet> jets, std::vector<double> taus, std::vector<fastjet::PseudoJet> axes) : _tau(tau), _jets(jets), _taus(taus), _axes(axes) {}
+      NjettinessExtras(TauComponents tau_components, std::vector<fastjet::PseudoJet> jets, std::vector<fastjet::PseudoJet> axes) : _tau_components(tau_components), _jets(jets), _axes(axes) {}
       
-      double totalTau() const {return _tau;}
-      std::vector<double> subTaus() const {return _taus;}
+      double totalTau() const {return _tau_components.tau();}
+      std::vector<double> subTaus() const {return _tau_components.subtaus_normalized();}
       std::vector<fastjet::PseudoJet> jets() const {return _jets;}
       std::vector<fastjet::PseudoJet> axes() const {return _axes;}
       
       double totalTau(const fastjet::PseudoJet& jet) const {
-         return _tau;
+         return _tau_components.tau();
       }
       double subTau(const fastjet::PseudoJet& jet) const {
          if (labelOf(jet) == -1) return NAN;
-         return _taus[labelOf(jet)];
+         return _tau_components.subtaus_normalized()[labelOf(jet)];
       }
       
       double beamTau() const {  // need to implement
@@ -112,46 +113,50 @@ inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence
  * particles are assigned to the nearest (DeltaR) axis and for each axis the
  * corresponding jet is simply the four-momentum sum of these particles.
  *
- * Axes can be found in several ways, specified by the AxesMode argument:
+ * Axes can be found in several ways, specified by the AxesMode argument.  The
+ * recommended choices are
  *
  * kt_axes              : exclusive kT
- * ca_axes              : exclusive CA
- * min_axes             : minimize N-jettiness by iteration (100 passes default)
- * onepass_{kt,ca}_axes : one-pass minimization seeded by kt or CA (pretty good)
+ * wta_kt_axes          : exclusive kT with winner-take-all-recombination
+ * onepass_kt_axes      : one-pass minimization seeded by kt (pretty good)
+ * onepass_wta_kt_axes  : one-pass minimization seeded by wta_kt
  *
- * N-jettiness is defined as:
+ * For the unnormalized_measure, N-jettiness is defined as:
  *
- * tau_N = Sum_{all particles i}
- *             p_T^i min((DR_i1/R_0)^beta, (DR_i2/R_0)^beta, ... , 1)
+ * tau_N = Sum_{all particles i} p_T^i min((DR_i1)^beta, (DR_i2)^beta, ...)
  *
  *   DR_ij is the distance sqrt(Delta_phi^2 + Delta_rap^2) between particle i
- *    and jet j.  R_0 and beta are parameters of the algorithm.  R_0 effectively
- *    defines an angular cutoff similar in effect to a cone-jet radius.
- *
- * You can also specify an angular cutoff Rcutoff.  Particles within R0 of an
- * axis affect tau_N, but only particles with Rcutoff are included in the final
- * jets.  In principal Rcutoff can be smaller of larger than R0.  Rcutoff=inf
- * corresponds to a partition of the event such that all particles are assigned
- * to jets.
+ *   and jet j.
  * 
+ * The normalized_meausure include an extra parameter R0, and the various cutoff
+ * measures include an Rcutoff, which effectively defines an angular cutoff
+ * similar in effect to a cone-jet radius.
+ *
  */
 
 class NjettinessPlugin : public JetDefinition::Plugin {
 public:
 
-   NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff=std::numeric_limits<double>::max());
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode axes_mode,
+                    Njettiness::MeasureMode measure_mode,
+                    double para1 = NAN,
+                    double para2 = NAN,
+                    double para3 = NAN,
+                    double para4 = NAN);
 
-   // added constructor to use new MeasureMode option -- TJW 1/11
-   // added possibility of 4th parameter -- TJW 1/15
-   NjettinessPlugin(int N, Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1 = NAN, double para2 = NAN, double para3 = NAN, double para4 = NAN);
+   // Old constructor for backwards compatibility with v1.0,
+   // where normalized_cutoff_measure was the only option
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode mode,
+                    double beta,
+                    double R0,
+                    double Rcutoff=std::numeric_limits<double>::max());
 
-   //updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters -- TJW 1/10
-   // constructor removed since user needs to specify geometric_measure -- TJW 1/13
-   // NjettinessPlugin(int N, double Rcutoff);
 
    // The things that are required by base class.
    virtual std::string description () const;
-   virtual double R() const {return -1.0;} // todo: make this not stupid
+   virtual double R() const {return -1.0;} // TODO: make this not stupid
    virtual void run_clustering(ClusterSequence&) const;
 
    virtual ~NjettinessPlugin() {}
@@ -159,11 +164,9 @@ public:
 private:
 
    int _N;
-   mutable Njettiness _njettinessFinder; // should muck with this so run_clustering can be const without this mutable
+   mutable Njettiness _njettinessFinder; // TODO:  should muck with this so run_clustering can be const without this mutable
 
 };
-
-//definition of functions moved over to NjettinessPlugin.cc -- TJW 12/22
 
 } // namespace contrib
 

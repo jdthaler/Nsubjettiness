@@ -21,34 +21,25 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-//NEW FILE CREATED BY TJW 12/22
-//Update to NsubjettinessPlugin so that all inline functions are declared explicitly in this file
-
 #include "NjettinessPlugin.hh"
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-//NjettinessPlugin constructors (moved from NjettinessPlugin.hh -- TJW 12/22)
-//constructor updated to remove NsubParameters -- TJW 1/9
-NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff)
-  : _N(N), _njettinessFinder(mode, Njettiness::normalized_cutoff_measure, beta, R0, Rcutoff) {}
 
-// added constructor to use new MeasureMode option -- TJW 1/11
-// added possibility of 4th parameter -- TJW 1/15
+// Constructor with same arguments as Nsubjettiness.
 NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3, double para4)
   : _N(N), _njettinessFinder(axes_mode, measure_mode, para1, para2, para3, para4) {}
 
-// updated constructor to use separate Rcutoff parameter instead of NsubGeometricParameters for initialization of geometric measure-- TJW 1/10
-// This constructor should be removed since user would have to specify geometric_measure -- TJW 1/13
-// NjettinessPlugin::NjettinessPlugin(int N, double Rcutoff)
-//   : _N(N), _njettinessFinder(Rcutoff) {}
+// Old constructor for compatibility
+NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff)
+   : _N(N), _njettinessFinder(mode, Njettiness::normalized_cutoff_measure, beta, R0, Rcutoff) {}
 
-//NjettinessPlugin functions (moved from NjettinessPlugin.hh -- TJW 12/22)
-std::string NjettinessPlugin::description() const {return "NJettiness";}
+std::string NjettinessPlugin::description() const {return "N-jettiness jet finder";}
 
-//clusters the particles according to the Njettiness jet algorithm
+// Clusters the particles according to the Njettiness jet algorithm
+// TODO: this code should be revisited to see if if can be made more clear.
 void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
 {
    std::vector<fastjet::PseudoJet> particles = cs.jets();
@@ -61,7 +52,6 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    for (size_t i = 0; i < partition.size(); ++i) {
       std::list<int>& indices = partition[i];
       if (indices.size() == 0) continue;
-      //std::list<int>::const_iterator it = indices.begin(); removed since unnecessary -- TJW 1/10
       while (indices.size() > 1) {
          int merge_i = indices.back(); indices.pop_back();
          int merge_j = indices.back(); indices.pop_back();
@@ -79,7 +69,7 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
       jet_indices_for_extras.push_back(cs.jets()[finalJet]);  // Get the four vector for the final jets to compare later.
    }
 
-   NjettinessExtras * extras = new NjettinessExtras(_njettinessFinder.currentTau(),jet_indices_for_extras,_njettinessFinder.currentTaus(),_njettinessFinder.currentAxes());
+   NjettinessExtras * extras = new NjettinessExtras(_njettinessFinder.currentTauComponents(),jet_indices_for_extras,_njettinessFinder.currentAxes());
    cs.plugin_associate_extras(std::auto_ptr<ClusterSequence::Extras>(extras));
    
 }

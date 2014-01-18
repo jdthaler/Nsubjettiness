@@ -25,24 +25,21 @@
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
-namespace contrib{
+namespace contrib {
 
-//constructor definition moved to class definition in Nsubjettiness.hh -- TJW 12/25
-
-//result moved from Nsubjettiness.hh file -- TJW 12/22
-
-//result returns tau_N with normalization dependent on what is specified in constructor -- comment added by TJW
-//modified so that it only returns getTau, no longer has option of tau vs tau_numerator -- TJW 1/8
-Double32_t Nsubjettiness::result(const PseudoJet& jet) const {
+//result returns tau_N with normalization dependent on what is specified in constructor
+double Nsubjettiness::result(const PseudoJet& jet) const {
    std::vector<fastjet::PseudoJet> particles = jet.constituents();
-   return _njettinessFinder.getTau(_N, particles); 
-} 
+   return _njettinessFinder.getTau(_N, particles);
+}
 
-//ratio result moved from Nsubjettiness.hh file -- TJW 12/22
-//changed return value from double to Double32_t to match Nsubjettiness class -- TJW 12/22
+TauComponents Nsubjettiness::component_result(const PseudoJet& jet) const {
+   std::vector<fastjet::PseudoJet> particles = jet.constituents();
+   return _njettinessFinder.getTauComponents(_N, particles);
+}
 
-//ratio result uses Nsubjettiness result to find the ratio tau_N/tau_M, where N and M are specified by user -- comment added by TJW
-Double32_t NsubjettinessRatio::result(const PseudoJet& jet) const {
+//ratio result uses Nsubjettiness result to find the ratio tau_N/tau_M, where N and M are specified by user
+double NsubjettinessRatio::result(const PseudoJet& jet) const {
    double numerator = _nsub_numerator.result(jet);
    double denominator = _nsub_denominator.result(jet);
    return numerator/denominator;

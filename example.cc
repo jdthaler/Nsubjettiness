@@ -156,7 +156,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // Defining Nsubjettiness parameters
    double beta = 1.0; // power for angular dependence, e.g. beta = 1 --> linear k-means, beta = 2 --> quadratic/classic k-means
    double R0 = 1.0; // Characteristic jet radius for normalization	      
-   // double Rcut = 1.0; // maximum R particles can be from axis to be included in jet	      
+   //double Rcut = 1.0; // maximum R particles can be from axis to be included in jet
    
    // used to choose whether or not min_axes are used
    bool test_min_axes = true;
@@ -180,9 +180,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
          // number seed can give different results.  For that reason,
          // Njettiness::onepass_kt_axes is the recommended usage.
          //
-
-         // All Nsubjettiness constructors updated to use specific normalized_measure with no cutoff (should produce same result) -- TJW 1/14
-         // WTA axes options added to example -- TJW 1/16
 
          //
          // Normalized Measure Values (kT, min, onepass kT, Winner take all kT)
@@ -300,7 +297,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
          //
          // Or, if you want subjets, use the FastJet plugin on a jet's constituents
-         // Recommended usage is Njettiness::onepass_kt_axes mode.
+         // Recommended usage is onepass_kt_axes or wta_kt_axes mode.
          //
          
          NjettinessPlugin nsub_plugin1(1, Njettiness::kt_axes, Njettiness::normalized_measure, 1.0, 1.0);
@@ -418,20 +415,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
    
    ////////// N-jettiness as a jet algorithm ///////////////////////////
 
-   // WARNING:  This is extremely preliminary.  You should not use for
-   //   physics studies without contacting the authors.
    // You can also find jets with Njettiness:
    
-   // NjettinessPlugin njet_plugin(3, Njettiness::onepass_kt_axes, 1.0, 1.0, 1.0);
-   // updated to winner-take-all -- TJW 1/17
-   NjettinessPlugin njet_plugin(3, Njettiness::wta_kt_axes, Njettiness::normalized_cutoff_measure, 1.0, 1.0, 1.0);
+   //  Using Winner-Take-All axes and standard measure
+   NjettinessPlugin njet_plugin(3, Njettiness::wta_kt_axes, Njettiness::unnormalized_cutoff_measure, 1.0, 1.0);
    JetDefinition njet_jetDef(&njet_plugin);
    ClusterSequence njet_seq(input_particles, njet_jetDef);
    vector<PseudoJet> njet_jets = njet_seq.inclusive_jets();
 
-   // NjettinessPlugin geo_plugin(3, NsubGeometricParameters(1.0));
-   // updated to use constructor where geometric_cutoff_measure is fully specified -- TJW 1/14
-   // updated to winner-take-all -- TJW 1/17
+   // Using WTA but geometric measure
    NjettinessPlugin geo_plugin(3, Njettiness::wta_kt_axes, Njettiness::geometric_cutoff_measure, 1.0);
    JetDefinition geo_jetDef(&geo_plugin);
    ClusterSequence geo_seq(input_particles, geo_jetDef);

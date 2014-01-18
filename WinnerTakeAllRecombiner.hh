@@ -21,9 +21,6 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-//NEW FILE CREATED BY TJW 12/28
-//Update to move WinnerTakeAllRecombiner class into separate .cc/.hh files
-
 #ifndef __FASTJET_CONTRIB_WINNERTAKEALLRECOMBINER_HH__
 #define __FASTJET_CONTRIB_WINNERTAKEALLRECOMBINER_HH__
 
@@ -36,21 +33,20 @@
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
-namespace contrib{
+namespace contrib {
 
-//class moved from Njettiness.hh -- TJW 12/28
 //------------------------------------------------------------------------
 /// \class WinnerTakeAllRecombiner
 // WinnerTakeAllRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
 // This scheme compares the energy of two input particles, and then combines them into a particle with
 // an energy equal to the sum of the two particle energies and a direction identical to that of the harder 
-// particle. This creates a jet with an axis guaranteed to align with a particle in the event. -- comment added by TJ
+// particle. This creates a jet with an axis guaranteed to align with a particle in the event.
 class WinnerTakeAllRecombiner : public fastjet::JetDefinition::Recombiner {
-public:    
-  virtual std::string description() const;
-
-  /// recombine pa and pb and put result into pab
-  virtual void recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const;
+public:
+   virtual std::string description() const;
+   
+   /// recombine pa and pb and put result into pab
+   virtual void recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const;
 };
 
 } //namespace contrib

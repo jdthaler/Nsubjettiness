@@ -21,20 +21,12 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-//NEW FILE CREATED BY TJW 12/22
-//Update to nsubjettiness so that all inline functions are declared explicitly in this file
-
 #include "Njettiness.hh"
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
-namespace contrib{
+namespace contrib {
 
-// all base MeasureFunction function definitions moved to MeasureFunction.cc -- TJW 12/25
-
-// WinnerTakeAllRecombiner function definitions moved into WinnerTakeAllRecombiner.cc -- TJW 12/28
-
-// Minimization function definitions moved to AxesFinder.cc -- TJW 12/28
 
 ///////
 //
@@ -42,19 +34,7 @@ namespace contrib{
 //
 ///////
 
-//all following Njettiness functions moved from Njettiness.hh -- TJW 12/22
-
-//function removed since it is no longer necessary -- TJW 1/15
-// void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
-//    // these new functions serve to provide a layer of abstraction between MeasureFunction and Njettiness so that Njettiness does not do the calculations itself. -- TJW 1/14
-//    TauComponents _current_tau_components = _function->result(inputs, _currentAxes);
-//    _current_subtaus_numerator = _current_tau_components.subtaus_numerator();
-//    _current_tau_numerator = _current_tau_components.tau_numerator();
-//    _current_tau_denominator = _current_tau_components.tau_denominator();
-//    _current_subtaus_normalized = _current_tau_components.subtaus_normalized();
-//    _current_tau_normalized = _current_tau_components.tau_normalized();
-// }
-
+// Helper function to correlate one pass minimization with appropriate measure
 void Njettiness::setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double beta, double Rcutoff) {
    if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure) {
       _axesFinder = new AxesFinderFromOnePassMinimization(startingFinder, beta, Rcutoff);
@@ -63,73 +43,70 @@ void Njettiness::setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* star
       _axesFinder = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
    }
    else {
-      std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
+      std::cerr << "Minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
       exit(1); }
 }
 
-//created separate function to set MeasureFunction and AxesFinder from modes in order to reduce redundant code in Njettiness constructors -- TJW 1/11
+// Parsing needed for constructor to set AxesFinder and MeasureFunction
+// All of the parameter handling is here, and checking that number of parameters is correct.
 void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4) {
 
-   // definition of maximum Rcutoff for non-cutoff measures -- TJW 1/11
-   double max_Rcutoff = std::numeric_limits<double>::max();
+   // definition of maximum Rcutoff for non-cutoff measures, changed later by other measures
+   double Rcutoff = std::numeric_limits<double>::max();
+   // Most (but all measures have some kind of beta value)
+   double beta = NAN;
+   // The normalized measures have an R0 value.
+   double R0 = NAN;
 
-   //choose which MeasureFunction to use (added separate DefaultNormalizatedMeasure and DefaultUnnormalizedMeasure classes in MeasureFunction -- TJW 1/8)
-   // added normalized_cutoff_measure, unnormalized_cutoff_measure, and geometric_cutoff_measure to use an explicit Rcutoff (as opposed to the largest possible number) -- TJW 1/10
-   // value of Rcutoff set differently depending on measure chosen to reduce the number of measure checks necessary in the AxesFinder section -- TJW 1/11
-   double Rcutoff;
-   double beta;
-
+   // Find the MeasureFunction and set the parameters.
    switch (measure_mode) {
       case normalized_measure:
-         Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
          beta = para1;
+         R0 = para2;
          if(correctParameterCount(2, para1, para2, para3, para4)) 
-            _function = new DefaultNormalizedMeasure(para1, para2, Rcutoff); //normalized_measure requires 2 parameters, beta and R0
+            _measureFunction = new DefaultNormalizedMeasure(beta, R0, Rcutoff); //normalized_measure requires 2 parameters, beta and R0
          else { 
             std::cerr << "normalized_measure needs 2 parameters (beta and R0)" << std::endl;
             exit(1); }
          break;
       case unnormalized_measure:
-         Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
          beta = para1;
          if(correctParameterCount(1, para1, para2, para3, para4)) 
-            _function = new DefaultUnnormalizedMeasure(para1, Rcutoff); //unnormalized_measure requires 1 parameter, beta
+            _measureFunction = new DefaultUnnormalizedMeasure(beta, Rcutoff); //unnormalized_measure requires 1 parameter, beta
          else {
             std::cerr << "unnormalized_measure needs 1 parameter (beta)" << std::endl;
             exit(1); }
          break;
       case geometric_measure:
-         Rcutoff = max_Rcutoff; //no explicit Rcutoff, so set to maximum
-         beta = NAN;
-         if(correctParameterCount(0, para1, para2, para3, para4)) 
-            _function = new GeometricMeasure(Rcutoff); //geometric_measure requires 0 parameters
+         if(correctParameterCount(0, para1, para2, para3, para4))
+            _measureFunction = new GeometricMeasure(Rcutoff); //geometric_measure requires 0 parameters
          else {
             std::cerr << "geometric_measure needs 0 parameters" << std::endl;
             exit(1); }
          break;
       case normalized_cutoff_measure:
-         Rcutoff = para3; //Rcutoff parameter is 3rd parameter in normalized_cutoff_measure 
          beta = para1;
-         if(correctParameterCount(3, para1, para2, para3, para4)) 
-            _function = new DefaultNormalizedMeasure(para1, para2, Rcutoff); //normalized_cutoff_measure requires 3 parameters, beta, R0, and Rcutoff
+         R0 = para2;
+         Rcutoff = para3; //Rcutoff parameter is 3rd parameter in normalized_cutoff_measure
+         if(correctParameterCount(3, para1, para2, para3, para4))
+            _measureFunction = new DefaultNormalizedMeasure(beta, R0, Rcutoff); //normalized_cutoff_measure requires 3 parameters, beta, R0, and Rcutoff
          else { 
             std::cerr << "normalized_cutoff_measure has 3 parameters (beta, R0, Rcutoff)" << std::endl;
             exit(1); }
          break;
       case unnormalized_cutoff_measure:
-         Rcutoff = para2; //Rcutoff parameter is 2nd parameter in normalized_cutoff_measure
          beta = para1;
-         if(correctParameterCount(2, para1, para2, para3, para4)) 
-            _function = new DefaultUnnormalizedMeasure(para1, para2); //unnormalized_cutoff_measure requires 2 parameters, beta and Rcutoff
+         Rcutoff = para2; //Rcutoff parameter is 2nd parameter in normalized_cutoff_measure
+         if (correctParameterCount(2, para1, para2, para3, para4))
+            _measureFunction = new DefaultUnnormalizedMeasure(beta, Rcutoff); //unnormalized_cutoff_measure requires 2 parameters, beta and Rcutoff
          else {
             std::cerr << "unnormalized_cutoff_measure has 2 parameters (beta, Rcutoff)" << std::endl;
             exit(1); }
          break;
       case geometric_cutoff_measure:
          Rcutoff = para1; //Rcutoff parameter is 1st parameter in normalized_cutoff_measure
-         beta = NAN;
-         if(correctParameterCount(1, para1, para2, para3, para4)) 
-            _function = new GeometricMeasure(para1); //geometric_cutoff_measure only requires 1 parameter, Rcutoff
+         if(correctParameterCount(1, para1, para2, para3, para4))
+            _measureFunction = new GeometricMeasure(Rcutoff); //geometric_cutoff_measure only requires 1 parameter, Rcutoff
          else {
             std::cerr << "geometric_cutoff_measure has 1 parameter (Rcutoff)" << std::endl;
             exit(1); }
@@ -139,10 +116,8 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
    }   
 
-   //choose which AxesFinder to use
-   // cerr outputs are added to make sure minimization axes finders are only used with normalized_measure, unnormalized_measure, normalized_cutoff_measure, and unnormalized_cutoff_measure -- TJW 1/11
-   // Rcutoff is set differently based on measure, so Rcutoff here is already set appropriately; para1 is always beta for non-geometric measures -- TJW 1/11
-   // uses new setOnePassAxesFinder function which sets _axesFinder depending on the measure and the input AxesFinder -- TJW 1/13
+   // Choose which AxesFinder from user input.
+   // Uses setOnePassAxesFinder helpful function to use beta and Rcutoff values about (if needed)
    switch (axes_mode) {
       case wta_kt_axes:
          _axesFinder = new AxesFinderFromWTA_KT(); 
@@ -179,7 +154,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case min_axes: //full minimization is not defined for geometric_measure.
          if (measure_mode == normalized_measure || measure_mode == unnormalized_measure || measure_mode == normalized_cutoff_measure || measure_mode == unnormalized_cutoff_measure)
-            //updated constructor to use the n_iterations argument; set to 100 to match previous result -- TJW 1/16
+            //Defaults to 100 iteration to find minimum
             _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(), beta, Rcutoff, 100);
          else {
             std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
@@ -195,6 +170,32 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
 
 }
 
+// setAxes for Manual mode
+void Njettiness::setAxes(std::vector<fastjet::PseudoJet> myAxes) {
+   if (_current_axes_mode == manual_axes || _current_axes_mode == onepass_manual_axes) {
+      _currentAxes = myAxes;
+   }
+   else {
+      std::cerr << "You can only use setAxes if using manual_axes or onepass_manual_axes measure mode" << std::endl;
+      exit(1);
+   }
+}
+   
+// Calculates and returns all TauComponents that user would want.
+// This information is stored in _current_tau_components for later access as well.
+TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
+   if (inputJets.size() <= n_jets) {  //if not enough particles, return zero
+      _currentAxes = inputJets;
+      _currentAxes.resize(n_jets,fastjet::PseudoJet(0.0,0.0,0.0,0.0));
+      _current_tau_components = TauComponents();
+   } else {
+      _currentAxes = _axesFinder->getAxes(n_jets,inputJets,_currentAxes); // sets current Axes
+      _current_tau_components = _measureFunction->result(inputJets, _currentAxes);  // sets current Tau Values
+   }
+   return _current_tau_components;
+}
+   
+   
 // Partition a list of particles according to which N-jettiness axis they are closest to.
 // Return a vector of length _currentAxes.size() (which should be N).
 // Each vector element is a list of ints corresponding to the indices in
@@ -207,13 +208,13 @@ std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet:
       // find minimum distance
       double minR = 10000.0; // large number
       for (unsigned j = 0; j < _currentAxes.size(); j++) {
-         double tempR = _function->distance(particles[i],_currentAxes[j]); // delta R distance
+         double tempR = _measureFunction->distance(particles[i],_currentAxes[j]); // delta R distance
          if (tempR < minR) {
             minR = tempR;
             j_min = j;
          }
       }
-      if (_function->do_cluster(particles[i],_currentAxes[j_min])) partitions[j_min].push_back(i);
+      if (_measureFunction->do_cluster(particles[i],_currentAxes[j_min])) partitions[j_min].push_back(i);
    }
    return partitions;
 }
