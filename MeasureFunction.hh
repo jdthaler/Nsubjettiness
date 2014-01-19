@@ -28,6 +28,7 @@
 #include <cmath>
 #include <vector>
 #include <list>
+#include <limits> //added by TJW for compilation purposes
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 

@@ -233,7 +233,7 @@ class AxesFinderFromOnePassMinimization : public AxesFinder {
 //------------------------------------------------------------------------
 /// \class AxesFinderFromKmeansMinimization
 // This class finds finds axes by using Kmeans clustering to minimizaiton N-jettiness. Given a first set of 
-// starting axes, it updates n times to get as close to the global minimum as possible. This class calls OnePass many times,\
+// starting axes, it updates n times to get as close to the global minimum as possible. This class calls OnePass many times,
 // added noise to the axes.
 class AxesFinderFromKmeansMinimization : public AxesFinder{
 
