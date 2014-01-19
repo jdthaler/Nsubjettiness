@@ -52,7 +52,7 @@ void Njettiness::setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* star
 void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4) {
 
    // definition of maximum Rcutoff for non-cutoff measures, changed later by other measures
-   double Rcutoff = std::numeric_limits<double>::max();
+   double Rcutoff = std::numeric_limits<double>::max();  //large number
    // Most (but all measures have some kind of beta value)
    double beta = NAN;
    // The normalized measures have an R0 value.
@@ -157,8 +157,9 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
             //Defaults to 100 iteration to find minimum
             _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(), beta, Rcutoff, 100);
          else {
-            std::cerr << "minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure" << std::endl;
-            exit(1); }
+            std::cerr << "Multi-pass minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure." << std::endl;
+            exit(1);
+         }
          break;
       case manual_axes:
          _axesFinder = new AxesFinderFromUserInput();
@@ -200,15 +201,16 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 // Return a vector of length _currentAxes.size() (which should be N).
 // Each vector element is a list of ints corresponding to the indices in
 // particles of the particles belonging to that jet.
+// TODO:  COnsider moving to MeasureFunction
 std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
    std::vector<std::list<int> > partitions(_currentAxes.size());
 
    int j_min = -1;
    for (unsigned i = 0; i < particles.size(); i++) {
       // find minimum distance
-      double minR = 10000.0; // large number
+      double minR = std::numeric_limits<double>::max();  //large number
       for (unsigned j = 0; j < _currentAxes.size(); j++) {
-         double tempR = _measureFunction->distance(particles[i],_currentAxes[j]); // delta R distance
+         double tempR = _measureFunction->jet_distance_squared(particles[i],_currentAxes[j]); // delta R distance
          if (tempR < minR) {
             minR = tempR;
             j_min = j;
@@ -221,6 +223,7 @@ std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet:
 
 // Having found axes, assign each particle in particles to an axis, and return a set of jets.
 // Each jet is the sum of particles closest to an axis (Njet = Naxes).
+// TODO:  COnsider moving to MeasureFunction
 std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
    
    std::vector<fastjet::PseudoJet> jets(_currentAxes.size());

@@ -244,10 +244,12 @@ class AxesFinderFromKmeansMinimization : public AxesFinder{
       DefaultUnnormalizedMeasure _measureFunction; //function to test whether minimum is reached
       AxesFinderFromOnePassMinimization _onePassFinder;  //one pass finder for minimization
 
+      PseudoJet jiggle(const PseudoJet& axis);
+   
    public:
       AxesFinderFromKmeansMinimization(AxesFinder *startingFinder, double beta, double Rcutoff, int n_iterations) :
          _n_iterations(n_iterations),
-         _noise_range(2.0*Rcutoff), // hard coded for the time being
+         _noise_range(1.0), // hard coded for the time being
          _measureFunction(beta, Rcutoff), 
          _onePassFinder(startingFinder, beta, Rcutoff)
          {}

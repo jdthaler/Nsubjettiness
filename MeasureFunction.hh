@@ -35,7 +35,7 @@ namespace contrib{
 
 inline double sq(double x) {return x*x;}
 
-   ///////
+///////
 //
 // Measure Function
 //
@@ -45,96 +45,125 @@ inline double sq(double x) {return x*x;}
 // This class creates a wrapper for the various tau/subtau values calculated in Njettiness. This class allows Njettiness access to these variables
 // without ever having to do the calculation itself. It takes in subtau numerators and tau denominator from MeasureFunction
 // and outputs tau numerator, and normalized tau and subtau.
-// TODO:  Consider merging with NjettinessExtras.  Add axes information.
+// TODO:  Consider merging with NjettinessExtras.  Add axes information?
 class TauComponents {
-   private:
-
-      // these values are input in the constructor
-      std::vector<double> _subtaus_numerator;
-      double _tau_denominator;
-      bool _has_denominator; //added so that TauComponents knows if denominator is used or not
-
-      // these values are derived from above values
-      std::vector<double> _subtaus_normalized;
-      double _tau_numerator;
-      double _tau_normalized;
-
-
-   public: 
-      // empty constructor necessary to initialize tau_components in Njettiness
-      // later set correctly in Njettiness::getTau function
-      TauComponents() {
-         _subtaus_numerator.resize(1, 0.0);
-         _tau_denominator = 0;
-         _tau_numerator = 0;
-         _subtaus_normalized.resize(1, 0.0);
-         _tau_normalized = 0;
-         _has_denominator = false;
-      }
-
-      // This constructor takes input vector and double and calculates all necessary tau components
-      TauComponents(std::vector<double> subtaus_numerator, double tau_denominator, bool has_denominator)
-         : _subtaus_numerator(subtaus_numerator), _tau_denominator(tau_denominator), _has_denominator(has_denominator) {
-         if (!_has_denominator) assert(tau_denominator == 1); //make sure that tau_denominator is 1 if _has_denominator is flagged
-         _tau_numerator = 0.0;
-         _tau_normalized = 0.0;
-         _subtaus_normalized.resize(_subtaus_numerator.size(),0.0);
-         for (unsigned j = 0; j < _subtaus_numerator.size(); j++) {
-            _subtaus_normalized[j] = _subtaus_numerator[j]/_tau_denominator;
-            _tau_numerator += _subtaus_numerator[j];
-            _tau_normalized += _subtaus_normalized[j];
-         }
-      }
-
-
-      // return values
-      std::vector<double> subtaus_numerator() const { return _subtaus_numerator; }
-      double tau_denominator() const { return _tau_denominator; }
-      bool has_denominator() const { return _has_denominator; }
+private:
    
-      double tau_numerator() const { return _tau_numerator; }
-      std::vector<double> subtaus_normalized() const { return _subtaus_normalized; }
-      double tau_normalized() const { return _tau_normalized; }
+   // these values are input in the constructor
+   std::vector<double> _jet_pieces_numerator;
+   double _beam_piece_numerator;
+   double _denominator;
+   bool _has_denominator; //added so that TauComponents knows if denominator is used or not
+   bool _has_beam; //added so that TauComponents knows if beam regions is used or not
+   
+   // these values are derived from above values
+   std::vector<double> _jet_pieces;
+   double _beam_piece;
+   double _numerator;
+   double _tau;
+   
+   
+public:
+   // empty constructor necessary to initialize tau_components in Njettiness
+   // later set correctly in Njettiness::getTau function
+   TauComponents() {
+      _jet_pieces_numerator.resize(1, 0.0);
+      _beam_piece_numerator = 0.0;
+      _denominator = 0;
+      _numerator = 0;
+      _jet_pieces.resize(1, 0.0);
+      _beam_piece = 0.0;
+      _tau = 0;
+      _has_denominator = false;
+      _has_beam = false;
+   }
+   
+   // This constructor takes input vector and double and calculates all necessary tau components
+   TauComponents(std::vector<double> jet_pieces_numerator, double beam_piece_numerator, double denominator, bool has_denominator, bool has_beam)
+   : _jet_pieces_numerator(jet_pieces_numerator),
+   _beam_piece_numerator(beam_piece_numerator),
+   _denominator(denominator),
+   _has_denominator(has_denominator),
+   _has_beam(has_beam) {
+      
+      if (!_has_denominator) assert(_denominator == 1.0); //make sure no effect from _denominator if _has_denominator is false
+      if (!_has_beam) assert (_beam_piece_numerator == 0.0); //make sure no effect from _beam_piece_numerator if _has_beam is false
+      
+      _numerator = _beam_piece_numerator;
+      _jet_pieces.resize(_jet_pieces_numerator.size(),0.0);
+      for (unsigned j = 0; j < _jet_pieces_numerator.size(); j++) {
+         _jet_pieces[j] = _jet_pieces_numerator[j]/_denominator;
+         _numerator += _jet_pieces_numerator[j];
+      }
+      
+      _beam_piece = _beam_piece_numerator/_denominator;
+      _tau = _numerator/_denominator;
+   }
+   
+   
+   // return values
+   std::vector<double> jet_pieces_numerator() const { return _jet_pieces_numerator; }
+   double beam_piece_numerator() const { return _beam_piece_numerator; }
+   double denominator() const { return _denominator; }
+   double numerator() const { return _numerator; }
 
-      //separate function for ease of user
-      double tau() const { return _tau_normalized; }
+   bool has_denominator() const { return _has_denominator; }
+   bool has_beam() const { return _has_beam; }
+   
+   std::vector<double> jet_pieces() const { return _jet_pieces; }
+   double beam_piece() const { return _beam_piece; }
+   double tau() const { return _tau; }
    
 };
 
 //------------------------------------------------------------------------
 /// \class MeasureFunction
-// This class calculates the tau_N of a jet given a specific measure. 
+// This class calculates the tau_N of a jet given a specific measure.
 // It serves as a base class for calculating tau_N according to different measures that are implemented 
 // in further derived classes, but does not define a particular measure itself.
 class MeasureFunction {
+   
+protected:
+   //bool set by derived classes to choose whether or not to use the denominator
+   bool _has_denominator;
+   bool _has_beam;
+   
+   // This constructor allows _has_denominator to be set by derived classes
+   MeasureFunction(bool has_denominator = true, bool has_beam = true) : _has_denominator(has_denominator), _has_beam(has_beam) {}
+   
+public:
+   virtual ~MeasureFunction(){}
+   
+   //These functions define the measure by which tau_N is calculated,
+   //and are overloaded by the various measures below
+   
+   // Distanes to axes.  These are called many times, so need to be as fast as possible
+   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
+   virtual double beam_distance_squared(const fastjet::PseudoJet& particle) = 0;
+   
+   // The actual measures used in N-(sub)jettiness
+   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
+   virtual double beam_numerator(const fastjet::PseudoJet& particle) = 0;
+   
+   // a possible normalization factor
+   virtual double denominator(const fastjet::PseudoJet& particle) = 0;
+   
+   
+   // These functions call the above functions and are not virtual
+   
+   // Do I cluster a particle into a jet?
+   bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+      return (jet_distance_squared(particle,axis) <= beam_distance_squared(particle));
+   }
+   
+   // Return all of the necessary TauComponents for specific input particles and axes
+   TauComponents result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
 
-   protected:
-      //bool set by derived classes to choose whether or not to use the denominator
-      bool _has_denominator; 
+   double tau(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+      return result(particles,axes).tau();
+   }
 
-      // This constructor allows _has_denominator to be set by derived classes
-      MeasureFunction(bool has_denominator = true) : _has_denominator(has_denominator) {} 
-
-      // helper function to calculate unnormalized subTau values
-      std::vector<double> subtaus_numerator(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes);
-
-      // helper function to calculate normalization factor for tau and subTau
-      double tau_denominator(const std::vector <fastjet::PseudoJet>& particles);
-
-   public:
-      virtual ~MeasureFunction(){}
-
-      //These functions define the measure by which tau_N is calculated,
-      //and are overloaded by the various measures below
-      virtual bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
-      virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
-      
-      virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
-      virtual double denominator(const fastjet::PseudoJet& particle) = 0;
-
-      // Return all of the necessary TauComponents for specific input particles and axes
-      TauComponents result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
-
+   
 };
 
 
@@ -154,18 +183,20 @@ class DefaultNormalizedMeasure : public MeasureFunction {
       DefaultNormalizedMeasure(double beta, double R0, double Rcutoff, bool normalized = true)
       : MeasureFunction(normalized), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
 
-      virtual bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         return (distance(particle,axis) <= _Rcutoff);
+      virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         return particle.squared_distance(axis);
+      }
+   
+      virtual double beam_distance_squared(const fastjet::PseudoJet& particle) {
+         return sq(_Rcutoff);
       }
 
-      virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         return std::sqrt(particle.squared_distance(axis));
+      virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         return particle.perp() * std::pow(jet_distance_squared(particle,axis),_beta/2.0);
       }
-
-      virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         double deltaR = std::sqrt(particle.squared_distance(axis));
-         if (deltaR > _Rcutoff) deltaR = _Rcutoff;
-         return particle.perp() * std::pow(deltaR,_beta);
+   
+      virtual double beam_numerator(const fastjet::PseudoJet& particle) {
+         return particle.perp() * std::pow(_Rcutoff,_beta);
       }
 
       virtual double denominator(const fastjet::PseudoJet& particle) {
@@ -211,25 +242,23 @@ class GeometricMeasure : public MeasureFunction {
 
    public:
       GeometricMeasure(double Rcutoff) : _Rcutoff(Rcutoff) {}
-            
-      virtual bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         return (distance(particle,axis) <= _Rcutoff);
-      }
-      
-      virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+   
+      virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
          double axisValue = 2.0*dot_product(lightFrom(axis),particle)/qValueOf(axis);
          double beamValue = particle.pt();
-         double pseudoR = std::sqrt(axisValue/beamValue);
-         return pseudoR;
+         return axisValue/beamValue;
+      }
+   
+      virtual double beam_distance_squared(const fastjet::PseudoJet& particle) {
+         return sq(_Rcutoff);
       }
 
-      virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         double pseudoR = distance(particle,axis);
-
-         if (pseudoR > _Rcutoff) {
-            pseudoR = _Rcutoff;
-         }
-         return particle.pt()*sq(pseudoR);
+      virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         return particle.pt()*jet_distance_squared(particle,axis);
+      }
+   
+      virtual double beam_numerator(const fastjet::PseudoJet& particle) {
+         return particle.pt()*sq(_Rcutoff);
       }
 
       virtual double denominator(const fastjet::PseudoJet& particle) {

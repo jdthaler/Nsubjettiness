@@ -59,7 +59,7 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(con
    int k_assign = -1;
    
    for (unsigned i = 0; i < inputJets.size(); i++){
-      double smallestDist = 1000000.0;
+      double smallestDist = std::numeric_limits<double>::max();  //large number
       for (int k = 0; k < N; k++) {
          double thisDist = old_axes[k].DistanceSq(inputJets[i]);
          if (thisDist < smallestDist) {
@@ -167,17 +167,20 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const s
 // The function returns the axes found at the (local) minimum
 std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
 	
-	std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
+   // get starting axes
+   std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
    
-   double tau = 10000.0, tau_tmp, cmp;
-   std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
-   std::vector<fastjet::PseudoJet> tmp_min_axes, min_axes;
-   
+   // convert from PseudoJets to LightLikeAxes
+   std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
    for (int k = 0; k < n_jets; k++) {
       old_axes[k].set_rap( seedAxes[k].rap() );
       old_axes[k].set_phi( seedAxes[k].phi() );
    }
-   cmp = 100.0; int h = 0;
+   
+   // Find new axes by iterating (only one pass here)
+   std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0));
+   double cmp = std::numeric_limits<double>::max();  //large number
+   int h = 0;
    while (cmp > _precision && h < _halt) { // Keep updating axes until near-convergence or too many update steps
       cmp = 0.0;
       h++;
@@ -190,19 +193,40 @@ std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getAxes(int n
    }
       
    // Convert from internal LightLikeAxes to PseudoJet
+   std::vector<fastjet::PseudoJet> outputAxes;
    for (int k = 0; k < n_jets; k++) {
       fastjet::PseudoJet temp = old_axes[k].ConvertToPseudoJet();
-      tmp_min_axes.push_back(temp);
+      outputAxes.push_back(temp);
    }
    
-   TauComponents tau_components = _measureFunction.result(inputJets, tmp_min_axes);
-   tau_tmp = tau_components.tau();
-   if (tau_tmp < tau) {tau = tau_tmp; min_axes = tmp_min_axes;} // Keep axes and tau only if they are best so far
+   // this is used to debug the minimization routine to make sure that it works.
+   bool do_debug = false;
+   if (do_debug) {
+      // get this information to make sure that minimization is working properly
+      TauComponents seed_tau_components = _measureFunction.result(inputJets, seedAxes);
+      double seed_tau = seed_tau_components.tau();
+      TauComponents tau_components = _measureFunction.result(inputJets, outputAxes);
+      double outputTau = tau_components.tau();
+      assert(outputTau <= seed_tau);
+   }
    
-   return min_axes;
+   return outputAxes;
 }
 
+PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) {
+   double phi_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
+   double rap_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
+   
+   double new_phi = axis.phi() + phi_noise;
+   if (new_phi >= 2.0*M_PI) new_phi -= 2.0*M_PI;
+   if (new_phi <= -2.0*M_PI) new_phi += 2.0*M_PI;
 
+   PseudoJet newAxis(0,0,0,0);
+   newAxis.reset_PtYPhiM(axis.perp(),axis.rap() + rap_noise,new_phi);
+   return newAxis;
+}
+   
+   
 // Repeatedly calls the one pass finder to try to find global minimum
 std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
@@ -212,17 +236,10 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
    
    for (int l = 1; l < _n_iterations; l++) { // Do minimization procedure multiple times (l = 1 to start since first iteration is done already)
    
-      double noise = 0;
+      // Add noise to current best axes
       std::vector< PseudoJet > noiseAxes(n_jets, PseudoJet(0,0,0,0));
-
-      // Add noise to guess for the axes
       for (int k = 0; k < n_jets; k++) {
-         LightLikeAxis tempLightLikeAxis(0,0,0,0);
-         noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2 - _noise_range;
-         tempLightLikeAxis.set_rap( bestAxes[k].rap() + noise );
-         noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2 - _noise_range;
-         tempLightLikeAxis.set_phi( bestAxes[k].phi() + noise );
-         noiseAxes[k] = tempLightLikeAxis.ConvertToPseudoJet();
+         noiseAxes[k] = jiggle(bestAxes[k]);
       }
 
       std::vector<fastjet::PseudoJet> testAxes = _onePassFinder.getAxes(n_jets, inputJets, noiseAxes);
@@ -237,46 +254,50 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
    return bestAxes;
 }
 
-// uses minimization of the geometric distance in order to find the minimum axes. It continually updates until it reaches convergence
-// or it reaches the maximum number of attempts.
+// Uses minimization of the geometric distance in order to find the minimum axes.
+// It continually updates until it reaches convergence or it reaches the maximum number of attempts.
+// This is essentially the same as a stable cone finder.
 std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
-    std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
-
-    TauComponents tau_components_seed = _function->result(particles, seedAxes);
-    double seedTau = tau_components_seed.tau();
+   // find starting axes and baseline value
+   std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
+   double seedTau = _function->tau(particles, seedAxes);
+   
+   for (int i = 0; i < _nAttempts; i++) {
+      
+      std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
+      
+      // find closest axis and assign to that
+      for (unsigned int i = 0; i < particles.size(); i++) {
          
-    for (int i = 0; i < _nAttempts; i++) {
-            
-        std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
-
-        for (unsigned int i = 0; i < particles.size(); i++) {
-            double minDist = 100000000.0; //large number    
-            int minJ = -1; //bad ref
-            for (unsigned int j = 0; j < seedAxes.size(); j++) {
-                double tempDist = _function->distance(particles[i],seedAxes[j]);
-                if (tempDist < minDist) {
-                    minDist = tempDist;
-                    minJ = j;
-                }
+         // start from unclustered beam measure
+         int minJ = -1;
+         double minDist = _function->beam_distance_squared(particles[i]);
+         
+         // which axis am I closest to?
+         for (unsigned int j = 0; j < seedAxes.size(); j++) {
+            double tempDist = _function->jet_distance_squared(particles[i],seedAxes[j]);
+            if (tempDist < minDist) {
+               minDist = tempDist;
+               minJ = j;
             }
-               
-            if (_function->do_cluster(particles[i],seedAxes[minJ])) {
-                newAxes[minJ] += particles[i];
-            }
-        }
-
-        seedAxes = newAxes;
-            
-        TauComponents tau_components_new = _function->result(particles, newAxes);
-        double tempTau = tau_components_new.tau();
-
-        if (fabs(tempTau - seedTau) < _accuracy) break;
-        seedTau = tempTau;
-    }
-        
-    return seedAxes;
-}      
+         }
+         
+         // if not unclustered, then cluster
+         if (minJ != -1) newAxes[minJ] += particles[i];
+      }
+      
+      // calculate tau on new axes
+      seedAxes = newAxes;
+      double tempTau = _function->tau(particles, newAxes);
+      
+      // close enough to stop?
+      if (fabs(tempTau - seedTau) < _accuracy) break;
+      seedTau = tempTau;
+   }
+   
+   return seedAxes;
+}
 
 // Go from internal LightLikeAxis to PseudoJet
 fastjet::PseudoJet LightLikeAxis::ConvertToPseudoJet() {
@@ -285,8 +306,7 @@ fastjet::PseudoJet LightLikeAxis::ConvertToPseudoJet() {
     pz = (std::exp(2.0*_rap) - 1.0) / (std::exp(2.0*_rap) + 1.0) * E;
     px = std::cos(_phi) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
     py = std::sin(_phi) * std::sqrt( std::pow(E,2) - std::pow(pz,2) );
-    fastjet::PseudoJet FourVecJet = fastjet::PseudoJet(px,py,pz,E);
-    return FourVecJet;
+    return fastjet::PseudoJet(px,py,pz,E);
 }
 
 } //namespace contrib

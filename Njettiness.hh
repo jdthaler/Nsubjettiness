@@ -61,8 +61,8 @@ public:
       wta_ca_axes,         // Winner Take All axes with CA
       onepass_kt_axes,     // one-pass minimization from kt starting point
       onepass_ca_axes,     // one-pass minimization from ca starting point
-      onepass_wta_kt_axes, //one-pass minimization of WTA axes with kt
       onepass_antikt_0p2_axes,  // one-pass minimization from antikt-0.2 starting point
+      onepass_wta_kt_axes, //one-pass minimization of WTA axes with kt
       onepass_wta_ca_axes, //one-pass minimization of WTA axes with ca
       min_axes,            // axes that minimize N-subjettiness (100 passes by default)
       manual_axes,         // set your own axes with setAxes()

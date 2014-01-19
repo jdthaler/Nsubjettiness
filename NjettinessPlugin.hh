@@ -69,7 +69,7 @@ class NjettinessExtras : public ClusterSequence::Extras {
       NjettinessExtras(TauComponents tau_components, std::vector<fastjet::PseudoJet> jets, std::vector<fastjet::PseudoJet> axes) : _tau_components(tau_components), _jets(jets), _axes(axes) {}
       
       double totalTau() const {return _tau_components.tau();}
-      std::vector<double> subTaus() const {return _tau_components.subtaus_normalized();}
+      std::vector<double> subTaus() const {return _tau_components.jet_pieces();}
       std::vector<fastjet::PseudoJet> jets() const {return _jets;}
       std::vector<fastjet::PseudoJet> axes() const {return _axes;}
       
@@ -78,11 +78,11 @@ class NjettinessExtras : public ClusterSequence::Extras {
       }
       double subTau(const fastjet::PseudoJet& jet) const {
          if (labelOf(jet) == -1) return NAN;
-         return _tau_components.subtaus_normalized()[labelOf(jet)];
+         return _tau_components.jet_pieces()[labelOf(jet)];
       }
       
-      double beamTau() const {  // need to implement
-         return 0.0;
+      double beamTau() const {
+         return _tau_components.beam_piece();
       }
       
       fastjet::PseudoJet axis(const fastjet::PseudoJet& jet) const {
