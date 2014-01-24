@@ -206,28 +206,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
       //  beta with onepass_kt_axes or onepass_wta_kt_axes:  between 1.0 and 3.0
       //
       ///////
-
-      Nsubjettiness nSub1_WTA(1,Njettiness::wta_kt_axes,Njettiness::unnormalized_measure,1.0);
-      Nsubjettiness nSub1_Broad(1,Njettiness::onepass_wta_kt_axes,Njettiness::unnormalized_measure,1.0);
-      Nsubjettiness nSub1_kT(1,Njettiness::kt_axes,Njettiness::unnormalized_measure,2.0);
-      Nsubjettiness nSub1_Thrust(1,Njettiness::onepass_kt_axes,Njettiness::unnormalized_measure,2.0);
-
-      double tau_WTA = nSub1_WTA(antikt_jets[j]); //don't need this information for the axis
-      double tau_Broad = nSub1_Broad(antikt_jets[j]); //don't need this information for the axis
-      double tau_kT = nSub1_kT(antikt_jets[j]); //don't need this information for the axis
-      double tau_Thrust = nSub1_Thrust(antikt_jets[j]); //don't need this information for the axis
-
-      vector<PseudoJet> axis_WTA = nSub1_WTA.currentAxes();
-      vector<PseudoJet> axis_Broad = nSub1_Broad.currentAxes();
-      vector<PseudoJet> axis_kT = nSub1_kT.currentAxes();
-      vector<PseudoJet> axis_Thrust = nSub1_Thrust.currentAxes();
-      
-      PrintJets(axis_WTA);
-      PrintJets(axis_Broad);
-      PrintJets(axis_kT);
-      PrintJets(axis_Thrust);
-      
-      return;
       
       
       cout << "-------------------------------------------------------------------------------------" << endl;
