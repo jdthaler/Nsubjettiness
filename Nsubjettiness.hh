@@ -75,6 +75,11 @@ public:
    /// returns components of tau_N, so that user can find individual tau values.
    TauComponents component_result(const PseudoJet& jet) const;
    
+   /// returns current axes found by result() calculation
+   std::vector<fastjet::PseudoJet> currentAxes() const {
+      return _njettinessFinder.currentAxes();
+   }
+   
    // To set axes for manual use
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
       // Cross check that manual axes are being used is in Njettiness
