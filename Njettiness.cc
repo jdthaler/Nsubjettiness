@@ -205,8 +205,9 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
    std::vector<std::list<int> > partitions(_currentAxes.size());
 
-   int j_min = -1;
    for (unsigned i = 0; i < particles.size(); i++) {
+      
+      int j_min = -1;
       // find minimum distance
       double minR = std::numeric_limits<double>::max();  //large number
       for (unsigned j = 0; j < _currentAxes.size(); j++) {
