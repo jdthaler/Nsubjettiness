@@ -59,11 +59,15 @@ public:
       antikt_0p2_axes,     // inclusive hardest axes with antikt-0.2
       wta_kt_axes,         // Winner Take All axes with kt
       wta_ca_axes,         // Winner Take All axes with CA
+      wta2_kt_axes,        // Winner Take All (alpha = 2) with kt -- TJW 1/27
+      wta2_ca_axes,         // Winner Take All (alpha = 2) with CA -- TJW 1/27
       onepass_kt_axes,     // one-pass minimization from kt starting point
       onepass_ca_axes,     // one-pass minimization from ca starting point
       onepass_antikt_0p2_axes,  // one-pass minimization from antikt-0.2 starting point
-      onepass_wta_kt_axes, //one-pass minimization of WTA axes with kt
-      onepass_wta_ca_axes, //one-pass minimization of WTA axes with ca
+      onepass_wta_kt_axes, //one-pass minimization of WTA axes with kt 
+      onepass_wta_ca_axes, //one-pass minimization of WTA axes with ca 
+      onepass_wta2_kt_axes, //one-pass minimization of WTA (alpha = 2) axes with kt -- TJW 1/27
+      onepass_wta2_ca_axes, //one-pass minimization of WTA (alpha = 2) axes with ca -- TJW 1/27
       min_axes,            // axes that minimize N-subjettiness (100 passes by default)
       manual_axes,         // set your own axes with setAxes()
       onepass_manual_axes  // one-pass minimization from manual starting point

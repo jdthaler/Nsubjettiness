@@ -43,10 +43,16 @@ namespace contrib {
 // particle. This creates a jet with an axis guaranteed to align with a particle in the event.
 class WinnerTakeAllRecombiner : public fastjet::JetDefinition::Recombiner {
 public:
+	// added constructor to choose value of alpha (defaulted to 1 for normal pT sum) -- TJW 1/27
+   WinnerTakeAllRecombiner(int alpha = 1) : _alpha(alpha) {}
+
    virtual std::string description() const;
    
    /// recombine pa and pb and put result into pab
    virtual void recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const;
+
+private:
+	int _alpha; //power of (pt/E) term when recombining particles (made int in case we want to expand) -- TJW 1/27
 };
 
 } //namespace contrib

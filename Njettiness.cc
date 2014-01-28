@@ -125,6 +125,12 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
       case wta_ca_axes:
          _axesFinder = new AxesFinderFromWTA_CA(); 
          break;
+      case wta2_kt_axes: // option for alpha = 2 added -- TJW 1/27
+         _axesFinder = new AxesFinderFromWTA2_KT(); 
+         break;
+      case wta2_ca_axes: // option for alpha = 2 added -- TJW 1/27
+         _axesFinder = new AxesFinderFromWTA2_CA(); 
+         break;
       case kt_axes:
          _axesFinder = new AxesFinderFromKT();
          break;
@@ -139,6 +145,12 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case onepass_wta_ca_axes:
          setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA_CA(), beta, Rcutoff);
+         break;
+      case onepass_wta2_kt_axes: // option for alpha = 2 added -- TJW 1/27
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_KT(), beta, Rcutoff);
+         break;
+      case onepass_wta2_ca_axes: // option for alpha = 2 added -- TJW 1/27
+         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_CA(), beta, Rcutoff);
          break;
       case onepass_kt_axes:
          setOnePassAxesFinder(measure_mode, new AxesFinderFromKT(), beta, Rcutoff);

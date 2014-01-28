@@ -32,13 +32,29 @@ std::string WinnerTakeAllRecombiner::description() const {
 }
 
 // recombine pa and pb by creating pab with energy of the sum of particle energies in the direction of the harder particle
+
+// updated recombiner to use more general form of a metric equal to E*(pT/E)^(alpha), which reduces to pT*cosh(rap)^(1-alpha)
+// alpha is specified by the user. The default is alpha = 1, which is the typical behavior. alpha = 2 provides a metric which more 
+// favors central jets -- added by TJW 1/27
 void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
-   if (pa.perp() >= pb.perp()) {
-      pab.reset_PtYPhiM(pa.perp() + pb.perp(), pa.rap(), pa.phi());
+   double a_pt = pa.perp(), b_pt = pb.perp(), a_rap = pa.rap(), b_rap = pb.rap();
+   double a_metric = a_pt*pow(cosh(a_rap), 1-_alpha), b_metric = b_pt*pow(cosh(b_rap), 1-_alpha);
+
+   if (a_metric >= b_metric) {
+   		double new_pt = a_pt + b_pt*pow(cosh(b_rap)/cosh(a_rap), 1-_alpha);
+   		pab.reset_PtYPhiM(new_pt, a_rap, pa.phi());
    }
-   else if (pb.perp() > pa.perp()) {
-      pab.reset_PtYPhiM(pa.perp() + pb.perp(), pb.rap(), pb.phi());
+   if (b_metric > a_metric) {
+   		double new_pt = b_pt + a_pt*pow(cosh(a_rap)/cosh(b_rap), 1-_alpha);
+   		pab.reset_PtYPhiM(new_pt, b_rap, pb.phi());
    }
+
+   // if (pa.perp() >= pb.perp()) {
+   //    pab.reset_PtYPhiM(pa.perp() + pb.perp(), pa.rap(), pa.phi());
+   // }
+   // else if (pb.perp() > pa.perp()) {
+   //    pab.reset_PtYPhiM(pa.perp() + pb.perp(), pb.rap(), pb.phi());
+   // }
 }
 
 } //namespace contrib
