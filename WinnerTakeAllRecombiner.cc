@@ -38,23 +38,30 @@ std::string WinnerTakeAllRecombiner::description() const {
 // favors central jets -- added by TJW 1/27
 void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
    double a_pt = pa.perp(), b_pt = pb.perp(), a_rap = pa.rap(), b_rap = pb.rap();
-   double a_metric = a_pt*pow(cosh(a_rap), 1-_alpha), b_metric = b_pt*pow(cosh(b_rap), 1-_alpha);
-
-   if (a_metric >= b_metric) {
-   		double new_pt = a_pt + b_pt*pow(cosh(b_rap)/cosh(a_rap), 1-_alpha);
-   		pab.reset_PtYPhiM(new_pt, a_rap, pa.phi());
+   double a_metric, b_metric;
+   // special case of alpha = 1, everything is just pt (made separate so that pow function isn't called) -- TJW 1/28
+   if (_alpha == 1.0) {
+      if (a_pt >= b_pt) {
+         pab.reset_PtYPhiM(a_pt + b_pt, a_rap, pa.phi());
+      }
+      else if (b_pt > a_pt) {
+         pab.reset_PtYPhiM(a_pt + b_pt, b_rap, pb.phi());
+      }
    }
-   if (b_metric > a_metric) {
-   		double new_pt = b_pt + a_pt*pow(cosh(a_rap)/cosh(b_rap), 1-_alpha);
-   		pab.reset_PtYPhiM(new_pt, b_rap, pb.phi());
-   }
 
-   // if (pa.perp() >= pb.perp()) {
-   //    pab.reset_PtYPhiM(pa.perp() + pb.perp(), pa.rap(), pa.phi());
-   // }
-   // else if (pb.perp() > pa.perp()) {
-   //    pab.reset_PtYPhiM(pa.perp() + pb.perp(), pb.rap(), pb.phi());
-   // }
+   // every other case uses additional cosh(rap) term
+   else {
+      a_metric = a_pt*pow(cosh(a_rap), 1-_alpha);
+      b_metric = b_pt*pow(cosh(b_rap), 1-_alpha);
+      if (a_metric >= b_metric) {
+   	  double new_pt = a_pt + b_pt*pow(cosh(b_rap)/cosh(a_rap), 1-_alpha);
+   	  pab.reset_PtYPhiM(new_pt, a_rap, pa.phi());
+      }
+      if (b_metric > a_metric) {
+   	  double new_pt = b_pt + a_pt*pow(cosh(a_rap)/cosh(b_rap), 1-_alpha);
+   	  pab.reset_PtYPhiM(new_pt, b_rap, pb.phi());
+      }
+   }
 }
 
 } //namespace contrib

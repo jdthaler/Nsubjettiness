@@ -44,7 +44,7 @@ namespace contrib {
 class WinnerTakeAllRecombiner : public fastjet::JetDefinition::Recombiner {
 public:
 	// added constructor to choose value of alpha (defaulted to 1 for normal pT sum) -- TJW 1/27
-   WinnerTakeAllRecombiner(int alpha = 1) : _alpha(alpha) {}
+   WinnerTakeAllRecombiner(double alpha = 1.0) : _alpha(alpha) {}
 
    virtual std::string description() const;
    
@@ -52,7 +52,7 @@ public:
    virtual void recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const;
 
 private:
-	int _alpha; //power of (pt/E) term when recombining particles (made int in case we want to expand) -- TJW 1/27
+	double _alpha; //power of (pt/E) term when recombining particles -- TJW 1/27
 };
 
 } //namespace contrib
