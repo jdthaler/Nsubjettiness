@@ -97,9 +97,9 @@ There are also measures that incorporate a radial cutoff:
     normalized_cutoff_measure   (3:beta,R0,Rcutoff) //normalized measure with Rcutoff (in addition to beta)
     unnormalized_cutoff_measure (2:beta,Rcutoff) //unnormalized measure with Rcutoff (in addition to beta and R0)
 
-In beta testing are "geometric" measures where distances are measured using the Lorentz dot product
-    geometric_measure        (0) //geometric measure, no parameters
-    geometric_cutoff_measure (1:Rcutoff) //geometric measure with Rcutoff
+In beta testing are "geometric" measures where distances are measured using the Lorentz dot product (N.B. the formula for the geometric measure is likely to change since there should be separate beam and jet beta factors)
+    geometric_measure        (1:beta) //geometric measure with exponent beta
+    geometric_cutoff_measure (2:betaRcutoff) //geometric measure with Rcutoff
 
 -------------------------
 A note on beta dependence

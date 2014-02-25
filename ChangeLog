@@ -1,3 +1,8 @@
+2014-2-24 <JDT>
+   Fixed embarrassing bug with min_axes (error introduced after v1.0 to make it the same as onepass_kt)
+   Simplified GeometricMeasure and added possibility of beta dependence
+   Commented out WTA2 options, since those have not been fully tested (nor do they seem particularly useful at the moment).  They can be reinstated if the physics case can be made to use them.
+   Split example into example_basic_usage and example_advanced_usage
 2014-1-28 <TJ>
    Added new options in WinnerTakeAllRecombiner to use either pT or pT^2/E to recombine particles
 2014-1-24 <JDT>
@@ -13,7 +18,6 @@
    Rewrote KMeansMinimization to call OnePassMinimization, adding noise explicitly.
    Removed any nothing of noise from OnePassMinimization
    Removed Double32_t for root usage is Nsubjettiness
-   Removed most of the TJW flags, after checking that the code was sensible
    Clean up of many comments throughout the code, updating of README file
    Removed unnecessary establishAxes in Njettiness
    Removed bare constructor for Njettiness to avoid incompatibility with enum choices, may reinstate later.  Also removed setMeasureFunction, setAxesFinder for same reason

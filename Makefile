@@ -16,7 +16,7 @@ check_script = ../utils/check.sh
 # things that are specific to this contrib
 NAME=Nsubjettiness
 SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc MeasureFunction.cc AxesFinder.cc WinnerTakeAllRecombiner.cc
-EXAMPLES=example
+EXAMPLES=example_basic_usage example_advanced_usage
 INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureFunction.hh AxesFinder.hh WinnerTakeAllRecombiner.hh
 #------------------------------------------------------------------------
 

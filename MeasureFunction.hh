@@ -28,7 +28,7 @@
 #include <cmath>
 #include <vector>
 #include <list>
-#include <limits> //added by TJW for compilation purposes
+#include <limits>
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
@@ -228,6 +228,8 @@ class DefaultUnnormalizedMeasure : public DefaultNormalizedMeasure {
 class GeometricMeasure : public MeasureFunction {
 
    private:
+      double _jet_beta;
+      double _beam_beta;
       double _Rcutoff;
 
       // create light-like axis
@@ -235,19 +237,15 @@ class GeometricMeasure : public MeasureFunction {
          double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
          return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
       }
-      
-      // get Q value
-      double qValueOf(const fastjet::PseudoJet& input) const {
-         return lightFrom(input).pt();
-      }
 
    public:
-      GeometricMeasure(double Rcutoff) : _Rcutoff(Rcutoff) {}
+      // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
+      GeometricMeasure(double jet_beta, double Rcutoff) : _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff) {}
    
       virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         double axisValue = 2.0*dot_product(lightFrom(axis),particle)/qValueOf(axis);
-         double beamValue = particle.pt();
-         return axisValue/beamValue;
+         fastjet::PseudoJet lightAxis = lightFrom(axis);
+         double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+         return pseudoRsquared;
       }
    
       virtual double beam_distance_squared(const fastjet::PseudoJet& particle) {
@@ -255,11 +253,14 @@ class GeometricMeasure : public MeasureFunction {
       }
 
       virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-         return particle.pt()*jet_distance_squared(particle,axis);
+         fastjet::PseudoJet lightAxis = lightFrom(axis);
+         double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
+         return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
       }
    
       virtual double beam_numerator(const fastjet::PseudoJet& particle) {
-         return particle.pt()*sq(_Rcutoff);
+         double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
+         return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
       }
 
       virtual double denominator(const fastjet::PseudoJet& particle) {

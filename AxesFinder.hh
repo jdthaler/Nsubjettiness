@@ -112,39 +112,39 @@ class AxesFinderFromWTA_CA : public AxesFinderFromExclusiveJetDefinition {
       ~AxesFinderFromWTA_CA() {delete recomb;}
 };
 
-// class added by TJW -- 1/27
-//------------------------------------------------------------------------
-/// \class AxesFinderFromWTA2_KT
-// This class finds axes by finding the exlusive jets after clustering according to a kT algorithm and a 
-// winner take all recombination scheme with alpha = 2.
-class AxesFinderFromWTA2_KT : public AxesFinderFromExclusiveJetDefinition { 
-   private: 
-      const WinnerTakeAllRecombiner *recomb;
-   public:
-      AxesFinderFromWTA2_KT() : AxesFinderFromExclusiveJetDefinition(
-         fastjet::JetDefinition(fastjet::kt_algorithm, 
-         fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
-         recomb = new WinnerTakeAllRecombiner(2), // uses alpha = 2 here -- TJW 1/27 
-         fastjet::Best)) {}
-      ~AxesFinderFromWTA2_KT() {delete recomb;}
-   };
-   
-// class added by TJW -- 1/27
-//------------------------------------------------------------------------
-/// \class AxesFinderFromWTA2_CA
-// This class finds axes by finding the exlusive jets after clustering according to a CA algorithm and a 
-// winner take all recombination scheme with alpha = 2.
-class AxesFinderFromWTA2_CA : public AxesFinderFromExclusiveJetDefinition {
-   private: 
-      const WinnerTakeAllRecombiner *recomb;
-   public:
-      AxesFinderFromWTA2_CA() : AxesFinderFromExclusiveJetDefinition(
-         fastjet::JetDefinition(fastjet::cambridge_algorithm, 
-         fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
-         recomb = new WinnerTakeAllRecombiner(2), //uses alpha = 2 here -- TJW 1/27
-         fastjet::Best)) {}
-      ~AxesFinderFromWTA2_CA() {delete recomb;}
-};
+//  The following classes are for testing, and are commented out for initial release
+//
+////------------------------------------------------------------------------
+///// \class AxesFinderFromWTA2_KT
+//// This class finds axes by finding the exlusive jets after clustering according to a kT algorithm and a 
+//// winner take all recombination scheme with alpha = 2.
+//class AxesFinderFromWTA2_KT : public AxesFinderFromExclusiveJetDefinition { 
+//   private: 
+//      const WinnerTakeAllRecombiner *recomb;
+//   public:
+//      AxesFinderFromWTA2_KT() : AxesFinderFromExclusiveJetDefinition(
+//         fastjet::JetDefinition(fastjet::kt_algorithm, 
+//         fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
+//         recomb = new WinnerTakeAllRecombiner(2), // uses alpha = 2 here
+//         fastjet::Best)) {}
+//      ~AxesFinderFromWTA2_KT() {delete recomb;}
+//   };
+//   
+////------------------------------------------------------------------------
+///// \class AxesFinderFromWTA2_CA
+//// This class finds axes by finding the exlusive jets after clustering according to a CA algorithm and a 
+//// winner take all recombination scheme with alpha = 2.
+//class AxesFinderFromWTA2_CA : public AxesFinderFromExclusiveJetDefinition {
+//   private: 
+//      const WinnerTakeAllRecombiner *recomb;
+//   public:
+//      AxesFinderFromWTA2_CA() : AxesFinderFromExclusiveJetDefinition(
+//         fastjet::JetDefinition(fastjet::cambridge_algorithm, 
+//         fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
+//         recomb = new WinnerTakeAllRecombiner(2), //uses alpha = 2 here
+//         fastjet::Best)) {}
+//      ~AxesFinderFromWTA2_CA() {delete recomb;}
+//};
 
 //------------------------------------------------------------------------
 /// \class AxesFinderFromKT
@@ -276,6 +276,8 @@ class AxesFinderFromKmeansMinimization : public AxesFinder{
       double _noise_range; // noise range for random initialization
    
       DefaultUnnormalizedMeasure _measureFunction; //function to test whether minimum is reached
+   
+      AxesFinder* _startingFinder;  // initialization
       AxesFinderFromOnePassMinimization _onePassFinder;  //one pass finder for minimization
 
       PseudoJet jiggle(const PseudoJet& axis);
@@ -284,8 +286,9 @@ class AxesFinderFromKmeansMinimization : public AxesFinder{
       AxesFinderFromKmeansMinimization(AxesFinder *startingFinder, double beta, double Rcutoff, int n_iterations) :
          _n_iterations(n_iterations),
          _noise_range(1.0), // hard coded for the time being
-         _measureFunction(beta, Rcutoff), 
-         _onePassFinder(startingFinder, beta, Rcutoff)
+         _measureFunction(beta, Rcutoff),
+         _startingFinder(startingFinder),
+         _onePassFinder(NULL, beta, Rcutoff)
          {}
 
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
@@ -307,10 +310,15 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
 
    
    public:
-      AxesFinderFromGeometricMinimization(AxesFinder* startingFinder, double Rcutoff) : _startingFinder(startingFinder), _Rcutoff(Rcutoff) {
+      AxesFinderFromGeometricMinimization(AxesFinder* startingFinder, double beta, double Rcutoff) : _startingFinder(startingFinder), _Rcutoff(Rcutoff) {
+         if (beta != 2.0) {
+            std::cerr << "Geometric minimization is currently only defined for beta = 2.0." << std::endl;
+            exit(1);
+         }
+         
          _nAttempts = 100;
          _accuracy = 0.000000001;
-         _function = new GeometricMeasure(_Rcutoff);
+         _function = new GeometricMeasure(beta,_Rcutoff);
       }
 
       ~AxesFinderFromGeometricMinimization() {

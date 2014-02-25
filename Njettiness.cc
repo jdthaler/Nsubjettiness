@@ -40,7 +40,7 @@ void Njettiness::setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* star
       _axesFinder = new AxesFinderFromOnePassMinimization(startingFinder, beta, Rcutoff);
    }
    else if (measure_mode == geometric_measure || measure_mode == geometric_cutoff_measure) {
-      _axesFinder = new AxesFinderFromGeometricMinimization(startingFinder, Rcutoff);
+      _axesFinder = new AxesFinderFromGeometricMinimization(startingFinder, beta, Rcutoff);
    }
    else {
       std::cerr << "Minimization only set up for normalized_measure, unnormalized_measure, normalized_cutoff_measure, unnormalized_cutoff_measure, geometric_measure, geometric_cutoff_measure" << std::endl;
@@ -78,10 +78,11 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
             exit(1); }
          break;
       case geometric_measure:
-         if(correctParameterCount(0, para1, para2, para3, para4))
-            _measureFunction = new GeometricMeasure(Rcutoff); //geometric_measure requires 0 parameters
+         beta = para1;
+         if(correctParameterCount(1, para1, para2, para3, para4))
+            _measureFunction = new GeometricMeasure(beta,Rcutoff); //geometric_measure requires 1 parameter, beta
          else {
-            std::cerr << "geometric_measure needs 0 parameters" << std::endl;
+            std::cerr << "geometric_measure needs 1 parameter (beta)" << std::endl;
             exit(1); }
          break;
       case normalized_cutoff_measure:
@@ -104,11 +105,12 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
             exit(1); }
          break;
       case geometric_cutoff_measure:
-         Rcutoff = para1; //Rcutoff parameter is 1st parameter in normalized_cutoff_measure
-         if(correctParameterCount(1, para1, para2, para3, para4))
-            _measureFunction = new GeometricMeasure(Rcutoff); //geometric_cutoff_measure only requires 1 parameter, Rcutoff
+         beta = para1;
+         Rcutoff = para2; //Rcutoff parameter is 2nd parameter in geometric_cutoff_measure
+         if(correctParameterCount(2, para1, para2, para3, para4))
+            _measureFunction = new GeometricMeasure(beta,Rcutoff); //geometric_cutoff_measure requires 2 parameters, beta and Rcutoff
          else {
-            std::cerr << "geometric_cutoff_measure has 1 parameter (Rcutoff)" << std::endl;
+            std::cerr << "geometric_cutoff_measure has 2 parameters (beta,Rcutoff)" << std::endl;
             exit(1); }
          break;
       default:
@@ -125,12 +127,6 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
       case wta_ca_axes:
          _axesFinder = new AxesFinderFromWTA_CA(); 
          break;
-      case wta2_kt_axes: // option for alpha = 2 added -- TJW 1/27
-         _axesFinder = new AxesFinderFromWTA2_KT(); 
-         break;
-      case wta2_ca_axes: // option for alpha = 2 added -- TJW 1/27
-         _axesFinder = new AxesFinderFromWTA2_CA(); 
-         break;
       case kt_axes:
          _axesFinder = new AxesFinderFromKT();
          break;
@@ -145,12 +141,6 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
          break;
       case onepass_wta_ca_axes:
          setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA_CA(), beta, Rcutoff);
-         break;
-      case onepass_wta2_kt_axes: // option for alpha = 2 added -- TJW 1/27
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_KT(), beta, Rcutoff);
-         break;
-      case onepass_wta2_ca_axes: // option for alpha = 2 added -- TJW 1/27
-         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_CA(), beta, Rcutoff);
          break;
       case onepass_kt_axes:
          setOnePassAxesFinder(measure_mode, new AxesFinderFromKT(), beta, Rcutoff);
@@ -176,6 +166,19 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
       case manual_axes:
          _axesFinder = new AxesFinderFromUserInput();
          break;
+// These options have been commented out because they have not been fully tested
+//      case wta2_kt_axes: // option for alpha = 2 added
+//         _axesFinder = new AxesFinderFromWTA2_KT();
+//         break;
+//      case wta2_ca_axes: // option for alpha = 2 added
+//         _axesFinder = new AxesFinderFromWTA2_CA();
+//         break;
+//      case onepass_wta2_kt_axes: // option for alpha = 2 added
+//         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_KT(), beta, Rcutoff);
+//         break;
+//      case onepass_wta2_ca_axes: // option for alpha = 2 added
+//         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_CA(), beta, Rcutoff);
+//         break;
       default:
          assert(false);
          break;
@@ -213,7 +216,7 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 // Return a vector of length _currentAxes.size() (which should be N).
 // Each vector element is a list of ints corresponding to the indices in
 // particles of the particles belonging to that jet.
-// TODO:  COnsider moving to MeasureFunction
+// TODO:  Consider moving to MeasureFunction
 std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
    std::vector<std::list<int> > partitions(_currentAxes.size());
 
@@ -236,7 +239,7 @@ std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet:
 
 // Having found axes, assign each particle in particles to an axis, and return a set of jets.
 // Each jet is the sum of particles closest to an axis (Njet = Naxes).
-// TODO:  COnsider moving to MeasureFunction
+// TODO:  Consider moving to MeasureFunction
 std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
    
    std::vector<fastjet::PseudoJet> jets(_currentAxes.size());

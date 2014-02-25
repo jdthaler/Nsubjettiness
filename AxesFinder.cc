@@ -168,7 +168,12 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const s
 std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
 	
    // get starting axes
-   std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
+   std::vector<fastjet::PseudoJet> seedAxes;
+   if (_startingFinder != NULL) {
+      seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
+   } else {
+      seedAxes = currentAxes;
+   }
    
    // convert from PseudoJets to LightLikeAxes
    std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
@@ -230,8 +235,17 @@ PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) {
 // Repeatedly calls the one pass finder to try to find global minimum
 std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
+   // get starting axes
+   std::vector<fastjet::PseudoJet> seedAxes;
+   if (_startingFinder != NULL) {
+      seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
+   } else {
+      seedAxes = currentAxes;
+   }
+   
    // first iteration
-	std::vector<fastjet::PseudoJet> bestAxes = _onePassFinder.getAxes(n_jets, inputJets, currentAxes);
+	std::vector<fastjet::PseudoJet> bestAxes = _onePassFinder.getAxes(n_jets, inputJets, seedAxes);
+   
    double bestTau = (_measureFunction.result(inputJets,bestAxes)).tau();
    
    for (int l = 1; l < _n_iterations; l++) { // Do minimization procedure multiple times (l = 1 to start since first iteration is done already)
@@ -260,7 +274,12 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
 std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
    // find starting axes and baseline value
-   std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
+   std::vector<fastjet::PseudoJet> seedAxes;
+   if (_startingFinder != NULL) {
+      seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
+   } else {
+      seedAxes = currentAxes;
+   }
    double seedTau = _function->tau(particles, seedAxes);
    
    for (int i = 0; i < _nAttempts; i++) {

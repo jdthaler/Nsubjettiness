@@ -2,7 +2,7 @@
 //  Questions/Comments?  jthaler@jthaler.net
 //
 //  Copyright (c) 2011-13
-//  Jesse Thaler, Ken Van Tilburg, and Christopher K. Vermilion
+//  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
@@ -146,7 +146,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasureModes.push_back(Njettiness::unnormalized_measure); _testBeta.push_back(1.0); _testR0.push_back(NAN); _testMeasureNames.push_back("Unnormalized Measure (beta = 1.0, in GeV):");
    _testMeasureModes.push_back(Njettiness::normalized_measure);   _testBeta.push_back(2.0); _testR0.push_back(1.0); _testMeasureNames.push_back("Normalized Measure (beta = 2.0, R0 = 1.0):");
    _testMeasureModes.push_back(Njettiness::unnormalized_measure); _testBeta.push_back(2.0); _testR0.push_back(NAN); _testMeasureNames.push_back("Unnormalized Measure (beta = 2.0, in GeV):");
-   _testMeasureModes.push_back(Njettiness::geometric_measure);    _testBeta.push_back(NAN); _testR0.push_back(NAN); _testMeasureNames.push_back("Geometric Measure  (in GeV):");
+   _testMeasureModes.push_back(Njettiness::geometric_measure);    _testBeta.push_back(2.0); _testR0.push_back(NAN); _testMeasureNames.push_back("Geometric Measure  (beta = 2.0, in GeV):");
 
    
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
@@ -156,9 +156,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    vector<double> _testRcutoff;
    vector<string> _testCutoffMeasureNames;
    _testCutoffMeasureModes.push_back(Njettiness::unnormalized_cutoff_measure); _testCutoffBeta.push_back(1.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Unnormalized Measure (beta = 1.0, Rcut = 0.8):");
-   _testCutoffMeasureModes.push_back(Njettiness::unnormalized_cutoff_measure); _testCutoffBeta.push_back(2.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Unnormalized Measure (beta = 1.0, Rcut = 0.8):");
-   // TODO:  Figure out what to do with Geometric Measure, since order of arguments makes this not work here.
-//   _testCutoffMeasureModes.push_back(Njettiness::geometric_cutoff_measure);    _testCutoffBeta.push_back(NAN); _testRcutoff.push_back(0.8); _testMeasureNames.push_back("Geometric Measure (Rcut = 0.8):");
+   _testCutoffMeasureModes.push_back(Njettiness::unnormalized_cutoff_measure); _testCutoffBeta.push_back(2.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Unnormalized Measure (beta = 2.0, Rcut = 0.8):");
+   _testCutoffMeasureModes.push_back(Njettiness::geometric_cutoff_measure);    _testCutoffBeta.push_back(2.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Geometric Measure (beta = 2.0, Rcut = 0.8):");
 
    
    
@@ -247,8 +246,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
             double tau32 = nSub32(antikt_jets[j]);
             
             // Make sure calculations are consistent
-            assert(abs(tau21 - tau2/tau1) < epsilon);
-            assert(abs(tau32 - tau3/tau2) < epsilon);
+            if (_testAxesModes[iA] != Njettiness::min_axes) {
+               assert(abs(tau21 - tau2/tau1) < epsilon);
+               assert(abs(tau32 - tau3/tau2) < epsilon);
+            }
             
             // Output results:
             cout << _testAxesNames[iA]

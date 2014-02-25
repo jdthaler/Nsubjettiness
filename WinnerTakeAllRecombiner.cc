@@ -35,11 +35,11 @@ std::string WinnerTakeAllRecombiner::description() const {
 
 // updated recombiner to use more general form of a metric equal to E*(pT/E)^(alpha), which reduces to pT*cosh(rap)^(1-alpha)
 // alpha is specified by the user. The default is alpha = 1, which is the typical behavior. alpha = 2 provides a metric which more 
-// favors central jets -- added by TJW 1/27
+// favors central jets
 void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
    double a_pt = pa.perp(), b_pt = pb.perp(), a_rap = pa.rap(), b_rap = pb.rap();
-   double a_metric, b_metric;
-   // special case of alpha = 1, everything is just pt (made separate so that pow function isn't called) -- TJW 1/28
+   
+   // special case of alpha = 1, everything is just pt (made separate so that pow function isn't called)
    if (_alpha == 1.0) {
       if (a_pt >= b_pt) {
          pab.reset_PtYPhiM(a_pt + b_pt, a_rap, pa.phi());
@@ -51,14 +51,14 @@ void WinnerTakeAllRecombiner::recombine(const fastjet::PseudoJet & pa, const fas
 
    // every other case uses additional cosh(rap) term
    else {
-      a_metric = a_pt*pow(cosh(a_rap), 1-_alpha);
-      b_metric = b_pt*pow(cosh(b_rap), 1-_alpha);
+      double a_metric = a_pt*pow(cosh(a_rap), 1.0-_alpha);
+      double b_metric = b_pt*pow(cosh(b_rap), 1.0-_alpha);
       if (a_metric >= b_metric) {
-   	  double new_pt = a_pt + b_pt*pow(cosh(b_rap)/cosh(a_rap), 1-_alpha);
+   	  double new_pt = a_pt + b_pt*pow(cosh(b_rap)/cosh(a_rap), 1.0-_alpha);
    	  pab.reset_PtYPhiM(new_pt, a_rap, pa.phi());
       }
       if (b_metric > a_metric) {
-   	  double new_pt = b_pt + a_pt*pow(cosh(a_rap)/cosh(b_rap), 1-_alpha);
+   	  double new_pt = b_pt + a_pt*pow(cosh(a_rap)/cosh(b_rap), 1.0-_alpha);
    	  pab.reset_PtYPhiM(new_pt, b_rap, pb.phi());
       }
    }
