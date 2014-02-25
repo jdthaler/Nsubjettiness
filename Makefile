@@ -77,5 +77,18 @@ depend:
 	makedepend -Y --   -- $(SRCS) $(EXAMPLES_SRCS)
 # DO NOT DELETE
 
-Nsubjettiness.o: Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureFunction.hh AxesFinder.hh WinnerTakeAllRecombiner.hh
-example.o: Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureFunction.hh AxesFinder.hh WinnerTakeAllRecombiner.hh 
+Nsubjettiness.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
+Nsubjettiness.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+Njettiness.o: Njettiness.hh MeasureFunction.hh AxesFinder.hh
+Njettiness.o: WinnerTakeAllRecombiner.hh
+NjettinessPlugin.o: NjettinessPlugin.hh Njettiness.hh MeasureFunction.hh
+NjettinessPlugin.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+MeasureFunction.o: MeasureFunction.hh
+AxesFinder.o: AxesFinder.hh WinnerTakeAllRecombiner.hh MeasureFunction.hh
+WinnerTakeAllRecombiner.o: WinnerTakeAllRecombiner.hh
+example_basic_usage.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
+example_basic_usage.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+example_basic_usage.o: NjettinessPlugin.hh
+example_advanced_usage.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
+example_advanced_usage.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+example_advanced_usage.o: NjettinessPlugin.hh
