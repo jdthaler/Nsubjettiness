@@ -1,5 +1,6 @@
 2014-2-25 <JDT>
    Added access to seedAxes used for one-pass minimization routines.
+   Added axes print out to example_basic_usage, and fixed too many PrintJets declarations
 2014-2-24 <JDT>
    Fixed embarrassing bug with min_axes (error introduced after v1.0 to make it the same as onepass_kt)
    Simplified GeometricMeasure and added possibility of beta dependence

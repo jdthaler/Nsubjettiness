@@ -46,7 +46,6 @@ using namespace fastjet::contrib;
 
 // forward declaration to make things clearer
 void read_event(vector<PseudoJet> &event);
-void PrintJets(const vector <PseudoJet>& jets, bool min_axes);
 void analyze(const vector<PseudoJet> & input_particles);
 
 //----------------------------------------------------------------------
