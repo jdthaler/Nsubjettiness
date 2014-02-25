@@ -51,15 +51,37 @@ namespace contrib{
 // This is the base class for all axes finders. These axes are used along with the MeasureFunctions to calculate 
 // tau_N. There are different implementations of axes finding that are defined in derived classes below.
 class AxesFinder {
-
-   protected:
-      AxesFinder() {}
-      
-   public:
-      virtual ~AxesFinder(){}
-
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) = 0;
-      
+   
+protected:
+   AxesFinder* _startingFinder; // storing a possible starting finder if needed
+   std::vector<fastjet::PseudoJet> _seedAxes;
+   
+   AxesFinder(AxesFinder* startingFinder = NULL) : _startingFinder(startingFinder) {}
+   
+public:
+   virtual ~AxesFinder(){
+      if (_startingFinder) delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
+   }
+   
+   // Allow setting of seedAxes from a starting finder
+   std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      if (_startingFinder) {
+         _seedAxes = _startingFinder->getAxes(n_jets,inputs,currentAxes);
+         return getBetterAxes(n_jets,inputs,_seedAxes);
+      } else {
+         _seedAxes = getBetterAxes(n_jets,inputs,currentAxes);
+         return _seedAxes;
+      }
+   }
+   
+   // say what the current seed axes are
+   std::vector<fastjet::PseudoJet> seedAxes() const {
+      return _seedAxes;
+   }
+   
+   // This function should be overloaded, and updates the seedAxes
+   virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& seedAxes) = 0;
+   
 };
 
 //------------------------------------------------------------------------
@@ -74,7 +96,7 @@ class AxesFinderFromExclusiveJetDefinition : public AxesFinder {
    public:
       AxesFinderFromExclusiveJetDefinition(fastjet::JetDefinition def) : _def(def) {}
       
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
          fastjet::ClusterSequence jet_clust_seq(inputs, _def);
          return jet_clust_seq.exclusive_jets(n_jets);
       }
@@ -185,7 +207,7 @@ class AxesFinderFromHardestJetDefinition : public AxesFinder {
    public:
       AxesFinderFromHardestJetDefinition(fastjet::JetDefinition def) : _def(def) {}
       
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
          fastjet::ClusterSequence jet_clust_seq(inputs, _def);
          std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
          myJets.resize(n_jets);  // only keep n hardest
@@ -210,9 +232,8 @@ class AxesFinderFromUserInput : public AxesFinder {
 
    public:
       AxesFinderFromUserInput() {}
-      ~AxesFinderFromUserInput() {}
       
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
          assert(currentAxes.size() == (unsigned int) n_jets);
          return currentAxes;
       }
@@ -228,7 +249,6 @@ class LightLikeAxis;
 class AxesFinderFromOnePassMinimization : public AxesFinder {
 
    private:
-      AxesFinder* _startingFinder;
       double _precision;  // Desired precision in axes alignment
       int _halt;  // maximum number of steps per iteration
       
@@ -241,19 +261,15 @@ class AxesFinderFromOnePassMinimization : public AxesFinder {
 
       // From a startingFinder, try to minimize the unnormalized_measure
       AxesFinderFromOnePassMinimization(AxesFinder* startingFinder, double beta, double Rcutoff)
-         : _startingFinder(startingFinder),
+         : AxesFinder(startingFinder),
            _precision(0.0001), //hard coded for now
            _halt(1000), //hard coded for now
            _beta(beta),
            _Rcutoff(Rcutoff),
            _measureFunction(beta, Rcutoff)
            {}
-      
-      ~AxesFinderFromOnePassMinimization() {
-         delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
-      }
-
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
+   
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
 
       template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes,
                                   const std::vector <fastjet::PseudoJet> & inputJets);
@@ -277,21 +293,20 @@ class AxesFinderFromKmeansMinimization : public AxesFinder{
    
       DefaultUnnormalizedMeasure _measureFunction; //function to test whether minimum is reached
    
-      AxesFinder* _startingFinder;  // initialization
       AxesFinderFromOnePassMinimization _onePassFinder;  //one pass finder for minimization
 
       PseudoJet jiggle(const PseudoJet& axis);
    
    public:
       AxesFinderFromKmeansMinimization(AxesFinder *startingFinder, double beta, double Rcutoff, int n_iterations) :
+         AxesFinder(startingFinder),
          _n_iterations(n_iterations),
          _noise_range(1.0), // hard coded for the time being
          _measureFunction(beta, Rcutoff),
-         _startingFinder(startingFinder),
          _onePassFinder(NULL, beta, Rcutoff)
          {}
 
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes);
 
 };
 
@@ -302,7 +317,6 @@ class AxesFinderFromKmeansMinimization : public AxesFinder{
 class AxesFinderFromGeometricMinimization : public AxesFinder {
 
    private:
-      AxesFinder* _startingFinder;
       MeasureFunction* _function;
       double _Rcutoff;
       double _nAttempts;
@@ -310,7 +324,7 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
 
    
    public:
-      AxesFinderFromGeometricMinimization(AxesFinder* startingFinder, double beta, double Rcutoff) : _startingFinder(startingFinder), _Rcutoff(Rcutoff) {
+      AxesFinderFromGeometricMinimization(AxesFinder* startingFinder, double beta, double Rcutoff) : AxesFinder(startingFinder), _Rcutoff(Rcutoff) {
          if (beta != 2.0) {
             std::cerr << "Geometric minimization is currently only defined for beta = 2.0." << std::endl;
             exit(1);
@@ -322,10 +336,10 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
       }
 
       ~AxesFinderFromGeometricMinimization() {
-         delete _startingFinder;  //TODO: Convert to smart pointers to avoid this.
          delete _function;
       }
-      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes);
+   
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes);
 };
 
 //------------------------------------------------------------------------

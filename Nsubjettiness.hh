@@ -79,6 +79,11 @@ public:
    std::vector<fastjet::PseudoJet> currentAxes() const {
       return _njettinessFinder.currentAxes();
    }
+
+   /// returns seed axes used for onepass minimization (otherwise same as currentAxes)
+   std::vector<fastjet::PseudoJet> seedAxes() const {
+      return _njettinessFinder.seedAxes();
+   }
    
    // To set axes for manual use
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {

@@ -165,16 +165,8 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const s
 
 // uses minimization of N-jettiness to continually update axes until convergence.
 // The function returns the axes found at the (local) minimum
-std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
-	
-   // get starting axes
-   std::vector<fastjet::PseudoJet> seedAxes;
-   if (_startingFinder != NULL) {
-      seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
-   } else {
-      seedAxes = currentAxes;
-   }
-   
+std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) {
+	  
    // convert from PseudoJets to LightLikeAxes
    std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
    for (int k = 0; k < n_jets; k++) {
@@ -233,15 +225,7 @@ PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) {
    
    
 // Repeatedly calls the one pass finder to try to find global minimum
-std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) {
-
-   // get starting axes
-   std::vector<fastjet::PseudoJet> seedAxes;
-   if (_startingFinder != NULL) {
-      seedAxes = _startingFinder->getAxes(n_jets, inputJets, currentAxes);
-   } else {
-      seedAxes = currentAxes;
-   }
+std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) {
    
    // first iteration
 	std::vector<fastjet::PseudoJet> bestAxes = _onePassFinder.getAxes(n_jets, inputJets, seedAxes);
@@ -271,15 +255,9 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_
 // Uses minimization of the geometric distance in order to find the minimum axes.
 // It continually updates until it reaches convergence or it reaches the maximum number of attempts.
 // This is essentially the same as a stable cone finder.
-std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
+std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
-   // find starting axes and baseline value
-   std::vector<fastjet::PseudoJet> seedAxes;
-   if (_startingFinder != NULL) {
-      seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
-   } else {
-      seedAxes = currentAxes;
-   }
+   std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
    double seedTau = _function->tau(particles, seedAxes);
    
    for (int i = 0; i < _nAttempts; i++) {
