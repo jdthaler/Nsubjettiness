@@ -212,10 +212,13 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _currentAxes = _axesFinder->getAxes(n_jets,inputJets,_currentAxes); // sets current Axes
       _seedAxes = _axesFinder->seedAxes(); // sets seed Axes (if one pass minimization was used)
       
+      
+      // Find partition and store information
+      // (jet information in _currentJets, beam in _currentBeam)
+      _currentJets = _measureFunction->get_partition(inputJets,_currentAxes,&_currentBeam);
+      
       // Find tau value and store information
-      _current_tau_components = _measureFunction->result(inputJets, _currentAxes);  // sets current Tau Values
-      _currentJets = _measureFunction->jet_partition();
-      _currentBeam = _measureFunction->beam_partition();
+      _current_tau_components = _measureFunction->result_from_partition(_currentJets, _currentAxes,&_currentBeam);  // sets current Tau Values
    }
    return _current_tau_components;
 }
@@ -249,19 +252,19 @@ std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet:
 // Having found axes, assign each particle in particles to an axis, and return a set of jets.
 // Each jet is the sum of particles closest to an axis (Njet = Naxes).
 // TODO:  Consider moving to MeasureFunction
-std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
-   
-   std::vector<fastjet::PseudoJet> jets(_currentAxes.size());
-
-   std::vector<std::list<int> > partition = getPartition(particles);
-   for (unsigned j = 0; j < partition.size(); ++j) {
-      std::list<int>::const_iterator it, itE;
-      for (it = partition[j].begin(), itE = partition[j].end(); it != itE; ++it) {
-         jets[j] += particles[*it];
-      }
-   }
-   return jets;
-}
+//std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
+//
+//   std::vector<fastjet::PseudoJet> jets(_currentAxes.size());
+//
+//   std::vector<std::list<int> > partition = getPartition(particles);
+//   for (unsigned j = 0; j < partition.size(); ++j) {
+//      std::list<int>::const_iterator it, itE;
+//      for (it = partition[j].begin(), itE = partition[j].end(); it != itE; ++it) {
+//         jets[j] += particles[*it];
+//      }
+//   }
+//   return jets;
+//}
 
 } // namespace contrib
 

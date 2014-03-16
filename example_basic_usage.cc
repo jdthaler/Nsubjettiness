@@ -259,6 +259,7 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    <<  setw(11) << "pt"
    <<  setw(11) << "m"
    <<  setw(11) << "e";
+   if (jets[0].has_constituents()) cout <<  setw(11) << "constit";
    if (useExtras) cout << setw(14) << tauName;
    if (useArea) cout << setw(10) << "area";
    cout << endl;
@@ -273,6 +274,7 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
       << setprecision(4) <<  setw(11) << jets[i].perp()
       << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
       << setprecision(4) <<  setw(11) << jets[i].e();
+      if (jets[i].has_constituents()) cout << setprecision(4) <<  setw(11) << jets[i].constituents().size();
       if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
       if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
       cout << endl;

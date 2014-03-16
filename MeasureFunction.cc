@@ -39,10 +39,12 @@ TauComponents MeasureFunction::result(const std::vector<fastjet::PseudoJet>& par
 
    // first find partition
    // this sets _jet_partition and _beam_partition
-   set_partition(particles,axes);
+   
+   PseudoJet beamPartitionStorage;
+   std::vector<fastjet::PseudoJet> jetPartitionStorage = get_partition(particles,axes,&beamPartitionStorage);
    
    // then return result calculated from partition
-   return result_from_partition(_jet_partition,axes,&_beam_partition);
+   return result_from_partition(jetPartitionStorage,axes,&beamPartitionStorage);
    
 // OLD VERSION COMMENTED OUT BELOW
 //   
@@ -88,7 +90,7 @@ TauComponents MeasureFunction::result(const std::vector<fastjet::PseudoJet>& par
 //   return TauComponents(jetPieces, beamPiece, tauDen, _has_denominator, _has_beam);
 }
 
-void MeasureFunction::set_partition(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+std::vector<fastjet::PseudoJet> MeasureFunction::get_partition(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage) {
    
    std::vector<std::vector<PseudoJet> > jetPartition(axes.size());
    std::vector<PseudoJet> beamPartition;
@@ -121,18 +123,20 @@ void MeasureFunction::set_partition(const std::vector<fastjet::PseudoJet>& parti
    }
 
    // Store beam partition
-   _beam_partition = join(beamPartition);
-   
+   if (beamPartitionStorage) {
+      *beamPartitionStorage = join(beamPartition);
+   }
+      
    // Store jet partitions
-   _jet_partition.resize(axes.size(),PseudoJet(0,0,0,0));
-   std::vector<PseudoJet> jetPartitionMerged(axes.size());
+   std::vector<PseudoJet> jetPartitionStorage(axes.size(),PseudoJet(0,0,0,0));
    for (unsigned j = 0; j < axes.size(); j++) {
-      _jet_partition[j] = join(jetPartition[j]);
+      jetPartitionStorage[j] = join(jetPartition[j]);
    }
 
+   return jetPartitionStorage;
 }
    
-   TauComponents MeasureFunction::result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partition, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beam_partition) {
+TauComponents MeasureFunction::result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partition, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage) {
    
    std::vector<double> jetPieces(axes.size(), 0.0);
    double beamPiece = 0.0;
@@ -151,8 +155,8 @@ void MeasureFunction::set_partition(const std::vector<fastjet::PseudoJet>& parti
    
    // then find beam piece
    if (_has_beam) {
-      assert(beam_partition); // make sure I have beam information
-      std::vector<PseudoJet> beamPartition = beam_partition->constituents();
+      assert(beamPartitionStorage); // make sure I have beam information
+      std::vector<PseudoJet> beamPartition = beamPartitionStorage->constituents();
 
       for (unsigned i = 0; i < beamPartition.size(); i++) {
          beamPiece += beam_numerator(beamPartition[i]); //numerator beam piece

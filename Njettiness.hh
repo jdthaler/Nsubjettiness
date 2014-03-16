@@ -177,7 +177,7 @@ public:
    std::vector<std::list<int> > getPartition(const std::vector<fastjet::PseudoJet> & inputJets);
 
    // partition inputs by Voronoi
-   std::vector<fastjet::PseudoJet> getJets(const std::vector<fastjet::PseudoJet> & inputJets);
+//   std::vector<fastjet::PseudoJet> getJets(const std::vector<fastjet::PseudoJet> & inputJets);
 
 };
 
