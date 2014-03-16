@@ -54,7 +54,7 @@ class AxesFinder {
    
 protected:
    AxesFinder* _startingFinder; // storing a possible starting finder if needed
-   std::vector<fastjet::PseudoJet> _seedAxes;
+   std::vector<fastjet::PseudoJet> _seedAxes; // storing information about initial axes used for seeds
    
    AxesFinder(AxesFinder* startingFinder = NULL) : _startingFinder(startingFinder) {}
    

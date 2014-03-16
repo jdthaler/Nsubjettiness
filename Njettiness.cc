@@ -205,10 +205,17 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _currentAxes.resize(n_jets,fastjet::PseudoJet(0.0,0.0,0.0,0.0));
       _current_tau_components = TauComponents();
       _seedAxes = _currentAxes;
+      _currentJets = _currentAxes;
+      _currentBeam = PseudoJet(0.0,0.0,0.0,0.0);
    } else {
+      // Find axes and store information
       _currentAxes = _axesFinder->getAxes(n_jets,inputJets,_currentAxes); // sets current Axes
       _seedAxes = _axesFinder->seedAxes(); // sets seed Axes (if one pass minimization was used)
+      
+      // Find tau value and store information
       _current_tau_components = _measureFunction->result(inputJets, _currentAxes);  // sets current Tau Values
+      _currentJets = _measureFunction->jet_partition();
+      _currentBeam = _measureFunction->beam_partition();
    }
    return _current_tau_components;
 }

@@ -129,6 +129,10 @@ protected:
    bool _has_denominator;
    bool _has_beam;
    
+   // storage of partitioning information (created after result)
+   std::vector<fastjet::PseudoJet> _jet_partition;
+   fastjet::PseudoJet _beam_partition;
+   
    // This constructor allows _has_denominator to be set by derived classes
    MeasureFunction(bool has_denominator = true, bool has_beam = true) : _has_denominator(has_denominator), _has_beam(has_beam) {}
    
@@ -158,12 +162,23 @@ public:
    }
    
    // Return all of the necessary TauComponents for specific input particles and axes
+   // Also have optional pointers to get out information about partitioning
    TauComponents result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
 
+   // Just getting tau value if that is all that is needed
    double tau(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
       return result(particles,axes).tau();
    }
-
+   
+   // Create the partitioning and stores internally
+   void set_partition(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
+   
+   // Return current partitioning information
+   std::vector<fastjet::PseudoJet> jet_partition() const {return _jet_partition;}
+   fastjet::PseudoJet beam_partition() const {return _beam_partition;}
+   
+   // calculates the tau result using an existing partition
+   TauComponents result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partitioning, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage = NULL);
    
 };
 

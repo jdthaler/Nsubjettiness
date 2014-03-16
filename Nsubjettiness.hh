@@ -85,6 +85,12 @@ public:
       return _njettinessFinder.seedAxes();
    }
    
+   /// returns subjet regions found by result() calculation (these have valid constituents)
+   /// Note that the axes and the subjets are not the same
+   std::vector<fastjet::PseudoJet> currentSubjets() const {
+      return _njettinessFinder.currentJets();
+   }
+   
    // To set axes for manual use
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
       // Cross check that manual axes are being used is in Njettiness

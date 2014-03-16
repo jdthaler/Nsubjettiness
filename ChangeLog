@@ -1,3 +1,7 @@
+2014-3-16 <JDT>
+   Added partitioning information to Nsubjettiness.
+   Partitioning is now calculated in MeasureFunction and stored by Njettiness.
+   Rewrote MeasureFunction result() to call result_from_partition()
 2014-2-25 <JDT>
    Added access to seedAxes used for one-pass minimization routines.
    Added axes print out to example_basic_usage, and fixed too many PrintJets declarations

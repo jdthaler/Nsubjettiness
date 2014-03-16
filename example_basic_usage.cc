@@ -207,6 +207,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
          << setw(14) << tau32_beta2
          << endl;
 
+
+      cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+      cout << "Subjets found using beta = 1.0 tau values" << endl;
+      PrintJets(nSub1_beta1.currentSubjets()); // these have valid constituents
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintJets(nSub2_beta1.currentSubjets()); // these have valid constituents
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintJets(nSub3_beta1.currentSubjets()); // these have valid constituents
+      cout << "-------------------------------------------------------------------------------------" << endl;
       
       cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
       cout << "Axes used for above beta = 1.0 tau values" << endl;

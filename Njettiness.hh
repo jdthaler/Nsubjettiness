@@ -99,6 +99,8 @@ private:
    TauComponents _current_tau_components; //automatically set to have components of 0; these values will be set by the getTau function call
    std::vector<fastjet::PseudoJet> _currentAxes;
    std::vector<fastjet::PseudoJet> _seedAxes; // axes used prior to minimization (if applicable)
+   std::vector<fastjet::PseudoJet> _currentJets; //partitioning information
+   fastjet::PseudoJet _currentBeam; //return beam, if requested
    
    // Needed for compilation of non C++11 users
    bool isnan(double para) { return para != para; }
@@ -166,6 +168,10 @@ public:
    std::vector<fastjet::PseudoJet> currentAxes() { return _currentAxes;}
    // Return seedAxes used if onepass minimization (otherwise, same as currentAxes)
    std::vector<fastjet::PseudoJet> seedAxes() { return _seedAxes;}
+   // Return jet partition found by getTauComponents.
+   std::vector<fastjet::PseudoJet> currentJets() {return _currentJets;}
+   // Return beam partition found by getTauComponents.
+   fastjet::PseudoJet currentBeam() {return _currentBeam;}
    
    // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
    std::vector<std::list<int> > getPartition(const std::vector<fastjet::PseudoJet> & inputJets);
