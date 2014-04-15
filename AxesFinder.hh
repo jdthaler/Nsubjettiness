@@ -134,39 +134,6 @@ class AxesFinderFromWTA_CA : public AxesFinderFromExclusiveJetDefinition {
       ~AxesFinderFromWTA_CA() {delete recomb;}
 };
 
-//  The following classes are for testing, and are commented out for initial release
-//
-////------------------------------------------------------------------------
-///// \class AxesFinderFromWTA2_KT
-//// This class finds axes by finding the exlusive jets after clustering according to a kT algorithm and a 
-//// winner take all recombination scheme with alpha = 2.
-//class AxesFinderFromWTA2_KT : public AxesFinderFromExclusiveJetDefinition { 
-//   private: 
-//      const WinnerTakeAllRecombiner *recomb;
-//   public:
-//      AxesFinderFromWTA2_KT() : AxesFinderFromExclusiveJetDefinition(
-//         fastjet::JetDefinition(fastjet::kt_algorithm, 
-//         fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
-//         recomb = new WinnerTakeAllRecombiner(2), // uses alpha = 2 here
-//         fastjet::Best)) {}
-//      ~AxesFinderFromWTA2_KT() {delete recomb;}
-//   };
-//   
-////------------------------------------------------------------------------
-///// \class AxesFinderFromWTA2_CA
-//// This class finds axes by finding the exlusive jets after clustering according to a CA algorithm and a 
-//// winner take all recombination scheme with alpha = 2.
-//class AxesFinderFromWTA2_CA : public AxesFinderFromExclusiveJetDefinition {
-//   private: 
-//      const WinnerTakeAllRecombiner *recomb;
-//   public:
-//      AxesFinderFromWTA2_CA() : AxesFinderFromExclusiveJetDefinition(
-//         fastjet::JetDefinition(fastjet::cambridge_algorithm, 
-//         fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
-//         recomb = new WinnerTakeAllRecombiner(2), //uses alpha = 2 here
-//         fastjet::Best)) {}
-//      ~AxesFinderFromWTA2_CA() {delete recomb;}
-//};
 
 //------------------------------------------------------------------------
 /// \class AxesFinderFromKT

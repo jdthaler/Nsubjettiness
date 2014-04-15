@@ -174,10 +174,7 @@ public:
    fastjet::PseudoJet currentBeam() {return _currentBeam;}
    
    // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
-   std::vector<std::list<int> > getPartition(const std::vector<fastjet::PseudoJet> & inputJets);
-
-   // partition inputs by Voronoi
-//   std::vector<fastjet::PseudoJet> getJets(const std::vector<fastjet::PseudoJet> & inputJets);
+   std::vector<std::list<int> > getPartitionList(const std::vector<fastjet::PseudoJet> & inputJets);
 
 };
 

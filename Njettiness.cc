@@ -53,7 +53,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
 
    // definition of maximum Rcutoff for non-cutoff measures, changed later by other measures
    double Rcutoff = std::numeric_limits<double>::max();  //large number
-   // Most (but all measures have some kind of beta value)
+   // Most (but not all) measures have some kind of beta value
    double beta = NAN;
    // The normalized measures have an R0 value.
    double R0 = NAN;
@@ -166,19 +166,6 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
       case manual_axes:
          _axesFinder = new AxesFinderFromUserInput();
          break;
-// These options have been commented out because they have not been fully tested
-//      case wta2_kt_axes: // option for alpha = 2 added
-//         _axesFinder = new AxesFinderFromWTA2_KT();
-//         break;
-//      case wta2_ca_axes: // option for alpha = 2 added
-//         _axesFinder = new AxesFinderFromWTA2_CA();
-//         break;
-//      case onepass_wta2_kt_axes: // option for alpha = 2 added
-//         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_KT(), beta, Rcutoff);
-//         break;
-//      case onepass_wta2_ca_axes: // option for alpha = 2 added
-//         setOnePassAxesFinder(measure_mode, new AxesFinderFromWTA2_CA(), beta, Rcutoff);
-//         break;
       default:
          assert(false);
          break;
@@ -212,7 +199,6 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _currentAxes = _axesFinder->getAxes(n_jets,inputJets,_currentAxes); // sets current Axes
       _seedAxes = _axesFinder->seedAxes(); // sets seed Axes (if one pass minimization was used)
       
-      
       // Find partition and store information
       // (jet information in _currentJets, beam in _currentBeam)
       _currentJets = _measureFunction->get_partition(inputJets,_currentAxes,&_currentBeam);
@@ -228,44 +214,12 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 // Return a vector of length _currentAxes.size() (which should be N).
 // Each vector element is a list of ints corresponding to the indices in
 // particles of the particles belonging to that jet.
-// TODO:  Consider moving to MeasureFunction
-std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
-   std::vector<std::list<int> > partitions(_currentAxes.size());
-
-   for (unsigned i = 0; i < particles.size(); i++) {
-      
-      int j_min = -1;
-      // find minimum distance
-      double minR = std::numeric_limits<double>::max();  //large number
-      for (unsigned j = 0; j < _currentAxes.size(); j++) {
-         double tempR = _measureFunction->jet_distance_squared(particles[i],_currentAxes[j]); // delta R distance
-         if (tempR < minR) {
-            minR = tempR;
-            j_min = j;
-         }
-      }
-      if (_measureFunction->do_cluster(particles[i],_currentAxes[j_min])) partitions[j_min].push_back(i);
-   }
-   return partitions;
+std::vector<std::list<int> > Njettiness::getPartitionList(const std::vector<fastjet::PseudoJet> & particles) {
+   // core code is in MeasureFunction
+   return _measureFunction->get_partition_list(particles,_currentAxes);
 }
 
-// Having found axes, assign each particle in particles to an axis, and return a set of jets.
-// Each jet is the sum of particles closest to an axis (Njet = Naxes).
-// TODO:  Consider moving to MeasureFunction
-//std::vector<fastjet::PseudoJet> Njettiness::getJets(const std::vector<fastjet::PseudoJet> & particles) {
-//
-//   std::vector<fastjet::PseudoJet> jets(_currentAxes.size());
-//
-//   std::vector<std::list<int> > partition = getPartition(particles);
-//   for (unsigned j = 0; j < partition.size(); ++j) {
-//      std::list<int>::const_iterator it, itE;
-//      for (it = partition[j].begin(), itE = partition[j].end(); it != itE; ++it) {
-//         jets[j] += particles[*it];
-//      }
-//   }
-//   return jets;
-//}
-
+   
 } // namespace contrib
 
 FASTJET_END_NAMESPACE

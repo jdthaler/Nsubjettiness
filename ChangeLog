@@ -1,3 +1,8 @@
+2014-4-14 <JDT>
+   Added get_partition_list to MeasureFunction
+   Removed do_cluster from MeasureFunction (no longer needed)
+   Fixed bug with NjettinessPlugin where jets were listed in backwards order from axes.
+   Removed various commented out pieces of code.
 2014-3-16 <JDT>
    Added partitioning information to Nsubjettiness
    Partitioning is now calculated in MeasureFunction and stored by Njettiness.

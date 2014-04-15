@@ -46,7 +46,6 @@ inline double sq(double x) {return x*x;}
 // This class creates a wrapper for the various tau/subtau values calculated in Njettiness. This class allows Njettiness access to these variables
 // without ever having to do the calculation itself. It takes in subtau numerators and tau denominator from MeasureFunction
 // and outputs tau numerator, and normalized tau and subtau.
-// TODO:  Consider merging with NjettinessExtras.  Add axes information?
 class TauComponents {
 private:
    
@@ -149,13 +148,9 @@ public:
    // a possible normalization factor
    virtual double denominator(const fastjet::PseudoJet& particle) = 0;
    
-   
-   // These functions call the above functions and are not virtual
-   
-   // Do I cluster a particle into a jet?
-   bool do_cluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
-      return (jet_distance_squared(particle,axis) <= beam_distance_squared(particle));
-   }
+   //------
+   // The functions below call the above functions and are not virtual
+   //------
    
    // Return all of the necessary TauComponents for specific input particles and axes
    // Also have optional pointers to get out information about partitioning
@@ -168,7 +163,10 @@ public:
    
    // Create the partitioning and stores internally
    std::vector<fastjet::PseudoJet> get_partition(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage = NULL);
-   
+
+   // Essentially same as get_partition, but in the form needed for the jet algorithm
+   std::vector<std::list<int> > get_partition_list(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
+
    // calculates the tau result using an existing partition
    TauComponents result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partitioning, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage = NULL);
    

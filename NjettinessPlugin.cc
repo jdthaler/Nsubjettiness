@@ -38,18 +38,21 @@ NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta
 
 std::string NjettinessPlugin::description() const {return "N-jettiness jet finder";}
 
+
 // Clusters the particles according to the Njettiness jet algorithm
-// TODO: this code should be revisited to see if if can be made more clear.
+// Apologies for the complication with this code, but we need to make
+// a fake jet clustering tree.  The partitioning is done by getPartitionList
 void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
 {
    std::vector<fastjet::PseudoJet> particles = cs.jets();
    _njettinessFinder.getTau(_N, particles);
-   std::vector<std::list<int> > partition = _njettinessFinder.getPartition(particles);
+   std::vector<std::list<int> > partition = _njettinessFinder.getPartitionList(particles);
 
    std::vector<fastjet::PseudoJet> jet_indices_for_extras;
 
    // output clusterings for each jet
-   for (size_t i = 0; i < partition.size(); ++i) {
+   for (size_t i0 = 0; i0 < partition.size(); ++i0) {
+      size_t i = partition.size() - 1 - i0; // reversed order of reading to match axes order
       std::list<int>& indices = partition[i];
       if (indices.size() == 0) continue;
       while (indices.size() > 1) {
