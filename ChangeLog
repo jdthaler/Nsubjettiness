@@ -1,3 +1,6 @@
+2014-4-16 <JDT>
+   Decided that enough has changed that this should be v2.0
+   Added Id tags
 2014-4-14 <JDT>
    Added get_partition_list to MeasureFunction
    Removed do_cluster from MeasureFunction (no longer needed)

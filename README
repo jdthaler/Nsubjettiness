@@ -12,6 +12,14 @@ The Nsubjettiness package is based on the physics described in:
    Jesse Thaler and Ken Van Tilburg. 
    JHEP 1202:093 (2012), arXiv:1108.2701.
 
+New in v2.0 is the winner-take-all axis, which is described in:
+
+   Jet Shapes with the Broadening Axis. 
+   Andrew J. Larkoski, Duff Neill, and Jesse Thaler. 
+   JHEP 1404:017 (2014), arXiv:1401.2158.
+
+as well as in unpublished work by Gavin Salam.
+
 -------------------------
 Core Classes
 -------------------------
@@ -97,7 +105,7 @@ There are also measures that incorporate a radial cutoff:
     normalized_cutoff_measure   (3:beta,R0,Rcutoff) //normalized measure with Rcutoff (in addition to beta)
     unnormalized_cutoff_measure (2:beta,Rcutoff) //unnormalized measure with Rcutoff (in addition to beta and R0)
 
-In beta testing are "geometric" measures where distances are measured using the Lorentz dot product (N.B. the formula for the geometric measure is likely to change since there should be separate beam and jet beta factors)
+In beta testing are "geometric" measures where distances are measured using the Lorentz dot product (N.B. the formula for the geometric measure is likely to change since there should be separate beam and jet beta factors.)
     geometric_measure        (1:beta) //geometric measure with exponent beta
     geometric_cutoff_measure (2:betaRcutoff) //geometric measure with Rcutoff
 
@@ -113,7 +121,7 @@ beta = 1:  aka broadening/girth/width measure
 beta = 2:  aka thrust/mass measure
    kt_axes are approximately the same as minimizing beta = 2 measure
 
-The minimization routines are only valid for 1 < beta < 3.
+N.B. The minimization routines are only valid for 1 < beta < 3.
 
 For quark/gluon discrimination with N = 1, beta ~ 0.2 with wta_kt_axes is a good choice. 
 
