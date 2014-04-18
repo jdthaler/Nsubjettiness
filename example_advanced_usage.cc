@@ -4,6 +4,7 @@
 //  Copyright (c) 2011-13
 //  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
+//  $Id$
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
 //

@@ -1,11 +1,10 @@
-// $Id$
-//
 //  Nsubjettiness Package
 //  Questions/Comments?  jthaler@jthaler.net
 //
 //  Copyright (c) 2011-14
 //  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
+//  $Id$
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
 //

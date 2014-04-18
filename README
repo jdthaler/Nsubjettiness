@@ -12,6 +12,14 @@ The Nsubjettiness package is based on the physics described in:
    Jesse Thaler and Ken Van Tilburg. 
    JHEP 1202:093 (2012), arXiv:1108.2701.
 
+New in v2.0 is the winner-take-all axis, which is described in:
+
+   Jet Shapes with the Broadening Axis. 
+   Andrew J. Larkoski, Duff Neill, and Jesse Thaler. 
+   JHEP 1404:017 (2014), arXiv:1401.2158.
+
+as well as in unpublished work by Gavin Salam.
+
 -------------------------
 Core Classes
 -------------------------
@@ -41,17 +49,17 @@ Basic Usage
 
 Most users will only need to use the Nsubjettiness class.  The basic functionality is given by:
 
-   Nsubjettiness nSub(N, Njettiness::AxesMode, Njettiness::MeasureMode, para1, para2, para3)
+   Nsubjettiness nSub(N, Njettiness::AxesMode, Njettiness::MeasureMode, para1, para2, para3, para4)
    // N specifies the number of (sub) jets to measure
    // AxesMode is Njettiness::wta_kt_axes, Njettiness::onepass_kt_axes, etc.
    // MeasureMode is Njettiness::normalized_measure, Njettiness::unnormalized_measure, etc.
-   // para1, para2, para3 are specific to measure; normalized_measure will require 2 parameters, unnormalized_measure will require 1 parameter, etc.
+   // para1, para2, para3, para4 are specific to measure; normalized_measure will require 2 parameters, unnormalized_measure will require 1 parameter, etc.
       
    // get tau value
    double tauN = nSub.result(some jet);
 
 Also available are ratios of N-(sub)jettiness values
-    NsubjettinessRatio nSubRatio(N, M, Njettiness::AxesMode, Njettiness::MeasureMode, para1, para2, para3)
+    NsubjettinessRatio nSubRatio(N, M, Njettiness::AxesMode, Njettiness::MeasureMode, para1, para2, para3, para4)
     // N and M give tau_N / tau_M, all other options the same
 
 -------------------------
@@ -78,7 +86,7 @@ In general, it is difficult to finding the global minimum, but this mode attempt
     min_axes, // axes that (attempt to) minimize N-subjettiness (100 passes by default)
 
 Finally, one can set manual axes:
-    manual_axes         // set your own axes with setAxes()
+    manual_axes          // set your own axes with setAxes()
     onepass_manual_axes  // one-pass minimization from manual starting point
 
 For most cases, running with onepass_kt_axes or onepass_wta_kt_axes gives reasonable results (and the results are IRC safe).  Because it uses random number seeds, min_axes is not IRC safe (and the code is rather slow).  Note that for the minimization routines, beta = 1.1 is faster than beta = 1, with comparable performance.
@@ -97,7 +105,7 @@ There are also measures that incorporate a radial cutoff:
     normalized_cutoff_measure   (3:beta,R0,Rcutoff) //normalized measure with Rcutoff (in addition to beta)
     unnormalized_cutoff_measure (2:beta,Rcutoff) //unnormalized measure with Rcutoff (in addition to beta and R0)
 
-In beta testing are "geometric" measures where distances are measured using the Lorentz dot product (N.B. the formula for the geometric measure is likely to change since there should be separate beam and jet beta factors)
+In beta testing are "geometric" measures where distances are measured using the Lorentz dot product (N.B. the formula for the geometric measure is likely to change since there should be separate beam and jet beta factors.)
     geometric_measure        (1:beta) //geometric measure with exponent beta
     geometric_cutoff_measure (2:betaRcutoff) //geometric measure with Rcutoff
 
@@ -113,7 +121,7 @@ beta = 1:  aka broadening/girth/width measure
 beta = 2:  aka thrust/mass measure
    kt_axes are approximately the same as minimizing beta = 2 measure
 
-The minimization routines are only valid for 1 < beta < 3.
+N.B. The minimization routines are only valid for 1 < beta < 3.
 
 For quark/gluon discrimination with N = 1, beta ~ 0.2 with wta_kt_axes is a good choice. 
 
