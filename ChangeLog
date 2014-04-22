@@ -1,3 +1,5 @@
+2014-4-22 <JDT>
+   Turned on -Wunused-parameter compiler flag to fix ATLAS compile issues.
 2014-4-18 <JDT>
    Tweaks to NEWS and README.  Preparing for 2.0.0-rc1 release.
 2014-4-16 <JDT>

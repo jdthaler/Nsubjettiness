@@ -97,7 +97,7 @@ class AxesFinderFromExclusiveJetDefinition : public AxesFinder {
    public:
       AxesFinderFromExclusiveJetDefinition(fastjet::JetDefinition def) : _def(def) {}
       
-      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& /*seedAxes*/) {
          fastjet::ClusterSequence jet_clust_seq(inputs, _def);
          return jet_clust_seq.exclusive_jets(n_jets);
       }
@@ -175,7 +175,7 @@ class AxesFinderFromHardestJetDefinition : public AxesFinder {
    public:
       AxesFinderFromHardestJetDefinition(fastjet::JetDefinition def) : _def(def) {}
       
-      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& /*seedAxes*/) {
          fastjet::ClusterSequence jet_clust_seq(inputs, _def);
          std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
          myJets.resize(n_jets);  // only keep n hardest
@@ -201,7 +201,7 @@ class AxesFinderFromUserInput : public AxesFinder {
    public:
       AxesFinderFromUserInput() {}
       
-      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+      virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & /*inputs*/, const std::vector<fastjet::PseudoJet>& currentAxes) {
          assert(currentAxes.size() == (unsigned int) n_jets);
          return currentAxes;
       }

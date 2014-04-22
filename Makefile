@@ -3,7 +3,7 @@
 FASTJETCONFIG=fastjet-config
 PREFIX=`$(FASTJETCONFIG) --prefix`
 CXX=g++
-CXXFLAGS= -O3 -Wall -Woverloaded-virtual -g
+CXXFLAGS= -O3 -Wall -Woverloaded-virtual -g -Wunused-parameter
 install_script = $(SHELL) ../utils/install-sh
 check_script = ../utils/check.sh
 
