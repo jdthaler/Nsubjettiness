@@ -194,7 +194,7 @@ class DefaultNormalizedMeasure : public MeasureFunction {
          return particle.squared_distance(axis);
       }
    
-      virtual double beam_distance_squared(const fastjet::PseudoJet& particle) {
+      virtual double beam_distance_squared(const fastjet::PseudoJet& /*particle*/) {
          return sq(_Rcutoff);
       }
 
@@ -254,7 +254,7 @@ class GeometricMeasure : public MeasureFunction {
          return pseudoRsquared;
       }
    
-      virtual double beam_distance_squared(const fastjet::PseudoJet& particle) {
+      virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) {
          return sq(_Rcutoff);
       }
 
@@ -269,7 +269,7 @@ class GeometricMeasure : public MeasureFunction {
          return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
       }
 
-      virtual double denominator(const fastjet::PseudoJet& particle) {
+      virtual double denominator(const fastjet::PseudoJet&  /*particle*/) {
          return 1.0;
       }
 };
