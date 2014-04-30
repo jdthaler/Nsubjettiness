@@ -203,6 +203,7 @@ class AxesFinderFromUserInput : public AxesFinder {
       
       virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & /*inputs*/, const std::vector<fastjet::PseudoJet>& currentAxes) {
          assert(currentAxes.size() == (unsigned int) n_jets);
+         (void)(n_jets);  // adding this line to fix unused-parameter warning
          return currentAxes;
       }
 };

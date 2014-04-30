@@ -1,3 +1,5 @@
+2014-4-30 <JDT>
+   Added (void)(n_jets) in AxesFinder.hh to fix unused-parameter warning
 2014-4-29 <JDT>
    Added manual definition of NAN for compilers that don't have it.
    Removed a few more unused parameters for compilation
