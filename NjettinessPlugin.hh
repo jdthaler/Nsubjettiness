@@ -35,6 +35,11 @@
 #include <string>
 #include <climits>
 
+// Adding this for compilers that don't define NAN by default
+#ifndef NAN
+#define NAN (0.0/0.0)
+#endif
+
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 
@@ -72,7 +77,7 @@ class NjettinessExtras : public ClusterSequence::Extras {
       std::vector<fastjet::PseudoJet> jets() const {return _jets;}
       std::vector<fastjet::PseudoJet> axes() const {return _axes;}
       
-      double totalTau(const fastjet::PseudoJet& jet) const {
+      double totalTau(const fastjet::PseudoJet& /*jet*/) const {
          return _tau_components.tau();
       }
       double subTau(const fastjet::PseudoJet& jet) const {

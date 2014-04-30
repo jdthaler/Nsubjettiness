@@ -148,3 +148,4 @@ Known Issues
 ------------------------- 
 
 -- The min_axes mode gives different answers on different runs, since random numbers are used.
+-- To allow for variable number of parameters, NANs are used for checking the number of desired parameters, which is not supported on all compilers.
