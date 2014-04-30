@@ -31,6 +31,12 @@
 #include <list>
 #include <limits>
 
+// Adding this for compilers that don't define NAN by default
+#ifndef NAN
+#define NAN (0.0/0.0)
+#endif
+
+
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{

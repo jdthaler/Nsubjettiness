@@ -256,7 +256,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getBetterAxes(
 // Uses minimization of the geometric distance in order to find the minimum axes.
 // It continually updates until it reaches convergence or it reaches the maximum number of attempts.
 // This is essentially the same as a stable cone finder.
-std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
+std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getBetterAxes(int /*n_jets*/, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
 
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
    double seedTau = _function->tau(particles, seedAxes);

@@ -25,6 +25,7 @@
 #ifndef __FASTJET_CONTRIB_NJETTINESS_HH__
 #define __FASTJET_CONTRIB_NJETTINESS_HH__
 
+
 #include "MeasureFunction.hh"
 #include "AxesFinder.hh"
 
@@ -33,6 +34,10 @@
 #include <vector>
 #include <list>
 
+// Adding this for compilers that don't define NAN by default
+#ifndef NAN
+#define NAN (0.0/0.0)
+#endif
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
