@@ -45,12 +45,7 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(con
    static fastjet::PseudoJet new_jets[N];
    for (int n = 0; n < N; ++n) {
       new_axes[n].reset(0.0,0.0,0.0,0.0);
-#ifdef FASTJET2
-      new_jets[n].reset(0.0,0.0,0.0,0.0);
-#else
-      // use cheaper reset if available
       new_jets[n].reset_momentum(0.0,0.0,0.0,0.0);
-#endif
    }
 
    double precision = _precision;

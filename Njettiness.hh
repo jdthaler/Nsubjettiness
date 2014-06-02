@@ -42,7 +42,7 @@
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
-
+   
 ///////
 //
 // Main Njettiness Class
@@ -151,7 +151,7 @@ public:
    }
    
    // setAxes for Manual mode
-   void setAxes(std::vector<fastjet::PseudoJet> myAxes);
+   void setAxes(const std::vector<fastjet::PseudoJet> & myAxes);
    
    // Calculates and returns all TauComponents that user would want.
    // This information is stored in _current_tau_components for later access as well.
@@ -183,6 +183,75 @@ public:
    std::vector<std::list<int> > getPartitionList(const std::vector<fastjet::PseudoJet> & inputJets);
 
 };
+
+   
+/////////
+////
+//// NsubjettinessDefinition (work in progress)
+////
+/////////
+//
+////------------------------------------------------------------------------
+///// \class NsubjettinessDefinition
+//// Storage for Nsubjettiness parameters and options.  Currently this class
+//// is only used internally, but eventually will be user accessible.
+//class NsubjettinessDefinition {
+//   
+//private:
+//   // Storing measure and axis mode
+//   Njettiness::AxesMode _axesMode;
+//   Njettiness::MeasureMode _measureMode;
+//   
+//   // storing parameters (different for each mode),
+//   // first the total number, then the parameters themselves
+//   int _num_para;
+//   double _para1;
+//   double _para2;
+//   double _para3;
+//   double _para4;
+//   
+//public:
+//   
+//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode) :
+//   _axesMode(axes_mode), _measureMode(measure_mode),
+//   _num_para(0),
+//   _para1(NAN),_para2(NAN),_para3(NAN),_para4(NAN)
+//   {}
+//   
+//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1) :
+//   _axesMode(axes_mode), _measureMode(measure_mode),
+//   _num_para(1),
+//   _para1(para1),_para2(NAN),_para3(NAN),_para4(NAN)
+//   {}
+//   
+//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2) :
+//   _axesMode(axes_mode), _measureMode(measure_mode),
+//   _num_para(2),
+//   _para1(para1),_para2(para2),_para3(NAN),_para4(NAN)
+//   {}
+//   
+//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3) :
+//   _axesMode(axes_mode), _measureMode(measure_mode),
+//   _num_para(3),
+//   _para1(para1),_para2(para2),_para3(para3),_para4(NAN)
+//   {}
+//   
+//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3, double para4) :
+//   _axesMode(axes_mode), _measureMode(measure_mode),
+//   _num_para(4),
+//   _para1(para1),_para2(para2),_para3(para3),_para4(para4)
+//   {}
+//   
+//   int parameterCount() const {return _num_para;}
+//   double parameterOne()   const {return _para1;}
+//   double parameterTwo()   const {return _para2;}
+//   double parameterThree() const {return _para3;}
+//   double parameterFour()  const {return _para4;}
+//   
+//   Njettiness::AxesMode axesMode() const {return _axesMode;}
+//   Njettiness::MeasureMode measureMode() const {return _measureMode;}
+//   
+//};
 
 } // namespace contrib
 
