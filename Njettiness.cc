@@ -175,7 +175,7 @@ void Njettiness::setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode
 }
 
 // setAxes for Manual mode
-void Njettiness::setAxes(std::vector<fastjet::PseudoJet> myAxes) {
+void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
    if (_current_axes_mode == manual_axes || _current_axes_mode == onepass_manual_axes) {
       _currentAxes = myAxes;
    }

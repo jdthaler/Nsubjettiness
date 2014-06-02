@@ -2,7 +2,10 @@
 Version 2.0
 -------------------------
 
-This is a streamlining of the N-subjettiness code, developed mainly by TJ Wilkason.  The core functionality is unchanged, but classes have been dramatically reorganized to allow for later expansion.  While we have attempted to maintain backwards compatibility for the typical ways that Nsubjettiness was used, strictly speaking the API has changed, hence the v2.0 (http://semver.org).
+This is a streamlining of the N-subjettiness code, developed mainly by TJ Wilkason.  The core functionality is unchanged, but classes have been dramatically reorganized to allow for later expansion.  Because the API for Njettiness has changed, we have called this v2.0 (http://semver.org).
+
+Note that we have maintain backwards compatibility for the typical ways that Nsubjettiness was used.  In particular, all of the Nsubjettiness class code in the example file v1.0.3 from still compiles, as does the NjettinessPlugin class code that uses the default measure.
+
 
 The key new features are:
 

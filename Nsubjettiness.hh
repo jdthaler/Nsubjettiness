@@ -56,6 +56,26 @@ public:
 
    // Main constructor, which takes N, axes/measure modes,
    // and up to four parameters for parameters (i.e. beta, Rcutoff, etc depending on measure)
+   //
+   // The recommended axes modes are (more are available as listed in Njettiness
+   // and in the README):
+   //   kt_axes             : exclusive kt axes
+   //   wta_kt_axes         : exclusive kt with winner-take-all recombination
+   //   onepass_kt_axes     : one-pass minimization from kt starting point
+   //   onepass_wta_kt_axes : one-pass min. from wta_kt starting point
+   //
+   // The recommended measure modes (with the corresponding parameters)
+   //   normalized_measure           (para1=beta, para2=R0)
+   //      :  This was the original N-subjettiness measure (dimensionless)
+   //   unnormalized_measure         (para1=beta)
+   //      :  This is the new recommended default, same as above but without
+   //      :  the normalization factor, and hence has units of GeV
+   //   normalized_cutoff_measure    (para1=beta, para2=R0, para3=Rcutoff)
+   //      :  Same as normalized_measure, but cuts off at Rcutoff
+   //   unnormalized_cutoff_measure  (para1=beta, para2=Rcutoff)
+   //      :  Same as unnormalized_measure, but cuts off at Rcutoff
+   // Unneeded parameters should just be left blank.  (The NANs are signals for
+   // what parameters are not needed.  This will be improved in a future version.)
    Nsubjettiness(int N,
                  Njettiness::AxesMode axes_mode,
                  Njettiness::MeasureMode measure_mode,
@@ -98,7 +118,7 @@ public:
    }
    
    // To set axes for manual use
-   void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
+   void setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
       // Cross check that manual axes are being used is in Njettiness
     	_njettinessFinder.setAxes(myAxes);
    }

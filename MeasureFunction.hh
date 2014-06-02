@@ -41,8 +41,6 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-inline double sq(double x) {return x*x;}
-
 ///////
 //
 // Measure Function
@@ -68,7 +66,6 @@ private:
    double _beam_piece;
    double _numerator;
    double _tau;
-   
    
 public:
    // empty constructor necessary to initialize tau_components in Njettiness
@@ -120,6 +117,7 @@ public:
    std::vector<double> jet_pieces() const { return _jet_pieces; }
    double beam_piece() const { return _beam_piece; }
    double tau() const { return _tau; }
+   
    
 };
 
@@ -176,6 +174,9 @@ public:
 
    // calculates the tau result using an existing partition
    TauComponents result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partitioning, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage = NULL);
+
+   // shorthand for squaring
+   static inline double sq(double x) {return x*x;}
    
 };
 

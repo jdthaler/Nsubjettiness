@@ -1,3 +1,11 @@
+2014-6-02 <JDT>
+   Implemented many suggestions from FJ authors (Thanks!)
+   Removed FastJet 2 specific code
+   Made sq() function into internal namespace (as "inline static" to avoid conflicts with other packages)
+   Made setAxes() take const reference argument
+   Rewrapped README to 80 characters and updated/improved some of the descriptions
+   Clarified NEWS about what parts of the Nsubjettiness code is backwards compatible with v1.0.3
+   Clarified the para choices in Nsubjettiness constructor
 2014-4-30 <JDT>
    Added (void)(n_jets) in AxesFinder.hh to fix unused-parameter warning
 2014-4-29 <JDT>

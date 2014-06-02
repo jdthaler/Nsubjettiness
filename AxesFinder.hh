@@ -83,8 +83,12 @@ public:
    // This function should be overloaded, and updates the seedAxes
    virtual std::vector<fastjet::PseudoJet> getBetterAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& seedAxes) = 0;
    
+   // shorthand for squaring
+   static inline double sq(double x) {return x*x;}
+   
 };
 
+   
 //------------------------------------------------------------------------
 /// \class AxesFinderFromExclusiveJetDefinition
 // This class finds axes by clustering the particles and then finding the exclusive jets. This can be implemented
@@ -326,7 +330,7 @@ private:
       double distRap = rap1-rap2;
       double distPhi = std::fabs(phi1-phi2);
       if (distPhi > M_PI) {distPhi = 2.0*M_PI - distPhi;}
-      return sq(distRap) + sq(distPhi);
+      return distRap*distRap + distPhi*distPhi;
    }
    
    double Distance(double rap2, double phi2) const {
