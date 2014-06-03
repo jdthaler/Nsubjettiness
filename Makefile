@@ -15,9 +15,9 @@ check_script = ../utils/check.sh
 #------------------------------------------------------------------------
 # things that are specific to this contrib
 NAME=Nsubjettiness
-SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc MeasureFunction.cc AxesFinder.cc WinnerTakeAllRecombiner.cc
-EXAMPLES=example_basic_usage example_advanced_usage
-INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureFunction.hh AxesFinder.hh WinnerTakeAllRecombiner.hh
+SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc MeasureFunction.cc AxesFinder.cc WinnerTakeAllRecombiner.cc NjettinessDefinition.cc
+EXAMPLES=example_basic_usage example_advanced_usage example_v1p0p3
+INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureFunction.hh AxesFinder.hh WinnerTakeAllRecombiner.hh NjettinessDefinition.hh
 #------------------------------------------------------------------------
 
 CXXFLAGS+= $(shell $(FASTJETCONFIG) --cxxflags)

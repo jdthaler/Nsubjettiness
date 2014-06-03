@@ -1,3 +1,21 @@
+2014-6-03 <JDT>
+   Implemented remaining suggestions from FJ authors (Thanks!)
+   Fixed bug in example_advanced_usage where wrong beta value was used for NjettinessPlugin tests.
+   Removed NANs as signals for number of parameters in Nsubjettiness and NjettinessPlugin
+   Reduced the number of allowed parameters from 4 to 3.
+   Wrapped NEWS to 80 characters
+   Added MeasureSpecificationBase as a potentially safer way for the user to specify the choice of measure and parameters.
+   Converted a few NANs to std::numeric_limits<double>::quiet_NaN() when a parameter shouldn't be used.
+   Added AxesStruct and MeasureStruct to simplify the form of example_advanced_usage
+   Added example_v1p0p3 to check for backwards compatibility with v1.0.3
+   Changed the names of the MeasureFunctions in order to avoid conflicts with the new MeasureSpecificationBase
+   Fixed bug in correlation between subjets and tau values in NjettinessPlugin
+   Added currentTauComponents to Nsubjettiness
+   Added subTau information to example_basic_usage
+   Added file NjettinessSpecification to hold MeasureSpecification
+   Added MeasureSpecification as way to safely store information about the measures used
+   Changed Njettiness constructors to treat MeasureSpecification as primary object
+   Fixed segmentation fault with ClusterSequenceAreas
 2014-6-02 <JDT>
    Implemented many suggestions from FJ authors (Thanks!)
    Removed FastJet 2 specific code

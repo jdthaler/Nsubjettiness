@@ -37,7 +37,7 @@ namespace contrib{
 
 // Return all of the necessary TauComponents for specific input particles and axes
 TauComponents MeasureFunction::result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
-
+   
    // first find partition
    // this sets jetPartitionStorage and beamPartitionStorage
    PseudoJet beamPartitionStorage;
@@ -78,18 +78,18 @@ std::vector<fastjet::PseudoJet> MeasureFunction::get_partition(const std::vector
          jetPartition[j_min].push_back(particles[i]);
       }
    }
-
+   
    // Store beam partition
    if (beamPartitionStorage) {
       *beamPartitionStorage = join(beamPartition);
    }
-      
+
    // Store jet partitions
    std::vector<PseudoJet> jetPartitionStorage(axes.size(),PseudoJet(0,0,0,0));
    for (unsigned j = 0; j < axes.size(); j++) {
       jetPartitionStorage[j] = join(jetPartition[j]);
    }
-
+   
    return jetPartitionStorage;
 }
 
@@ -157,7 +157,6 @@ TauComponents MeasureFunction::result_from_partition(const std::vector<fastjet::
          if (_has_denominator) tauDen += denominator(beamPartition[i]); // denominator
       }
    }
-   
    return TauComponents(jetPieces, beamPiece, tauDen, _has_denominator, _has_beam);
 }
 

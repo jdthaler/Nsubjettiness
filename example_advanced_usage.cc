@@ -40,7 +40,6 @@
 #include "Njettiness.hh"
 #include "NjettinessPlugin.hh"
 
-
 using namespace std;
 using namespace fastjet;
 using namespace fastjet::contrib;
@@ -65,6 +64,46 @@ int main(){
 
   return 0;
 }
+
+// Simple class to store Axes along with a name for display
+class AxesStruct {
+   
+private:
+   Njettiness::AxesMode _axes_mode;
+   string _name;
+   
+public:
+   AxesStruct(Njettiness::AxesMode axes_mode, string name)
+   : _axes_mode(axes_mode), _name(name) {}
+   
+   Njettiness::AxesMode mode() const {return _axes_mode;}
+   string name() const {return _name;}
+};
+
+
+// Simple class to store Measures with a name for display
+class MeasureStruct {
+   
+private:
+   MeasureDefinition * _measure_spec;
+   string _name;
+   
+public:
+   MeasureStruct(const MeasureDefinition& measure_spec, string name)
+   : _measure_spec(measure_spec.copy()),  _name(name) {}
+   
+   // Need special copy constructor to make it possible to put in a std::vector
+   MeasureStruct(const MeasureStruct& myStruct)
+   : _measure_spec(myStruct._measure_spec->copy()), _name(myStruct._name) {}
+   
+   const MeasureDefinition & spec() const {return *_measure_spec;}
+   string name() const {return _name;}
+   
+   ~MeasureStruct() {
+      delete _measure_spec;
+   }
+};
+
 
 // read in input particles
 void read_event(vector<PseudoJet> &event){  
@@ -102,21 +141,19 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //
    ///////
    
-   // Getting all of the axes modes to test
-   vector<Njettiness::AxesMode> _testAxesModes;
-   vector<string> _testAxesNames;
-   _testAxesModes.push_back(Njettiness::kt_axes);                  _testAxesNames.push_back("            KT:");
-   _testAxesModes.push_back(Njettiness::ca_axes);                  _testAxesNames.push_back("            CA:");
-   _testAxesModes.push_back(Njettiness::antikt_0p2_axes);          _testAxesNames.push_back("        AKT0.2:");
-   _testAxesModes.push_back(Njettiness::wta_kt_axes);              _testAxesNames.push_back("        WTA KT:");
-   _testAxesModes.push_back(Njettiness::wta_ca_axes);              _testAxesNames.push_back("        WTA CA:");
-   _testAxesModes.push_back(Njettiness::onepass_kt_axes);          _testAxesNames.push_back("    OnePass KT:");
-   _testAxesModes.push_back(Njettiness::onepass_ca_axes);          _testAxesNames.push_back("    OnePass CA:");
-   _testAxesModes.push_back(Njettiness::onepass_antikt_0p2_axes);  _testAxesNames.push_back("OnePass AKT0.2:");
-   _testAxesModes.push_back(Njettiness::onepass_wta_kt_axes);      _testAxesNames.push_back("OnePass WTA KT:");
-   _testAxesModes.push_back(Njettiness::onepass_wta_ca_axes);      _testAxesNames.push_back("OnePass WTA CA:");
-   _testAxesModes.push_back(Njettiness::min_axes);                 _testAxesNames.push_back("#     Min Axes:");  // Putting in # because min_axes uses random number seed
-
+   vector<AxesStruct> _testAxes;
+   _testAxes.push_back(AxesStruct(Njettiness::kt_axes,                 "            KT:"));
+   _testAxes.push_back(AxesStruct(Njettiness::ca_axes,                 "            CA:"));
+   _testAxes.push_back(AxesStruct(Njettiness::antikt_0p2_axes,         "        AKT0.2:"));
+   _testAxes.push_back(AxesStruct(Njettiness::wta_kt_axes,             "        WTA KT:"));
+   _testAxes.push_back(AxesStruct(Njettiness::wta_ca_axes,             "        WTA CA:"));
+   _testAxes.push_back(AxesStruct(Njettiness::onepass_kt_axes,         "    OnePass KT:"));
+   _testAxes.push_back(AxesStruct(Njettiness::onepass_ca_axes,         "    OnePass CA:"));
+   _testAxes.push_back(AxesStruct(Njettiness::onepass_antikt_0p2_axes, "OnePass AKT0.2:"));
+   _testAxes.push_back(AxesStruct(Njettiness::onepass_wta_kt_axes,     "OnePass WTA KT:"));
+   _testAxes.push_back(AxesStruct(Njettiness::onepass_wta_ca_axes,     "OnePass WTA CA:"));
+   _testAxes.push_back(AxesStruct(Njettiness::min_axes,                "#     Min Axes:"));  // Putting in # because min_axes uses random number seed
+   
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
    // minimum, only a local minimum, and different choices of the random
@@ -124,42 +161,31 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // the one-pass minimization are recommended over min_axes.
    //
    
-   // Getting a smaller list of recommended modes
+   // Getting a smaller list of recommended axes modes
    // These are the ones that are more likely to give sensible results (and are all IRC safe)
-   vector<Njettiness::AxesMode> _testKeyAxesModes;
-   vector<string> _testKeyAxesNames;
-   vector<string> _testKeyAxesNamesLong;
-   _testKeyAxesModes.push_back(Njettiness::kt_axes);                    _testKeyAxesNamesLong.push_back("KT Axes:");
-   _testKeyAxesModes.push_back(Njettiness::wta_kt_axes);                _testKeyAxesNamesLong.push_back("Winner-Take-All KT Axes:");
-   _testKeyAxesModes.push_back(Njettiness::onepass_kt_axes);            _testKeyAxesNamesLong.push_back("One-Pass Minimization starting from KT:");
-   _testKeyAxesModes.push_back(Njettiness::onepass_wta_kt_axes);        _testKeyAxesNamesLong.push_back("One-Pass Minimization starting from WTA KT:");
-
-
+   vector<AxesStruct> _testRecommendedAxes;
+   _testRecommendedAxes.push_back(AxesStruct(Njettiness::kt_axes,            "KT Axes:"));
+   _testRecommendedAxes.push_back(AxesStruct(Njettiness::wta_kt_axes,        "Winner-Take-All KT Axes:"));
+   _testRecommendedAxes.push_back(AxesStruct(Njettiness::onepass_kt_axes,    "One-Pass Minimization starting from KT:"));
+   _testRecommendedAxes.push_back(AxesStruct(Njettiness::onepass_wta_kt_axes,"One-Pass Minimization starting from WTA KT:"));
+   
    // Getting some of the measure modes to test
    // (When applied to a single jet we won't test the cutoff measures,
    // since cutoffs aren't typically helpful when applied to single jets)
-   vector<Njettiness::MeasureMode> _testMeasureModes;
-   vector<double> _testBeta;
-   vector<double> _testR0;
-   vector<string> _testMeasureNames;
-   _testMeasureModes.push_back(Njettiness::normalized_measure);   _testBeta.push_back(1.0); _testR0.push_back(1.0); _testMeasureNames.push_back("Normalized Measure (beta = 1.0, R0 = 1.0):");
-   _testMeasureModes.push_back(Njettiness::unnormalized_measure); _testBeta.push_back(1.0); _testR0.push_back(NAN); _testMeasureNames.push_back("Unnormalized Measure (beta = 1.0, in GeV):");
-   _testMeasureModes.push_back(Njettiness::normalized_measure);   _testBeta.push_back(2.0); _testR0.push_back(1.0); _testMeasureNames.push_back("Normalized Measure (beta = 2.0, R0 = 1.0):");
-   _testMeasureModes.push_back(Njettiness::unnormalized_measure); _testBeta.push_back(2.0); _testR0.push_back(NAN); _testMeasureNames.push_back("Unnormalized Measure (beta = 2.0, in GeV):");
-   _testMeasureModes.push_back(Njettiness::geometric_measure);    _testBeta.push_back(2.0); _testR0.push_back(NAN); _testMeasureNames.push_back("Geometric Measure  (beta = 2.0, in GeV):");
+   // Note that we are calling measures by their MeasureDefinition
+   vector<MeasureStruct> _testMeasures;
+   _testMeasures.push_back(MeasureStruct(NormalizedMeasure(1.0, 1.0),  "Normalized Measure (beta = 1.0, R0 = 1.0):"));
+   _testMeasures.push_back(MeasureStruct(UnnormalizedMeasure(1.0),     "Unnormalized Measure (beta = 1.0, in GeV):"));
+   _testMeasures.push_back(MeasureStruct(NormalizedMeasure(2.0, 1.0),  "Normalized Measure (beta = 2.0, R0 = 1.0):"));
+   _testMeasures.push_back(MeasureStruct(UnnormalizedMeasure(2.0),     "Unnormalized Measure (beta = 2.0, in GeV):"));
+   _testMeasures.push_back(MeasureStruct(GeometricMeasure(2.0),        "Geometric Measure  (beta = 2.0, in GeV):"));
 
-   
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
-   vector<Njettiness::MeasureMode> _testCutoffMeasureModes;
-   vector<double> _testCutoffBeta;
-   vector<double> _testRcutoff;
-   vector<string> _testCutoffMeasureNames;
-   _testCutoffMeasureModes.push_back(Njettiness::unnormalized_cutoff_measure); _testCutoffBeta.push_back(1.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Unnormalized Measure (beta = 1.0, Rcut = 0.8):");
-   _testCutoffMeasureModes.push_back(Njettiness::unnormalized_cutoff_measure); _testCutoffBeta.push_back(2.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Unnormalized Measure (beta = 2.0, Rcut = 0.8):");
-   _testCutoffMeasureModes.push_back(Njettiness::geometric_cutoff_measure);    _testCutoffBeta.push_back(2.0); _testRcutoff.push_back(0.8); _testCutoffMeasureNames.push_back("Geometric Measure (beta = 2.0, Rcut = 0.8):");
-
-   
+   vector<MeasureStruct> _testCutoffMeasures;
+   _testCutoffMeasures.push_back(MeasureStruct(UnnormalizedCutoffMeasure(1.0, 0.8), "Unnormalized Measure (beta = 1.0, Rcut = 0.8):"));
+   _testCutoffMeasures.push_back(MeasureStruct(UnnormalizedCutoffMeasure(2.0, 0.8), "Unnormalized Measure (beta = 2.0, Rcut = 0.8):"));
+   _testCutoffMeasures.push_back(MeasureStruct(GeometricCutoffMeasure(2.0, 0.8),    "Geometric Measure (beta = 2.0, Rcut = 0.8):"));
    
    
    /////// N-subjettiness /////////////////////////////
@@ -214,10 +240,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
       
       // Now loop through all options
       cout << setprecision(6) << right << fixed;
-      for (unsigned iM = 0; iM < _testMeasureModes.size(); iM++) {
+      for (unsigned iM = 0; iM < _testMeasures.size(); iM++) {
          
          cout << "-------------------------------------------------------------------------------------" << endl;
-         cout << _testMeasureNames[iM] << endl;
+         cout << _testMeasures[iM].name() << endl;
          cout << "       AxisMode"
             << setw(14) << "tau1"
             << setw(14) << "tau2"
@@ -226,18 +252,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
             << setw(14) << "tau3/tau2"
             << endl;
          
-         for (unsigned iA = 0; iA < _testAxesModes.size(); iA++) {
+         for (unsigned iA = 0; iA < _testAxes.size(); iA++) {
             
             // This case doesn't work, so skip it.
-            if (_testAxesModes[iA] == Njettiness::min_axes && _testMeasureModes[iM] == Njettiness::geometric_measure) continue;
+            if (_testAxes[iA].mode() == Njettiness::min_axes && !_testMeasures[iM].spec().canDoMultiPassMinimization()) continue;
             
             // define Nsubjettiness functions
-            Nsubjettiness        nSub1(1,    _testAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            Nsubjettiness        nSub2(2,    _testAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            Nsubjettiness        nSub3(3,    _testAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            NsubjettinessRatio   nSub21(2,1, _testAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            NsubjettinessRatio   nSub32(3,2, _testAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            
+            Nsubjettiness        nSub1(1,    _testAxes[iA].mode(), _testMeasures[iM].spec());
+            Nsubjettiness        nSub2(2,    _testAxes[iA].mode(), _testMeasures[iM].spec());
+            Nsubjettiness        nSub3(3,    _testAxes[iA].mode(), _testMeasures[iM].spec());
+            NsubjettinessRatio   nSub21(2,1, _testAxes[iA].mode(), _testMeasures[iM].spec());
+            NsubjettinessRatio   nSub32(3,2, _testAxes[iA].mode(), _testMeasures[iM].spec());
             // calculate Nsubjettiness values
             double tau1 = nSub1(antikt_jets[j]);
             double tau2 = nSub2(antikt_jets[j]);
@@ -246,13 +271,13 @@ void analyze(const vector<PseudoJet> & input_particles) {
             double tau32 = nSub32(antikt_jets[j]);
             
             // Make sure calculations are consistent
-            if (_testAxesModes[iA] != Njettiness::min_axes) {
+            if (_testAxes[iA].mode() != Njettiness::min_axes) {
                assert(abs(tau21 - tau2/tau1) < epsilon);
                assert(abs(tau32 - tau3/tau2) < epsilon);
             }
             
             // Output results:
-            cout << _testAxesNames[iA]
+            cout << _testAxes[iA].name()
                << setw(14) << tau1
                << setw(14) << tau2
                << setw(14) << tau3
@@ -283,17 +308,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
       
       // Loop through all options, this time setting up jet finding
       cout << setprecision(6) << left << fixed;
-      for (unsigned iM = 0; iM < _testMeasureModes.size(); iM++) {
+      for (unsigned iM = 0; iM < _testMeasures.size(); iM++) {
          
-         for (unsigned iA = 0; iA < _testKeyAxesModes.size(); iA++) {
+         for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
 
             // This case doesn't work, so skip it.
-            if (_testAxesModes[iA] == Njettiness::min_axes && _testMeasureModes[iM] == Njettiness::geometric_measure) continue;
+            if (_testAxes[iA].mode() == Njettiness::min_axes && !_testMeasures[iM].spec().canDoMultiPassMinimization()) continue;
             
             // define the plugins
-            NjettinessPlugin nsub_plugin1(1, _testKeyAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            NjettinessPlugin nsub_plugin2(2, _testKeyAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
-            NjettinessPlugin nsub_plugin3(3, _testKeyAxesModes[iA], _testMeasureModes[iM], _testBeta[iM], _testR0[iM]);
+            NjettinessPlugin nsub_plugin1(1, _testRecommendedAxes[iA].mode(), _testMeasures[iM].spec());
+            NjettinessPlugin nsub_plugin2(2, _testRecommendedAxes[iA].mode(), _testMeasures[iM].spec());
+            NjettinessPlugin nsub_plugin3(3, _testRecommendedAxes[iA].mode(), _testMeasures[iM].spec());
 
             // define the corresponding jet definitions
             JetDefinition nsub_jetDef1(&nsub_plugin1);
@@ -310,11 +335,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
             vector<PseudoJet> jets3 = nsub_seq3.inclusive_jets();
 
             cout << "-------------------------------------------------------------------------------------" << endl;
-            cout << _testMeasureNames[iM] << endl;
-            cout << _testKeyAxesNamesLong[iA] << endl;
+            cout << _testMeasures[iM].name() << endl;
+            cout << _testRecommendedAxes[iA].name() << endl;
             
             bool commentOut = false;
-            if (_testAxesModes[iA] == Njettiness::min_axes) commentOut = true;  // have to comment out min_axes, because it has random values
+            if (_testAxes[iA].mode() == Njettiness::min_axes) commentOut = true;  // have to comment out min_axes, because it has random values
             
             // This helper function tries to find out if the jets have tau information for printing
             PrintJets(jets1,commentOut);
@@ -374,14 +399,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
    cout << "-------------------------------------------------------------------------------------" << endl;
 
    
-   for (unsigned iM = 0; iM < _testCutoffMeasureModes.size(); iM++) {
+   for (unsigned iM = 0; iM < _testCutoffMeasures.size(); iM++) {
       
-      for (unsigned iA = 0; iA < _testKeyAxesModes.size(); iA++) {
+      for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
          
          // define the plugins
-         NjettinessPlugin njet_plugin2(2, _testKeyAxesModes[iA], _testCutoffMeasureModes[iM], _testBeta[iM], _testRcutoff[iM]);
-         NjettinessPlugin njet_plugin3(3, _testKeyAxesModes[iA], _testCutoffMeasureModes[iM], _testBeta[iM], _testRcutoff[iM]);
-         NjettinessPlugin njet_plugin4(4, _testKeyAxesModes[iA], _testCutoffMeasureModes[iM], _testBeta[iM], _testRcutoff[iM]);
+         NjettinessPlugin njet_plugin2(2, _testRecommendedAxes[iA].mode(), _testCutoffMeasures[iM].spec());
+         NjettinessPlugin njet_plugin3(3, _testRecommendedAxes[iA].mode(), _testCutoffMeasures[iM].spec());
+         NjettinessPlugin njet_plugin4(4, _testRecommendedAxes[iA].mode(), _testCutoffMeasures[iM].spec());
    
          // and the jet definitions
          JetDefinition njet_jetDef2(&njet_plugin2);
@@ -399,8 +424,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> njet_jets4 = njet_seq4.inclusive_jets();
 
          cout << "-------------------------------------------------------------------------------------" << endl;
-         cout << _testCutoffMeasureNames[iM] << endl;
-         cout << _testKeyAxesNamesLong[iA] << endl;
+         cout << _testCutoffMeasures[iM].name() << endl;
+         cout << _testRecommendedAxes[iA].name() << endl;
          
          PrintJets(njet_jets2);
          cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;

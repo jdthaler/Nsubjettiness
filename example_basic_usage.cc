@@ -85,7 +85,7 @@ void read_event(vector<PseudoJet> &event){
 }
 
 // Helper Function for Printing out Jet Information
-void PrintJets(const vector <PseudoJet>& jets, bool commentOut = false);
+void PrintJets(const vector <PseudoJet>& jets, TauComponents components, bool showTotal = true);
 
 ////////
 //
@@ -155,25 +155,31 @@ void analyze(const vector<PseudoJet> & input_particles) {
          << endl;
       
       
+      // Axes modes to try
       Njettiness::AxesMode axisMode1 = Njettiness::onepass_wta_kt_axes;
       Njettiness::AxesMode axisMode2 = Njettiness::onepass_kt_axes;
-      Njettiness::MeasureMode measureMode = Njettiness::unnormalized_measure;
+      
+
+      // Measure modes to try
       double beta1 = 1.0;
       double beta2 = 2.0;
+      UnnormalizedMeasure measureSpec1(beta1);
+      UnnormalizedMeasure measureSpec2(beta2);
       
       // define Nsubjettiness functions (beta = 1.0)
-      Nsubjettiness         nSub1_beta1(1,  axisMode1,measureMode,beta1);
-      Nsubjettiness         nSub2_beta1(2,  axisMode1,measureMode,beta1);
-      Nsubjettiness         nSub3_beta1(3,  axisMode1,measureMode,beta1);
-      NsubjettinessRatio   nSub21_beta1(2,1,axisMode1,measureMode,beta1);
-      NsubjettinessRatio   nSub32_beta1(3,2,axisMode1,measureMode,beta1);
+      Nsubjettiness         nSub1_beta1(1,  axisMode1,measureSpec1);
+      // an alternative (but more prone to error) constructor is nSub1_beta1(1,  axisMode1,Njettiness::unnormalized_measure,beta1);
+      Nsubjettiness         nSub2_beta1(2,  axisMode1,measureSpec1);
+      Nsubjettiness         nSub3_beta1(3,  axisMode1,measureSpec1);
+      NsubjettinessRatio   nSub21_beta1(2,1,axisMode1,measureSpec1);
+      NsubjettinessRatio   nSub32_beta1(3,2,axisMode1,measureSpec1);
       
       // define Nsubjettiness functions (beta = 2.0)
-      Nsubjettiness         nSub1_beta2(1,  axisMode2,measureMode,beta2);
-      Nsubjettiness         nSub2_beta2(2,  axisMode2,measureMode,beta2);
-      Nsubjettiness         nSub3_beta2(3,  axisMode2,measureMode,beta2);
-      NsubjettinessRatio   nSub21_beta2(2,1,axisMode2,measureMode,beta2);
-      NsubjettinessRatio   nSub32_beta2(3,2,axisMode2,measureMode,beta2);
+      Nsubjettiness         nSub1_beta2(1,  axisMode2,measureSpec2);
+      Nsubjettiness         nSub2_beta2(2,  axisMode2,measureSpec2);
+      Nsubjettiness         nSub3_beta2(3,  axisMode2,measureSpec2);
+      NsubjettinessRatio   nSub21_beta2(2,1,axisMode2,measureSpec2);
+      NsubjettinessRatio   nSub32_beta2(3,2,axisMode2,measureSpec2);
       
       
       // calculate Nsubjettiness values (beta = 1.0)
@@ -211,23 +217,23 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
       cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
       cout << "Subjets found using beta = 1.0 tau values" << endl;
-      PrintJets(nSub1_beta1.currentSubjets()); // these have valid constituents
+      PrintJets(nSub1_beta1.currentSubjets(),nSub1_beta1.currentTauComponents()); // these subjets have valid constituents
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintJets(nSub2_beta1.currentSubjets()); // these have valid constituents
+      PrintJets(nSub2_beta1.currentSubjets(),nSub2_beta1.currentTauComponents()); // these subjets have valid constituents
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintJets(nSub3_beta1.currentSubjets()); // these have valid constituents
+      PrintJets(nSub3_beta1.currentSubjets(),nSub3_beta1.currentTauComponents()); // these subjets have valid constituents
       cout << "-------------------------------------------------------------------------------------" << endl;
       
       cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
       cout << "Axes used for above beta = 1.0 tau values" << endl;
       
-      PrintJets(nSub1_beta1.currentAxes());
+      PrintJets(nSub1_beta1.currentAxes(),nSub1_beta1.currentTauComponents(),false);
       //PrintJets(nSub1_beta1.seedAxes());  // For one-pass minimization, this would show starting seeds
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintJets(nSub2_beta1.currentAxes());
+      PrintJets(nSub2_beta1.currentAxes(),nSub2_beta1.currentTauComponents(),false);
       //PrintJets(nSub2_beta1.seedAxes());  // For one-pass minimization, this would show starting seeds
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintJets(nSub3_beta1.currentAxes());
+      PrintJets(nSub3_beta1.currentAxes(),nSub3_beta1.currentTauComponents(),false);
       //PrintJets(nSub3_beta1.seedAxes());  // For one-pass minimization, this would show starting seeds
       
       cout << "-------------------------------------------------------------------------------------" << endl;
@@ -236,16 +242,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
 }
 
-void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
+void PrintJets(const vector <PseudoJet>& jets, TauComponents components, bool showTotal) {
    
    string commentStr = "";
-   if (commentOut) commentStr = "#";
    
    // gets extras information
    if (jets.size() == 0) return;
-   const NjettinessExtras * extras = njettiness_extras(jets[0]);
    
-   bool useExtras = (extras != NULL);
+   // For printing out component tau information
+   vector<double> subTaus = components.jet_pieces();
+   double totalTau = components.tau();
+   
    bool useArea = jets[0].has_area();
    
    // define nice tauN header
@@ -261,11 +268,10 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    <<  setw(11) << "m"
    <<  setw(11) << "e";
    if (jets[0].has_constituents()) cout <<  setw(11) << "constit";
-   if (useExtras) cout << setw(14) << tauName;
+   cout << setw(13) << tauName;
    if (useArea) cout << setw(10) << "area";
    cout << endl;
    
-   fastjet::PseudoJet total(0,0,0,0);
    
    // print out individual jet information
    for (unsigned i = 0; i < jets.size(); i++) {
@@ -276,37 +282,25 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
       << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
       << setprecision(4) <<  setw(11) << jets[i].e();
       if (jets[i].has_constituents()) cout << setprecision(4) <<  setw(11) << jets[i].constituents().size();
-      if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
+      cout << setprecision(6) <<  setw(13) << max(subTaus[i],0.0);
       if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
       cout << endl;
-      total += jets[i];
    }
    
    // print out total jet
-   if (useExtras) {
-      double beamTau = extras->beamTau();
-      
-      if (beamTau > 0.0) {
-         cout << commentStr << setw(5) << " beam" << "   "
-         <<  setw(10) << ""
-         <<  setw(10) << ""
-         <<  setw(11) << ""
-         <<  setw(11) << ""
-         <<  setw(11) << ""
-         <<  setw(14) << setprecision(6) << beamTau
-         << endl;
-      }
+   if (showTotal) {
+      fastjet::PseudoJet total = join(jets);
       
       cout << commentStr << setw(5) << "total" << "   "
       <<  setprecision(4) << setw(10) << total.rap()
       <<  setprecision(4) << setw(10) << total.phi()
       <<  setprecision(4) << setw(11) << total.perp()
       <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
-      <<  setprecision(4) <<  setw(11) << total.e()
-      <<  setprecision(6) << setw(14) << extras->totalTau();
+      <<  setprecision(4) <<  setw(11) << total.e();
+      if (jets[0].has_constituents()) cout << setprecision(4)  <<  setw(11) << total.constituents().size();
+      cout <<  setprecision(6) << setw(13) << totalTau;
       if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
       cout << endl;
    }
-   
 }
 

@@ -31,11 +31,6 @@
 #include <list>
 #include <limits>
 
-// Adding this for compilers that don't define NAN by default
-#ifndef NAN
-#define NAN (0.0/0.0)
-#endif
-
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
@@ -43,10 +38,11 @@ namespace contrib{
 
 ///////
 //
-// Measure Function
+// TauComponents
+// (eventually we might want to put this in a separate header file)
 //
 ///////
-
+   
 /// \class TauComponents
 // This class creates a wrapper for the various tau/subtau values calculated in Njettiness. This class allows Njettiness access to these variables
 // without ever having to do the calculation itself. It takes in subtau numerators and tau denominator from MeasureFunction
@@ -121,6 +117,13 @@ public:
    
 };
 
+///////
+//
+// Measure Function
+//
+///////
+
+
 //------------------------------------------------------------------------
 /// \class MeasureFunction
 // This class calculates the tau_N of a jet given a specific measure.
@@ -181,11 +184,11 @@ public:
 };
 
 
-/// \class DefaultNormalizedMeasure
+/// \class DefaultNormalizedMeasureFunction
 // This class is the default measure, inheriting from the class above. This class will calculate tau_N 
 // of a jet according to this measure. This measure is defined as the pT of the particle multiplied by deltaR 
 // to the power of beta. This class includes the normalization factor determined by R0
-class DefaultNormalizedMeasure : public MeasureFunction {
+class DefaultNormalizedMeasureFunction : public MeasureFunction {
 
    private:
       double _beta;
@@ -194,7 +197,7 @@ class DefaultNormalizedMeasure : public MeasureFunction {
 
    public:
 
-      DefaultNormalizedMeasure(double beta, double R0, double Rcutoff, bool normalized = true)
+      DefaultNormalizedMeasureFunction(double beta, double R0, double Rcutoff, bool normalized = true)
       : MeasureFunction(normalized), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
 
       virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
@@ -220,25 +223,27 @@ class DefaultNormalizedMeasure : public MeasureFunction {
 };
 
 //------------------------------------------------------------------------
-/// \class DefaultUnnormalizedMeasure
+/// \class DefaultUnnormalizedMeasureFunction
 // This class is the unnormalized default measure, inheriting from the class above. The only difference from above
 // is that the denominator is defined to be 1.0 by setting _has_denominator to false.
-class DefaultUnnormalizedMeasure : public DefaultNormalizedMeasure {
+class DefaultUnnormalizedMeasureFunction : public DefaultNormalizedMeasureFunction {
 
    public:
-      // Since all methods are identical, UnnormalizedMeasure inherits directly from NormalizedMeasure. R0 is defaulted to NAN since the value of R0 is unecessary for this class.
-      // the "false" flag sets _has_denominator in MeasureFunction to false so no denominator is used.
-      DefaultUnnormalizedMeasure(double beta, double Rcutoff) : DefaultNormalizedMeasure(beta, NAN, Rcutoff, false) {}
+      // Since all methods are identical, UnnormalizedMeasure inherits directly
+      // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
+      // and the "false" flag sets _has_denominator in MeasureFunction to false so no denominator is used.
+      DefaultUnnormalizedMeasureFunction(double beta, double Rcutoff)
+      : DefaultNormalizedMeasureFunction(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, false) {}
 
       
 };
 
 //------------------------------------------------------------------------
-/// \class GeometricMeasure
+/// \class GeometricMeasureFunction
 // This class is the geometic measure, inheriting from the class above. This class will calculate tau_N 
 // of a jet according to this measure. This measure is defined by the Lorentz dot product between
 // the particle and the axis. This class includes normalization of tau_N.
-class GeometricMeasure : public MeasureFunction {
+class GeometricMeasureFunction : public MeasureFunction {
 
    private:
       double _jet_beta;
@@ -253,7 +258,7 @@ class GeometricMeasure : public MeasureFunction {
 
    public:
       // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
-      GeometricMeasure(double jet_beta, double Rcutoff) : _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff) {}
+      GeometricMeasureFunction(double jet_beta, double Rcutoff) : _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff) {}
    
       virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
          fastjet::PseudoJet lightAxis = lightFrom(axis);

@@ -228,7 +228,7 @@ class AxesFinderFromOnePassMinimization : public AxesFinder {
       double _beta;
       double _Rcutoff;
       
-      DefaultUnnormalizedMeasure _measureFunction;
+      DefaultUnnormalizedMeasureFunction _measureFunction;
    
    public:
 
@@ -264,7 +264,7 @@ class AxesFinderFromKmeansMinimization : public AxesFinder{
       int _n_iterations;   // Number of iterations to run  (0 for no minimization, 1 for one-pass, >>1 for global minimum)
       double _noise_range; // noise range for random initialization
    
-      DefaultUnnormalizedMeasure _measureFunction; //function to test whether minimum is reached
+      DefaultUnnormalizedMeasureFunction _measureFunction; //function to test whether minimum is reached
    
       AxesFinderFromOnePassMinimization _onePassFinder;  //one pass finder for minimization
 
@@ -305,7 +305,7 @@ class AxesFinderFromGeometricMinimization : public AxesFinder {
          
          _nAttempts = 100;
          _accuracy = 0.000000001;
-         _function = new GeometricMeasure(beta,_Rcutoff);
+         _function = new GeometricMeasureFunction(beta,_Rcutoff);
       }
 
       ~AxesFinderFromGeometricMinimization() {

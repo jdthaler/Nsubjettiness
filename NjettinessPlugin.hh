@@ -35,11 +35,6 @@
 #include <string>
 #include <climits>
 
-// Adding this for compilers that don't define NAN by default
-#ifndef NAN
-#define NAN (0.0/0.0)
-#endif
-
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 
@@ -81,7 +76,7 @@ class NjettinessExtras : public ClusterSequence::Extras {
          return _tau_components.tau();
       }
       double subTau(const fastjet::PseudoJet& jet) const {
-         if (labelOf(jet) == -1) return NAN;
+         if (labelOf(jet) == -1) return std::numeric_limits<double>::quiet_NaN(); // nonsense
          return _tau_components.jet_pieces()[labelOf(jet)];
       }
       
@@ -125,14 +120,14 @@ inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence
  * onepass_kt_axes      : one-pass minimization seeded by kt (pretty good)
  * onepass_wta_kt_axes  : one-pass minimization seeded by wta_kt
  *
- * For the unnormalized_measure, N-jettiness is defined as:
+ * For the UnnormalizedMeasure(beta), N-jettiness is defined as:
  *
  * tau_N = Sum_{all particles i} p_T^i min((DR_i1)^beta, (DR_i2)^beta, ...)
  *
  *   DR_ij is the distance sqrt(Delta_phi^2 + Delta_rap^2) between particle i
  *   and jet j.
  * 
- * The normalized_meausure include an extra parameter R0, and the various cutoff
+ * The NormalizedMeausure include an extra parameter R0, and the various cutoff
  * measures include an Rcutoff, which effectively defines an angular cutoff
  * similar in effect to a cone-jet radius.
  *
@@ -141,21 +136,54 @@ inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence
 class NjettinessPlugin : public JetDefinition::Plugin {
 public:
 
+   // Constructor with same arguments as Nsubjettiness.
    NjettinessPlugin(int N,
                     Njettiness::AxesMode axes_mode,
-                    Njettiness::MeasureMode measure_mode,
-                    double para1 = NAN,
-                    double para2 = NAN,
-                    double para3 = NAN,
-                    double para4 = NAN);
+                    const MeasureDefinition & measure_def)
+   : _njettinessFinder(axes_mode, measure_def), _N(N) {}
+   
+   
+   // Alternative constructors that define the measure via enums and parameters
+   // These constructors are likely be removed
+   NjettinessPlugin(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode)
+   : _njettinessFinder(axes_mode, measure_mode, 0), _N(N) {}
+   
+   
+   NjettinessPlugin(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode,
+                 double para1)
+   : _njettinessFinder(axes_mode, measure_mode, 1, para1), _N(N) {}
+   
+   
+   NjettinessPlugin(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode,
+                 double para1,
+                 double para2)
+   : _njettinessFinder(axes_mode, measure_mode, 2, para1, para2), _N(N) {}
+   
+   
+   NjettinessPlugin(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode,
+                 double para1,
+                 double para2,
+                 double para3)
+   : _njettinessFinder(axes_mode, measure_mode, 3, para1, para2, para3), _N(N) {}
+
 
    // Old constructor for backwards compatibility with v1.0,
-   // where normalized_cutoff_measure was the only option
+   // where NormalizedCutoffMeasure was the only option
    NjettinessPlugin(int N,
                     Njettiness::AxesMode mode,
                     double beta,
                     double R0,
-                    double Rcutoff=std::numeric_limits<double>::max());
+                    double Rcutoff=std::numeric_limits<double>::max())
+   : _njettinessFinder(mode, NormalizedCutoffMeasure(beta, R0, Rcutoff)), _N(N) {}
+
 
 
    // The things that are required by base class.
@@ -167,8 +195,8 @@ public:
 
 private:
 
-   int _N;
    mutable Njettiness _njettinessFinder; // TODO:  should muck with this so run_clustering can be const without this mutable
+   int _N;
 
 };
 

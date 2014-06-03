@@ -28,16 +28,14 @@
 
 #include "MeasureFunction.hh"
 #include "AxesFinder.hh"
+#include "NjettinessDefinition.hh"
 
 #include "fastjet/PseudoJet.hh"
+#include <fastjet/LimitedWarning.hh>
+
 #include <cmath>
 #include <vector>
 #include <list>
-
-// Adding this for compilers that don't define NAN by default
-#ifndef NAN
-#define NAN (0.0/0.0)
-#endif
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
@@ -83,6 +81,7 @@ public:
    // The measures available to the user.
    // "normalized_cutoff_measure" was the default in v1.0 of Nsubjettiness
    // "unnormalized_measure" is now the recommended default usage
+   // TODO:  Consider deleting this enum
    enum MeasureMode {
       normalized_measure,           //default normalized measure
       unnormalized_measure,         //default unnormalized measure
@@ -93,13 +92,14 @@ public:
    };
 
 private:
-   // The chosen axes/measure modes
+   
+   // Information about Axes and Measures to be Used
+   AxesMode _axes_mode;
+   MeasureDefinition* _measure_spec;
+   
+   // The chosen axes/measure mode workers
    AxesFinder* _axesFinder;  // The chosen axes
    MeasureFunction* _measureFunction; // The chosen measure
-
-   // Enum information so functions can specify output based on specific options, primarily for setAxes
-   AxesMode _current_axes_mode;
-   MeasureMode _current_measure_mode;
    
    // Information about the current information
    TauComponents _current_tau_components; //automatically set to have components of 0; these values will be set by the getTau function call
@@ -107,48 +107,33 @@ private:
    std::vector<fastjet::PseudoJet> _seedAxes; // axes used prior to minimization (if applicable)
    std::vector<fastjet::PseudoJet> _currentJets; //partitioning information
    fastjet::PseudoJet _currentBeam; //return beam, if requested
-   
-   // Needed for compilation of non C++11 users
-   bool isnan(double para) { return para != para; }
 
-   // Helpful function to check to make sure input has correct number of parameters
-   bool correctParameterCount(int n, double para1, double para2, double para3, double para4){
-      int numpara;
-      if (!isnan(para1) && !isnan(para2) && !isnan(para3) && !isnan(para4)) numpara = 4;
-      else if (!isnan(para1) && !isnan(para2) && !isnan(para3) && isnan(para4)) numpara = 3;
-      else if (!isnan(para1) && !isnan(para2) && isnan(para3) && isnan(para4)) numpara = 2;
-      else if (!isnan(para1) && isnan(para2) && isnan(para3) && isnan(para4)) numpara = 1;
-      else numpara = 0;
-      return n == numpara;
-   }
-
-   // Helper function to set onepass_axes depending on input measure_mode and startingFinder
-   void setOnePassAxesFinder(MeasureMode measure_mode, AxesFinder* startingFinder, double para1, double Rcutoff);
- 
    // created separate function to set MeasureFunction and AxesFinder in order to keep constructor cleaner.
-   void setMeasureFunctionandAxesFinder(AxesMode axes_mode, MeasureMode measure_mode, double para1, double para2, double para3, double para4);
+   void setMeasureFunctionAndAxesFinder();
+   
+   // Convert old style enums into new style MeasureDefinition
+   MeasureDefinition* createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const;
 
 public:
 
-
-   // Main constructor which takes axes/measure information, and possible parameters.
+   // Main constructor that uses AxesMode and MeasureDefinition to specify measure
    // Unlike Nsubjettiness or NjettinessPlugin, the value N is not chosen
+   Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_spec);
+   
+   // Alternative constructor which takes axes/measure information as enums with measure parameters
+   // This version is not recommended
    Njettiness(AxesMode axes_mode,
               MeasureMode measure_mode,
-              double para1 = NAN,
-              double para2 = NAN,
-              double para3 = NAN,
-              double para4 = NAN)
-   : _current_axes_mode(axes_mode),
-   _current_measure_mode(measure_mode) {
-      setMeasureFunctionandAxesFinder(axes_mode, measure_mode, para1, para2, para3, para4);  // call helper function to do the hard work
+              int num_para,
+              double para1 = std::numeric_limits<double>::quiet_NaN(),
+              double para2 = std::numeric_limits<double>::quiet_NaN(),
+              double para3 = std::numeric_limits<double>::quiet_NaN())
+   : _axes_mode(axes_mode), _measure_spec(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
+      setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
    }
 
-   ~Njettiness() {
-      // clean house
-      delete _measureFunction;
-      delete _axesFinder;
-   }
+   // destructor
+   ~Njettiness();
    
    // setAxes for Manual mode
    void setAxes(const std::vector<fastjet::PseudoJet> & myAxes);
@@ -164,8 +149,7 @@ public:
    }
    
    // returns enum information
-   MeasureMode currentMeasureMode() { return _current_measure_mode;}
-   AxesMode currentAxesMode() { return _current_axes_mode;}
+   AxesMode currentAxesMode() { return _axes_mode;}
 
    // Return all relevant information about tau components
    TauComponents currentTauComponents() {return _current_tau_components;}
@@ -183,76 +167,7 @@ public:
    std::vector<std::list<int> > getPartitionList(const std::vector<fastjet::PseudoJet> & inputJets);
 
 };
-
    
-/////////
-////
-//// NsubjettinessDefinition (work in progress)
-////
-/////////
-//
-////------------------------------------------------------------------------
-///// \class NsubjettinessDefinition
-//// Storage for Nsubjettiness parameters and options.  Currently this class
-//// is only used internally, but eventually will be user accessible.
-//class NsubjettinessDefinition {
-//   
-//private:
-//   // Storing measure and axis mode
-//   Njettiness::AxesMode _axesMode;
-//   Njettiness::MeasureMode _measureMode;
-//   
-//   // storing parameters (different for each mode),
-//   // first the total number, then the parameters themselves
-//   int _num_para;
-//   double _para1;
-//   double _para2;
-//   double _para3;
-//   double _para4;
-//   
-//public:
-//   
-//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode) :
-//   _axesMode(axes_mode), _measureMode(measure_mode),
-//   _num_para(0),
-//   _para1(NAN),_para2(NAN),_para3(NAN),_para4(NAN)
-//   {}
-//   
-//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1) :
-//   _axesMode(axes_mode), _measureMode(measure_mode),
-//   _num_para(1),
-//   _para1(para1),_para2(NAN),_para3(NAN),_para4(NAN)
-//   {}
-//   
-//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2) :
-//   _axesMode(axes_mode), _measureMode(measure_mode),
-//   _num_para(2),
-//   _para1(para1),_para2(para2),_para3(NAN),_para4(NAN)
-//   {}
-//   
-//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3) :
-//   _axesMode(axes_mode), _measureMode(measure_mode),
-//   _num_para(3),
-//   _para1(para1),_para2(para2),_para3(para3),_para4(NAN)
-//   {}
-//   
-//   NsubjettinessDefinition(Njettiness::AxesMode axes_mode, Njettiness::MeasureMode measure_mode, double para1, double para2, double para3, double para4) :
-//   _axesMode(axes_mode), _measureMode(measure_mode),
-//   _num_para(4),
-//   _para1(para1),_para2(para2),_para3(para3),_para4(para4)
-//   {}
-//   
-//   int parameterCount() const {return _num_para;}
-//   double parameterOne()   const {return _para1;}
-//   double parameterTwo()   const {return _para2;}
-//   double parameterThree() const {return _para3;}
-//   double parameterFour()  const {return _para4;}
-//   
-//   Njettiness::AxesMode axesMode() const {return _axesMode;}
-//   Njettiness::MeasureMode measureMode() const {return _measureMode;}
-//   
-//};
-
 } // namespace contrib
 
 FASTJET_END_NAMESPACE
