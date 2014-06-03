@@ -79,16 +79,23 @@ depend:
 
 Nsubjettiness.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
 Nsubjettiness.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+Nsubjettiness.o: NjettinessDefinition.hh
 Njettiness.o: Njettiness.hh MeasureFunction.hh AxesFinder.hh
-Njettiness.o: WinnerTakeAllRecombiner.hh
+Njettiness.o: WinnerTakeAllRecombiner.hh NjettinessDefinition.hh
 NjettinessPlugin.o: NjettinessPlugin.hh Njettiness.hh MeasureFunction.hh
 NjettinessPlugin.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+NjettinessPlugin.o: NjettinessDefinition.hh
 MeasureFunction.o: MeasureFunction.hh
 AxesFinder.o: AxesFinder.hh WinnerTakeAllRecombiner.hh MeasureFunction.hh
 WinnerTakeAllRecombiner.o: WinnerTakeAllRecombiner.hh
+NjettinessDefinition.o: NjettinessDefinition.hh MeasureFunction.hh
+NjettinessDefinition.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
 example_basic_usage.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
 example_basic_usage.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-example_basic_usage.o: NjettinessPlugin.hh
+example_basic_usage.o: NjettinessDefinition.hh NjettinessPlugin.hh
 example_advanced_usage.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
 example_advanced_usage.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-example_advanced_usage.o: NjettinessPlugin.hh
+example_advanced_usage.o: NjettinessDefinition.hh NjettinessPlugin.hh
+example_v1p0p3.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
+example_v1p0p3.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
+example_v1p0p3.o: NjettinessDefinition.hh NjettinessPlugin.hh

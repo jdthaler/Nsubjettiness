@@ -138,9 +138,9 @@ public:
 
    // Constructor with same arguments as Nsubjettiness.
    NjettinessPlugin(int N,
-                    Njettiness::AxesMode axes_mode,
+                    const AxesDefinition & axes_def,
                     const MeasureDefinition & measure_def)
-   : _njettinessFinder(axes_mode, measure_def), _N(N) {}
+   : _njettinessFinder(axes_def, measure_def), _N(N) {}
    
    
    // Alternative constructors that define the measure via enums and parameters

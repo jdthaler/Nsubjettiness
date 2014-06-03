@@ -76,9 +76,9 @@ Basic Usage (Nsubjettiness and NsubjettinessRatio)
 Most users will only need to use the Nsubjettiness class.  The basic
 functionality is given by:
 
-   Nsubjettiness nSub(N, Njettiness::AxesMode, MeasureDefinition)
+   Nsubjettiness nSub(N, AxesDefinition, MeasureDefinition)
    // N specifies the number of (sub) jets to measure
-   // AxesMode is Njettiness::wta_kt_axes, Njettiness::onepass_kt_axes, etc.
+   // AxesDefinition is WTA_KT_Axes, OnePass_KT_Axes, etc.
    // MeasureDefinition is UnnormalizedMeasure(beta),
    //                      NormalizedMeasure(beta,R0), etc.
       
@@ -86,46 +86,46 @@ functionality is given by:
    double tauN = nSub.result(some jet);
 
 Also available are ratios of N-(sub)jettiness values
-    NsubjettinessRatio nSubRatio(N, M, Njettiness::AxesMode,
+    NsubjettinessRatio nSubRatio(N, M, AxesDefinition,
                                  MeasureDefinition)
     // N and M give tau_N / tau_M, all other options the same
 
 -------------------------
-AxesMode
+AxesDefinition
 -------------------------
 
 N-(sub)jettiness requires choosing axes as well as a measure (see below). There
 are a number of axes choices available to the user, though modes with a (*) are
-recommended.
+recommended. Arguments in paratheses are parameters that the user must set.
 
 Axes can be found using standard recursive clustering procedures.  New is the
 option to use the "winner-take-all" recombination scheme:
-(*) kt_axes           // exclusive kt axes
-    ca_axes           // exclusive ca axes
-    antikt_0p2_axes   // inclusive hardest axes with antikt-0.2
-(*) wta_kt_axes       // exclusive kt with winner-take-all recombination
-    wta_ca_axes       // exclusive ca with winner-take-all recombination
+(*) KT_Axes           // exclusive kt axes
+    CA_Axes           // exclusive ca axes
+    AntiKT_Axes(R0)   // inclusive hardest axes with antikt, R0 = radius
+(*) WTA_KT_Axes       // exclusive kt with winner-take-all recombination
+    WTA_CA_Axes       // exclusive ca with winner-take-all recombination
 
 One can also run a minimization routine to find a (local) minimum of
 N-(sub)jettiness:
-(*) onepass_kt_axes          // one-pass minimization from kt starting point
-    onepass_ca_axes          // one-pass min. from ca starting point
-    onepass_antikt_0p2_axes  // one-pass min. from antikt-0.2 starting point 
-(*) onepass_wta_kt_axes      // one-pass min. from wta_kt starting point
-    onepass_wta_ca_axes      // one-pass min. from wta_ca starting point
+(*) OnePass_KT_Axes          // one-pass minimization from kt starting point
+    OnePass_CA_Axes          // one-pass min. from ca starting point
+    OnePass_AntiKT(R0)       // one-pass min. from antikt starting point,R0=rad
+(*) OnePass_WTA_KT_Axes      // one-pass min. from wta_kt starting point
+    OnePass_WTA_CA_Axes      // one-pass min. from wta_ca starting point
 
 In general, it is difficult to finding the global minimum, but this mode
 attempts to do so
-    min_axes     // axes that (attempt to) minimize N-subjettiness
-                 // (100 passes by default)
+    MultiPass_Axes(Npass)    // axes that (attempt to) minimize N-subjettiness
+                             // (NPass = 100 is typical)
 
 Finally, one can set manual axes:
-    manual_axes          // set your own axes with setAxes()
-    onepass_manual_axes  // one-pass minimization from manual starting point
+    Manual_Axes          // set your own axes with setAxes()
+    OnePass_Manual_Axes  // one-pass minimization from manual starting point
 
-For most cases, running with onepass_kt_axes or onepass_wta_kt_axes gives
+For most cases, running with OnePass_KT_Axes or OnePass_WTA_KT_Axes gives
 reasonable results (and the results are IRC safe).  Because it uses random
-number seeds, min_axes is not IRC safe (and the code is rather slow).  Note
+number seeds, MultiPass_Axes is not IRC safe (and the code is rather slow).  Note
 that for the minimization routines, beta = 1.1 is faster than beta = 1, with
 comparable performance.
 
@@ -238,5 +238,5 @@ predefined MeasureMode values should be used.
 Known Issues
 ------------------------- 
 
--- The min_axes mode gives different answers on different runs, since random
+-- The MultiPass_Axes mode gives different answers on different runs, since random
    numbers are used.

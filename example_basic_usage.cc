@@ -156,8 +156,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
       
       
       // Axes modes to try
-      Njettiness::AxesMode axisMode1 = Njettiness::onepass_wta_kt_axes;
-      Njettiness::AxesMode axisMode2 = Njettiness::onepass_kt_axes;
+      OnePass_WTA_KT_Axes axisMode1;
+      OnePass_KT_Axes     axisMode2;
       
 
       // Measure modes to try

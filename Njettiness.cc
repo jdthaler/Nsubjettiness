@@ -35,18 +35,27 @@ namespace contrib {
 //
 ///////
 
-Njettiness::Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_spec)
-: _axes_mode(axes_mode), _measure_spec(measure_spec.copy()) {
+Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def)
+: _axes_def(axes_def.copy()), _measure_def(measure_def.copy()) {
+   setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
+}
+
+Njettiness::Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def)
+: _axes_def(createAxesDef(axes_mode)), _measure_def(measure_def.copy()) {
    setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
 }
    
+   
 Njettiness::~Njettiness() {
    // clean house
-   delete _measure_spec;
+   delete _measure_def;
+   delete _axes_def;
    delete _measureFunction;
    delete _axesFinder;
 }
+   
 
+// Convert from MeasureMode enum to MeasureDefinition
 MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const {
 
    // definition of maximum Rcutoff for non-cutoff measures, changed later by other measures
@@ -91,7 +100,7 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
             return new NormalizedCutoffMeasure(beta,R0,Rcutoff);
          } else {
             throw Error("normalized_cutoff_measure has 3 parameters (beta, R0, Rcutoff)");
-            exit(1); }
+         }
          break;
       case unnormalized_cutoff_measure:
          beta = para1;
@@ -100,7 +109,7 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
             return new UnnormalizedCutoffMeasure(beta,Rcutoff);
          } else {
             throw Error("unnormalized_cutoff_measure has 2 parameters (beta, Rcutoff)");
-            exit(1); }
+         }
          break;
       case geometric_cutoff_measure:
          beta = para1;
@@ -109,7 +118,7 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
            return new GeometricCutoffMeasure(beta,Rcutoff);
          } else {
             throw Error("geometric_cutoff_measure has 2 parameters (beta, Rcutoff)");
-            exit(1); }
+         }
          break;
       default:
          assert(false);
@@ -117,72 +126,60 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
    }
    return NULL;
 }
+
+// Convert from AxesMode enum to AxesDefinition
+AxesDefinition* Njettiness::createAxesDef(Njettiness::AxesMode axes_mode) const {
+   
+   switch (axes_mode) {
+      case wta_kt_axes:
+         return new WTA_KT_Axes();
+      case wta_ca_axes:
+         return new WTA_CA_Axes();
+      case kt_axes:
+         return new KT_Axes();
+      case ca_axes:
+         return new CA_Axes();
+      case antikt_0p2_axes:
+         return new AntiKT_Axes(0.2);
+      case onepass_wta_kt_axes:
+         return new OnePass_WTA_KT_Axes();
+      case onepass_wta_ca_axes:
+         return new OnePass_WTA_CA_Axes();
+      case onepass_kt_axes:
+         return new OnePass_KT_Axes();
+      case onepass_ca_axes:
+         return new OnePass_CA_Axes();
+      case onepass_antikt_0p2_axes:
+         return new OnePass_AntiKT_Axes(0.2);
+      case onepass_manual_axes:
+         return new OnePass_Manual_Axes();
+      case min_axes:
+         return new MultiPass_Axes(100);
+      case manual_axes:
+         return new Manual_Axes();
+      default:
+         assert(false);
+         return NULL;
+   }
+}
+
    
 // Parsing needed for constructor to set AxesFinder and MeasureFunction
 // All of the parameter handling is here, and checking that number of parameters is correct.
 void Njettiness::setMeasureFunctionAndAxesFinder() {
 
-   // Get the correct MeasureFunction
-   _measureFunction = _measure_spec->associatedMeasureFunction();
-   
-   // Choose which AxesFinder from user input.
-   // Uses setOnePassAxesFinder helpful function to use beta and Rcutoff values about (if needed)
-   switch (_axes_mode) {
-      case wta_kt_axes:
-         _axesFinder = new AxesFinderFromWTA_KT(); 
-         break;
-      case wta_ca_axes:
-         _axesFinder = new AxesFinderFromWTA_CA(); 
-         break;
-      case kt_axes:
-         _axesFinder = new AxesFinderFromKT();
-         break;
-      case ca_axes:
-         _axesFinder = new AxesFinderFromCA();
-         break;
-      case antikt_0p2_axes:
-         _axesFinder = new AxesFinderFromAntiKT(0.2);     
-         break;
-      case onepass_wta_kt_axes:
-         _axesFinder = _measure_spec->associatedOnePassAxesFinder(new AxesFinderFromWTA_KT());
-         break;
-      case onepass_wta_ca_axes:
-         _axesFinder = _measure_spec->associatedOnePassAxesFinder(new AxesFinderFromWTA_CA());
-         break;
-      case onepass_kt_axes:
-         _axesFinder = _measure_spec->associatedOnePassAxesFinder(new AxesFinderFromKT());
-         break;
-      case onepass_ca_axes:
-         _axesFinder = _measure_spec->associatedOnePassAxesFinder(new AxesFinderFromCA());
-         break;
-      case onepass_antikt_0p2_axes:
-         _axesFinder = _measure_spec->associatedOnePassAxesFinder(new AxesFinderFromAntiKT(0.2));
-         break;
-      case onepass_manual_axes:
-         _axesFinder = _measure_spec->associatedOnePassAxesFinder(new AxesFinderFromUserInput());
-         break;
-      case min_axes: //full minimization is not defined for geometric_measure.
-         //Defaults to 100 iteration to find minimum
-         _axesFinder = _measure_spec->associatedMultiPassAxesFinder(new AxesFinderFromKT());
-         break;
-      case manual_axes:
-         _axesFinder = new AxesFinderFromUserInput();
-         break;
-      default:
-         assert(false);
-         break;
-      }   
-
+   // Get the correct MeasureFunction and AxesFinder
+   _measureFunction = _measure_def->associatedMeasureFunction();
+   _axesFinder = _axes_def->associatedAxesFinder(*_measure_def);
 }
 
 // setAxes for Manual mode
 void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-   if (_axes_mode == manual_axes || _axes_mode == onepass_manual_axes) {
+   if (_axes_def->supportsManualAxes()) {
       _currentAxes = myAxes;
    }
    else {
-      std::cerr << "You can only use setAxes if using manual_axes or onepass_manual_axes measure mode" << std::endl;
-      exit(1);
+      throw Error("You can only use setAxes for manual AxesDefinitions");
    }
 }
    

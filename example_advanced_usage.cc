@@ -69,15 +69,23 @@ int main(){
 class AxesStruct {
    
 private:
-   Njettiness::AxesMode _axes_mode;
+   AxesDefinition * _axes_def;
    string _name;
    
 public:
-   AxesStruct(Njettiness::AxesMode axes_mode, string name)
-   : _axes_mode(axes_mode), _name(name) {}
+   AxesStruct(const AxesDefinition & axes_def, string name)
+   : _axes_def(axes_def.copy()), _name(name) {}
+
+   // Need special copy constructor to make it possible to put in a std::vector
+   AxesStruct(const AxesStruct& myStruct)
+   : _axes_def(myStruct._axes_def->copy()), _name(myStruct._name) {}
    
-   Njettiness::AxesMode mode() const {return _axes_mode;}
+   const AxesDefinition & def() const {return *_axes_def;}
    string name() const {return _name;}
+
+   AxesStruct() {
+      delete _axes_def;
+   }
 };
 
 
@@ -85,22 +93,22 @@ public:
 class MeasureStruct {
    
 private:
-   MeasureDefinition * _measure_spec;
+   MeasureDefinition * _measure_def;
    string _name;
    
 public:
-   MeasureStruct(const MeasureDefinition& measure_spec, string name)
-   : _measure_spec(measure_spec.copy()),  _name(name) {}
+   MeasureStruct(const MeasureDefinition& measure_def, string name)
+   : _measure_def(measure_def.copy()),  _name(name) {}
    
    // Need special copy constructor to make it possible to put in a std::vector
    MeasureStruct(const MeasureStruct& myStruct)
-   : _measure_spec(myStruct._measure_spec->copy()), _name(myStruct._name) {}
+   : _measure_def(myStruct._measure_def->copy()), _name(myStruct._name) {}
    
-   const MeasureDefinition & spec() const {return *_measure_spec;}
+   const MeasureDefinition & def() const {return *_measure_def;}
    string name() const {return _name;}
    
    ~MeasureStruct() {
-      delete _measure_spec;
+      delete _measure_def;
    }
 };
 
@@ -142,17 +150,18 @@ void analyze(const vector<PseudoJet> & input_particles) {
    ///////
    
    vector<AxesStruct> _testAxes;
-   _testAxes.push_back(AxesStruct(Njettiness::kt_axes,                 "            KT:"));
-   _testAxes.push_back(AxesStruct(Njettiness::ca_axes,                 "            CA:"));
-   _testAxes.push_back(AxesStruct(Njettiness::antikt_0p2_axes,         "        AKT0.2:"));
-   _testAxes.push_back(AxesStruct(Njettiness::wta_kt_axes,             "        WTA KT:"));
-   _testAxes.push_back(AxesStruct(Njettiness::wta_ca_axes,             "        WTA CA:"));
-   _testAxes.push_back(AxesStruct(Njettiness::onepass_kt_axes,         "    OnePass KT:"));
-   _testAxes.push_back(AxesStruct(Njettiness::onepass_ca_axes,         "    OnePass CA:"));
-   _testAxes.push_back(AxesStruct(Njettiness::onepass_antikt_0p2_axes, "OnePass AKT0.2:"));
-   _testAxes.push_back(AxesStruct(Njettiness::onepass_wta_kt_axes,     "OnePass WTA KT:"));
-   _testAxes.push_back(AxesStruct(Njettiness::onepass_wta_ca_axes,     "OnePass WTA CA:"));
-   _testAxes.push_back(AxesStruct(Njettiness::min_axes,                "#     Min Axes:"));  // Putting in # because min_axes uses random number seed
+   _testAxes.push_back(AxesStruct(KT_Axes(),                  "            KT:"));
+   _testAxes.push_back(AxesStruct(CA_Axes(),                  "            CA:"));
+   _testAxes.push_back(AxesStruct(AntiKT_Axes(0.2),           "        AKT0.2:"));
+   _testAxes.push_back(AxesStruct(WTA_KT_Axes(),              "        WTA KT:"));
+   _testAxes.push_back(AxesStruct(WTA_CA_Axes(),              "        WTA CA:"));
+   _testAxes.push_back(AxesStruct(OnePass_KT_Axes(),          "    OnePass KT:"));
+   _testAxes.push_back(AxesStruct(OnePass_CA_Axes(),          "    OnePass CA:"));
+   _testAxes.push_back(AxesStruct(OnePass_AntiKT_Axes(0.2),   "OnePass AKT0.2:"));
+   _testAxes.push_back(AxesStruct(OnePass_WTA_KT_Axes(),      "OnePass WTA KT:"));
+   _testAxes.push_back(AxesStruct(OnePass_WTA_CA_Axes(),      "OnePass WTA CA:"));
+   _testAxes.push_back(AxesStruct(MultiPass_Axes(100),        "#     Min Axes:"));  // Putting in # because min_axes uses random number seed
+   
    
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -164,10 +173,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // Getting a smaller list of recommended axes modes
    // These are the ones that are more likely to give sensible results (and are all IRC safe)
    vector<AxesStruct> _testRecommendedAxes;
-   _testRecommendedAxes.push_back(AxesStruct(Njettiness::kt_axes,            "KT Axes:"));
-   _testRecommendedAxes.push_back(AxesStruct(Njettiness::wta_kt_axes,        "Winner-Take-All KT Axes:"));
-   _testRecommendedAxes.push_back(AxesStruct(Njettiness::onepass_kt_axes,    "One-Pass Minimization starting from KT:"));
-   _testRecommendedAxes.push_back(AxesStruct(Njettiness::onepass_wta_kt_axes,"One-Pass Minimization starting from WTA KT:"));
+   _testRecommendedAxes.push_back(AxesStruct(KT_Axes(),            "KT Axes:"));
+   _testRecommendedAxes.push_back(AxesStruct(WTA_KT_Axes(),        "Winner-Take-All KT Axes:"));
+   _testRecommendedAxes.push_back(AxesStruct(OnePass_KT_Axes(),    "One-Pass Minimization starting from KT:"));
+   _testRecommendedAxes.push_back(AxesStruct(OnePass_WTA_KT_Axes(),"One-Pass Minimization starting from WTA KT:"));
    
    // Getting some of the measure modes to test
    // (When applied to a single jet we won't test the cutoff measures,
@@ -255,14 +264,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
          for (unsigned iA = 0; iA < _testAxes.size(); iA++) {
             
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].mode() == Njettiness::min_axes && !_testMeasures[iM].spec().canDoMultiPassMinimization()) continue;
+            if (_testAxes[iA].def().performsMultiPassMinimization() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
             
             // define Nsubjettiness functions
-            Nsubjettiness        nSub1(1,    _testAxes[iA].mode(), _testMeasures[iM].spec());
-            Nsubjettiness        nSub2(2,    _testAxes[iA].mode(), _testMeasures[iM].spec());
-            Nsubjettiness        nSub3(3,    _testAxes[iA].mode(), _testMeasures[iM].spec());
-            NsubjettinessRatio   nSub21(2,1, _testAxes[iA].mode(), _testMeasures[iM].spec());
-            NsubjettinessRatio   nSub32(3,2, _testAxes[iA].mode(), _testMeasures[iM].spec());
+            Nsubjettiness        nSub1(1,    _testAxes[iA].def(), _testMeasures[iM].def());
+            Nsubjettiness        nSub2(2,    _testAxes[iA].def(), _testMeasures[iM].def());
+            Nsubjettiness        nSub3(3,    _testAxes[iA].def(), _testMeasures[iM].def());
+            NsubjettinessRatio   nSub21(2,1, _testAxes[iA].def(), _testMeasures[iM].def());
+            NsubjettinessRatio   nSub32(3,2, _testAxes[iA].def(), _testMeasures[iM].def());
             // calculate Nsubjettiness values
             double tau1 = nSub1(antikt_jets[j]);
             double tau2 = nSub2(antikt_jets[j]);
@@ -271,7 +280,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
             double tau32 = nSub32(antikt_jets[j]);
             
             // Make sure calculations are consistent
-            if (_testAxes[iA].mode() != Njettiness::min_axes) {
+            if (!_testAxes[iA].def().performsMultiPassMinimization()) {
                assert(abs(tau21 - tau2/tau1) < epsilon);
                assert(abs(tau32 - tau3/tau2) < epsilon);
             }
@@ -313,12 +322,12 @@ void analyze(const vector<PseudoJet> & input_particles) {
          for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
 
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].mode() == Njettiness::min_axes && !_testMeasures[iM].spec().canDoMultiPassMinimization()) continue;
+            if (_testAxes[iA].def().performsMultiPassMinimization() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
             
             // define the plugins
-            NjettinessPlugin nsub_plugin1(1, _testRecommendedAxes[iA].mode(), _testMeasures[iM].spec());
-            NjettinessPlugin nsub_plugin2(2, _testRecommendedAxes[iA].mode(), _testMeasures[iM].spec());
-            NjettinessPlugin nsub_plugin3(3, _testRecommendedAxes[iA].mode(), _testMeasures[iM].spec());
+            NjettinessPlugin nsub_plugin1(1, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
+            NjettinessPlugin nsub_plugin2(2, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
+            NjettinessPlugin nsub_plugin3(3, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
 
             // define the corresponding jet definitions
             JetDefinition nsub_jetDef1(&nsub_plugin1);
@@ -339,7 +348,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
             cout << _testRecommendedAxes[iA].name() << endl;
             
             bool commentOut = false;
-            if (_testAxes[iA].mode() == Njettiness::min_axes) commentOut = true;  // have to comment out min_axes, because it has random values
+            if (_testAxes[iA].def().performsMultiPassMinimization()) commentOut = true;  // have to comment out min_axes, because it has random values
             
             // This helper function tries to find out if the jets have tau information for printing
             PrintJets(jets1,commentOut);
@@ -404,9 +413,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
       for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
          
          // define the plugins
-         NjettinessPlugin njet_plugin2(2, _testRecommendedAxes[iA].mode(), _testCutoffMeasures[iM].spec());
-         NjettinessPlugin njet_plugin3(3, _testRecommendedAxes[iA].mode(), _testCutoffMeasures[iM].spec());
-         NjettinessPlugin njet_plugin4(4, _testRecommendedAxes[iA].mode(), _testCutoffMeasures[iM].spec());
+         NjettinessPlugin njet_plugin2(2, _testRecommendedAxes[iA].def(), _testCutoffMeasures[iM].def());
+         NjettinessPlugin njet_plugin3(3, _testRecommendedAxes[iA].def(), _testCutoffMeasures[iM].def());
+         NjettinessPlugin njet_plugin4(4, _testRecommendedAxes[iA].def(), _testCutoffMeasures[iM].def());
    
          // and the jet definitions
          JetDefinition njet_jetDef2(&njet_plugin2);

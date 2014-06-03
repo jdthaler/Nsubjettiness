@@ -17,7 +17,8 @@ The key new features are:
 
   * NsubjettinessRatio:  Direct access to tau_N / tau_M (the most requested
     feature)
-  * MeasureSpecification to allow access to both normalized and unnormalized measures
+  * MeasureDefinition to allow access to both normalized and unnormalized measures
+  * AxesDefinition to allow for access to more general axes modes
   * Winner-Take-All recombination axes:  a faster way to find axes than beta = 1
     minimization, but with comparable performance.
   * TauComponents to get access to the pieces of the N-(sub)jettiness

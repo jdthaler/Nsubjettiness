@@ -94,8 +94,8 @@ public:
 private:
    
    // Information about Axes and Measures to be Used
-   AxesMode _axes_mode;
-   MeasureDefinition* _measure_spec;
+   AxesDefinition* _axes_def;
+   MeasureDefinition* _measure_def;
    
    // The chosen axes/measure mode workers
    AxesFinder* _axesFinder;  // The chosen axes
@@ -110,16 +110,23 @@ private:
 
    // created separate function to set MeasureFunction and AxesFinder in order to keep constructor cleaner.
    void setMeasureFunctionAndAxesFinder();
-   
+
+   // Convert old style enums into new style MeasureDefinition
+   AxesDefinition* createAxesDef(AxesMode axes_mode) const;
+
    // Convert old style enums into new style MeasureDefinition
    MeasureDefinition* createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const;
 
+   
 public:
 
    // Main constructor that uses AxesMode and MeasureDefinition to specify measure
    // Unlike Nsubjettiness or NjettinessPlugin, the value N is not chosen
-   Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_spec);
-   
+   Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def);
+
+   // Intermediate constructor (needed to enable v1.0.3 backwards compatibility?)
+   Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def);
+
    // Alternative constructor which takes axes/measure information as enums with measure parameters
    // This version is not recommended
    Njettiness(AxesMode axes_mode,
@@ -128,7 +135,7 @@ public:
               double para1 = std::numeric_limits<double>::quiet_NaN(),
               double para2 = std::numeric_limits<double>::quiet_NaN(),
               double para3 = std::numeric_limits<double>::quiet_NaN())
-   : _axes_mode(axes_mode), _measure_spec(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
+   : _axes_def(createAxesDef(axes_mode)), _measure_def(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
       setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
    }
 
@@ -147,9 +154,6 @@ public:
    double getTau(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
       return getTauComponents(n_jets, inputJets).tau();
    }
-   
-   // returns enum information
-   AxesMode currentAxesMode() { return _axes_mode;}
 
    // Return all relevant information about tau components
    TauComponents currentTauComponents() {return _current_tau_components;}

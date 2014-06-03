@@ -68,8 +68,8 @@ public:
    //      :  Same as normalized_measure, but cuts off at Rcutoff
    //   UnnormalizedCutoffMeasure(beta,Rcutoff)
    //      :  Same as unnormalized_measure, but cuts off at Rcutoff
-   Nsubjettiness(int N, Njettiness::AxesMode axes_mode, const MeasureDefinition& measure_spec)
-   : _njettinessFinder(axes_mode,measure_spec), _N(N) {}
+   Nsubjettiness(int N, const AxesDefinition& axes_def, const MeasureDefinition& measure_def)
+   : _njettinessFinder(axes_def,measure_def), _N(N) {}
    
    
    // Alternative constructors that define the measure via enums and parameters
@@ -171,10 +171,10 @@ public:
    // Main constructor.  Apart from specifying both N and M, the same options as Nsubjettiness
    NsubjettinessRatio(int N,
                       int M,
-                      Njettiness::AxesMode axes_mode,
-                      const MeasureDefinition & measure_spec)
-   : _nsub_numerator(N,axes_mode,measure_spec),
-   _nsub_denominator(M,axes_mode,measure_spec) {}
+                      const AxesDefinition & axes_def,
+                      const MeasureDefinition & measure_def)
+   : _nsub_numerator(N,axes_def,measure_def),
+   _nsub_denominator(M,axes_def,measure_def) {}
    
    // Alternative constructor with enums and parameters
    // Again, likely to be removed
