@@ -70,18 +70,18 @@ class AxesStruct {
    
 private:
    AxesDefinition * _axes_def;
-   string _name;
    
 public:
-   AxesStruct(const AxesDefinition & axes_def, string name)
-   : _axes_def(axes_def.copy()), _name(name) {}
+   AxesStruct(const AxesDefinition & axes_def)
+   : _axes_def(axes_def.copy()) {}
 
    // Need special copy constructor to make it possible to put in a std::vector
    AxesStruct(const AxesStruct& myStruct)
-   : _axes_def(myStruct._axes_def->copy()), _name(myStruct._name) {}
+   : _axes_def(myStruct._axes_def->copy()) {}
    
    const AxesDefinition & def() const {return *_axes_def;}
-   string name() const {return _name;}
+   string description() const {return _axes_def->description();}
+   string short_description() const {return _axes_def->short_description();}
 
    AxesStruct() {
       delete _axes_def;
@@ -89,23 +89,22 @@ public:
 };
 
 
-// Simple class to store Measures with a name for display
+// Simple class to store Measures to make it easier to put in std::vector
 class MeasureStruct {
    
 private:
    MeasureDefinition * _measure_def;
-   string _name;
    
 public:
-   MeasureStruct(const MeasureDefinition& measure_def, string name)
-   : _measure_def(measure_def.copy()),  _name(name) {}
+   MeasureStruct(const MeasureDefinition& measure_def)
+   : _measure_def(measure_def.copy()) {}
    
    // Need special copy constructor to make it possible to put in a std::vector
    MeasureStruct(const MeasureStruct& myStruct)
-   : _measure_def(myStruct._measure_def->copy()), _name(myStruct._name) {}
+   : _measure_def(myStruct._measure_def->copy()) {}
    
    const MeasureDefinition & def() const {return *_measure_def;}
-   string name() const {return _name;}
+   string description() const {return _measure_def->description();}
    
    ~MeasureStruct() {
       delete _measure_def;
@@ -148,20 +147,20 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //  First thing we do is establish the various modes we will check
    //
    ///////
-   
+
+   // A list of all of the available axes modes
    vector<AxesStruct> _testAxes;
-   _testAxes.push_back(AxesStruct(KT_Axes(),                  "            KT:"));
-   _testAxes.push_back(AxesStruct(CA_Axes(),                  "            CA:"));
-   _testAxes.push_back(AxesStruct(AntiKT_Axes(0.2),           "        AKT0.2:"));
-   _testAxes.push_back(AxesStruct(WTA_KT_Axes(),              "        WTA KT:"));
-   _testAxes.push_back(AxesStruct(WTA_CA_Axes(),              "        WTA CA:"));
-   _testAxes.push_back(AxesStruct(OnePass_KT_Axes(),          "    OnePass KT:"));
-   _testAxes.push_back(AxesStruct(OnePass_CA_Axes(),          "    OnePass CA:"));
-   _testAxes.push_back(AxesStruct(OnePass_AntiKT_Axes(0.2),   "OnePass AKT0.2:"));
-   _testAxes.push_back(AxesStruct(OnePass_WTA_KT_Axes(),      "OnePass WTA KT:"));
-   _testAxes.push_back(AxesStruct(OnePass_WTA_CA_Axes(),      "OnePass WTA CA:"));
-   _testAxes.push_back(AxesStruct(MultiPass_Axes(100),        "#     Min Axes:"));  // Putting in # because min_axes uses random number seed
-   
+   _testAxes.push_back(KT_Axes());
+   _testAxes.push_back(CA_Axes());
+   _testAxes.push_back(AntiKT_Axes(0.2));
+   _testAxes.push_back(WTA_KT_Axes());
+   _testAxes.push_back(WTA_CA_Axes());
+   _testAxes.push_back(OnePass_KT_Axes());
+   _testAxes.push_back(OnePass_CA_Axes());
+   _testAxes.push_back(OnePass_AntiKT_Axes(0.2));
+   _testAxes.push_back(OnePass_WTA_KT_Axes());
+   _testAxes.push_back(OnePass_WTA_CA_Axes());
+   _testAxes.push_back(MultiPass_Axes(100));
    
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -173,28 +172,28 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // Getting a smaller list of recommended axes modes
    // These are the ones that are more likely to give sensible results (and are all IRC safe)
    vector<AxesStruct> _testRecommendedAxes;
-   _testRecommendedAxes.push_back(AxesStruct(KT_Axes(),            "KT Axes:"));
-   _testRecommendedAxes.push_back(AxesStruct(WTA_KT_Axes(),        "Winner-Take-All KT Axes:"));
-   _testRecommendedAxes.push_back(AxesStruct(OnePass_KT_Axes(),    "One-Pass Minimization starting from KT:"));
-   _testRecommendedAxes.push_back(AxesStruct(OnePass_WTA_KT_Axes(),"One-Pass Minimization starting from WTA KT:"));
+   _testRecommendedAxes.push_back(KT_Axes());
+   _testRecommendedAxes.push_back(WTA_KT_Axes());
+   _testRecommendedAxes.push_back(OnePass_KT_Axes());
+   _testRecommendedAxes.push_back(OnePass_WTA_KT_Axes());
    
    // Getting some of the measure modes to test
    // (When applied to a single jet we won't test the cutoff measures,
    // since cutoffs aren't typically helpful when applied to single jets)
    // Note that we are calling measures by their MeasureDefinition
    vector<MeasureStruct> _testMeasures;
-   _testMeasures.push_back(MeasureStruct(NormalizedMeasure(1.0, 1.0),  "Normalized Measure (beta = 1.0, R0 = 1.0):"));
-   _testMeasures.push_back(MeasureStruct(UnnormalizedMeasure(1.0),     "Unnormalized Measure (beta = 1.0, in GeV):"));
-   _testMeasures.push_back(MeasureStruct(NormalizedMeasure(2.0, 1.0),  "Normalized Measure (beta = 2.0, R0 = 1.0):"));
-   _testMeasures.push_back(MeasureStruct(UnnormalizedMeasure(2.0),     "Unnormalized Measure (beta = 2.0, in GeV):"));
-   _testMeasures.push_back(MeasureStruct(GeometricMeasure(2.0),        "Geometric Measure  (beta = 2.0, in GeV):"));
+   _testMeasures.push_back(  NormalizedMeasure(1.0, 1.0));
+   _testMeasures.push_back(UnnormalizedMeasure(1.0     ));
+   _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0));
+   _testMeasures.push_back(UnnormalizedMeasure(2.0     ));
+   _testMeasures.push_back(   GeometricMeasure(2.0     ));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
-   _testCutoffMeasures.push_back(MeasureStruct(UnnormalizedCutoffMeasure(1.0, 0.8), "Unnormalized Measure (beta = 1.0, Rcut = 0.8):"));
-   _testCutoffMeasures.push_back(MeasureStruct(UnnormalizedCutoffMeasure(2.0, 0.8), "Unnormalized Measure (beta = 2.0, Rcut = 0.8):"));
-   _testCutoffMeasures.push_back(MeasureStruct(GeometricCutoffMeasure(2.0, 0.8),    "Geometric Measure (beta = 2.0, Rcut = 0.8):"));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8));
+   _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8));
    
    
    /////// N-subjettiness /////////////////////////////
@@ -252,7 +251,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
       for (unsigned iM = 0; iM < _testMeasures.size(); iM++) {
          
          cout << "-------------------------------------------------------------------------------------" << endl;
-         cout << _testMeasures[iM].name() << endl;
+         cout << _testMeasures[iM].description() << ":" << endl;
          cout << "       AxisMode"
             << setw(14) << "tau1"
             << setw(14) << "tau2"
@@ -285,8 +284,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
                assert(abs(tau32 - tau3/tau2) < epsilon);
             }
             
+            string axesName = _testAxes[iA].short_description();
+            // comment out with # because MultiPass uses random number seed
+            if (_testAxes[iA].def().performsMultiPassMinimization()) axesName = "#    " + axesName;
+            
             // Output results:
-            cout << _testAxes[iA].name()
+            cout << std::right
+               << setw(14)
+               << axesName
+               << ":"
                << setw(14) << tau1
                << setw(14) << tau2
                << setw(14) << tau3
@@ -344,8 +350,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
             vector<PseudoJet> jets3 = nsub_seq3.inclusive_jets();
 
             cout << "-------------------------------------------------------------------------------------" << endl;
-            cout << _testMeasures[iM].name() << endl;
-            cout << _testRecommendedAxes[iA].name() << endl;
+            cout << _testMeasures[iM].description() << ":" << endl;
+            cout << _testRecommendedAxes[iA].description() << ":" << endl;
             
             bool commentOut = false;
             if (_testAxes[iA].def().performsMultiPassMinimization()) commentOut = true;  // have to comment out min_axes, because it has random values
@@ -433,8 +439,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> njet_jets4 = njet_seq4.inclusive_jets();
 
          cout << "-------------------------------------------------------------------------------------" << endl;
-         cout << _testCutoffMeasures[iM].name() << endl;
-         cout << _testRecommendedAxes[iA].name() << endl;
+         cout << _testCutoffMeasures[iM].description() << ":" << endl;
+         cout << _testRecommendedAxes[iA].description() << ":" << endl;
          
          PrintJets(njet_jets2);
          cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;

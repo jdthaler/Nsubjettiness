@@ -221,7 +221,7 @@ jets from a kT or CA algorithm, the hardest jets from an anti-kT algorithm,
 manually, or from minimization of N-jettiness.  In the future, the user will be
 able to write their own axes finder, though currently the interface is still
 evolving.  At the moment, the user should stick to the options allowed by
-AxesMode.
+AxesDefinition.
 
 MeasureFunction.hh:
 
@@ -232,7 +232,7 @@ produce N-(sub)jettiness. The default measure for this calculation is
 pT*dR^beta, where dR is the rapidity-azimuth distance between the particle
 and its axis, and beta is the angular exponent.  Again, in the future the user
 will be able to write their own measures, but for the time being, only the
-predefined MeasureMode values should be used.
+predefined MeasureDefinition values should be used.
 
 -------------------------
 Known Issues

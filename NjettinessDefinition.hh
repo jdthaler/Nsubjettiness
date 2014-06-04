@@ -32,6 +32,7 @@
 #include "fastjet/PseudoJet.hh"
 #include <fastjet/LimitedWarning.hh>
 
+#include <iomanip>
 #include <cmath>
 #include <vector>
 #include <list>
@@ -59,6 +60,9 @@ public:
 
    virtual ~MeasureDefinition() {};
    
+   // Description of measure and parameters
+   virtual std::string description() const = 0;
+   
    // In derived classes, this should return a copy of the corresponding
    // derived class
    virtual MeasureDefinition* copy() const = 0;
@@ -85,6 +89,13 @@ public:
    NormalizedMeasure(double beta, double R0)
    : _beta(beta), _R0(R0) {}
    
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+            << "Normalized Measure (beta = " << _beta << ", R0 = " << _R0 << ")";
+      return stream.str();
+   };
+   
    virtual MeasureDefinition* copy() const {return new NormalizedMeasure(*this);}
    
    virtual MeasureFunction* associatedMeasureFunction() const { return new DefaultNormalizedMeasureFunction(_beta,_R0,std::numeric_limits<double>::max()); }
@@ -104,6 +115,13 @@ public:
    : _beta(beta) {}
 
    virtual MeasureDefinition* copy() const {return new UnnormalizedMeasure(*this);}
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+            << "Unnormalized Measure (beta = " << _beta << ", in GeV)";
+      return stream.str();
+   };
    
    virtual MeasureFunction* associatedMeasureFunction() const { return new DefaultUnnormalizedMeasureFunction(_beta,std::numeric_limits<double>::max());}
    virtual AxesFinder* associatedOnePassAxesFinder(AxesFinder* startingFinder) const { return new AxesFinderFromOnePassMinimization(startingFinder, _beta, std::numeric_limits<double>::max());}
@@ -125,6 +143,13 @@ public:
    : _beta(beta) {}
    
    virtual MeasureDefinition* copy() const {return new GeometricMeasure(*this);}
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Geometric Measure (beta = " << _beta << ", in GeV)";
+      return stream.str();
+   };
    
    virtual MeasureFunction* associatedMeasureFunction() const { return new GeometricMeasureFunction(_beta,std::numeric_limits<double>::max());}
    virtual AxesFinder* associatedOnePassAxesFinder(AxesFinder* startingFinder) const { return new AxesFinderFromGeometricMinimization(startingFinder, _beta, std::numeric_limits<double>::max());}
@@ -148,6 +173,13 @@ public:
    NormalizedCutoffMeasure(double beta, double R0, double Rcutoff)
    : _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
 
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Normalized Cutoff Measure (beta = " << _beta << ", R0 = " << _R0 << ", Rcut = " << _Rcutoff << ")";
+      return stream.str();
+   };
+   
    virtual MeasureDefinition* copy() const {return new NormalizedCutoffMeasure(*this);}
    
    virtual MeasureFunction* associatedMeasureFunction() const { return new DefaultNormalizedMeasureFunction(_beta,_R0,_Rcutoff); }
@@ -167,6 +199,14 @@ private:
 public:
    UnnormalizedCutoffMeasure(double beta, double Rcutoff)
    : _beta(beta), _Rcutoff(Rcutoff) {}
+
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Unnormalized Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+      return stream.str();
+   };
+   
    
    virtual MeasureDefinition* copy() const {return new UnnormalizedCutoffMeasure(*this);}
 
@@ -190,6 +230,14 @@ public:
    : _beta(beta), _Rcutoff(Rcutoff) {}
 
    virtual MeasureDefinition* copy() const {return new GeometricCutoffMeasure(*this);}
+
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Geometric Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+      return stream.str();
+   };
+   
    
    virtual MeasureFunction* associatedMeasureFunction() const { return new GeometricMeasureFunction(_beta,_Rcutoff);}
    virtual AxesFinder* associatedOnePassAxesFinder(AxesFinder* startingFinder) const { return new AxesFinderFromGeometricMinimization(startingFinder, _beta, _Rcutoff);}
@@ -217,6 +265,10 @@ public:
    
    virtual ~AxesDefinition() {};
    
+   // description of axes (and any parameters)
+   virtual std::string short_description() const = 0;
+   virtual std::string description() const = 0;
+   
    // In derived classes, this should return a copy of the corresponding
    // derived class
    virtual AxesDefinition* copy() const = 0;
@@ -235,6 +287,17 @@ public:
 class KT_Axes : public AxesDefinition {
 public:
    KT_Axes() {}
+
+   virtual std::string short_description() const {
+      return "KT";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "KT Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new KT_Axes(*this);}
    
@@ -250,6 +313,17 @@ public:
 class CA_Axes : public AxesDefinition {
 public:
    CA_Axes() {}
+
+   virtual std::string short_description() const {
+      return "CA";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "CA Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new CA_Axes(*this);}
    
@@ -268,6 +342,20 @@ private:
    
 public:
    AntiKT_Axes(double R0 = 0.2): _R0(R0) {}
+
+   virtual std::string short_description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "AKT" << _R0;
+      return stream.str();
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Anti-KT Axes (R0 = " << _R0 << ")";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new AntiKT_Axes(*this);}
    
@@ -283,6 +371,17 @@ public:
 class WTA_KT_Axes : public AxesDefinition {
 public:
    WTA_KT_Axes() {}
+
+   virtual std::string short_description() const {
+      return "WTA KT";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Winner-Take-All KT Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new WTA_KT_Axes(*this);}
    
@@ -298,6 +397,17 @@ public:
 class WTA_CA_Axes : public AxesDefinition {
 public:
    WTA_CA_Axes() {}
+
+   virtual std::string short_description() const {
+      return "WTA CA";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Winner-Take-All CA Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new WTA_CA_Axes(*this);}
    
@@ -314,6 +424,17 @@ class OnePass_KT_Axes : public AxesDefinition {
 public:
    OnePass_KT_Axes() {}
    
+   virtual std::string short_description() const {
+      return "OnePass KT";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "One-Pass Minimization from KT Axes";
+      return stream.str();
+   };
+   
    virtual AxesDefinition* copy() const {return new OnePass_KT_Axes(*this);}
    
    virtual AxesFinder* associatedAxesFinder(const MeasureDefinition & measure_def) const { return measure_def.associatedOnePassAxesFinder(new AxesFinderFromKT());}
@@ -328,6 +449,17 @@ public:
 class OnePass_CA_Axes : public AxesDefinition {
 public:
    OnePass_CA_Axes() {}
+
+   virtual std::string short_description() const {
+      return "OnePass CA";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "One-Pass Minimization from CA Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new OnePass_CA_Axes(*this);}
    
@@ -347,6 +479,20 @@ private:
 public:
    OnePass_AntiKT_Axes(double R0): _R0(R0) {}
    
+   virtual std::string short_description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "OnePass AKT" << _R0;
+      return stream.str();
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "One-Pass Minimization from Anti-KT Axes (R0 = " << _R0 << ")";
+      return stream.str();
+   };
+   
    virtual AxesDefinition* copy() const {return new OnePass_AntiKT_Axes(*this);}
    
    virtual AxesFinder* associatedAxesFinder(const MeasureDefinition & measure_def) const { return measure_def.associatedOnePassAxesFinder(new AxesFinderFromAntiKT(_R0));}
@@ -361,6 +507,17 @@ public:
 class OnePass_WTA_KT_Axes : public AxesDefinition {
 public:
    OnePass_WTA_KT_Axes() {}
+   
+   virtual std::string short_description() const {
+      return "OnePass WTA KT";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "One-Pass Minimization from Winner-Take-All KT Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new OnePass_WTA_KT_Axes(*this);}
    
@@ -377,6 +534,17 @@ public:
 class OnePass_WTA_CA_Axes : public AxesDefinition {
 public:
    OnePass_WTA_CA_Axes() {}
+
+   virtual std::string short_description() const {
+      return "OnePass WTA CA";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "One-Pass Minimization from Winner-Take-All CA Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new OnePass_WTA_CA_Axes(*this);}
    
@@ -393,6 +561,17 @@ class Manual_Axes : public AxesDefinition {
 public:
    Manual_Axes() {}
    
+   virtual std::string short_description() const {
+      return "Manual";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Manual Axes";
+      return stream.str();
+   };
+   
    virtual AxesDefinition* copy() const {return new Manual_Axes(*this);}
    
    virtual AxesFinder* associatedAxesFinder(const MeasureDefinition &) const { return new AxesFinderFromUserInput();}
@@ -407,6 +586,17 @@ public:
 class OnePass_Manual_Axes : public AxesDefinition {
 public:
    OnePass_Manual_Axes() {}
+
+   virtual std::string short_description() const {
+      return "OnePass Manual";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "One-Pass Minimization from Manual Axes";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new OnePass_Manual_Axes(*this);}
    
@@ -425,6 +615,17 @@ private:
    
 public:
    MultiPass_Axes(unsigned int Npass) : _Npass(Npass) {}
+
+   virtual std::string short_description() const {
+      return "MultiPass";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(1)
+      << "Multi-Pass Axes (Npass = " << _Npass << ")";
+      return stream.str();
+   };
    
    virtual AxesDefinition* copy() const {return new MultiPass_Axes(*this);}
    

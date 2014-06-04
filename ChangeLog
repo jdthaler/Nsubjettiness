@@ -1,5 +1,7 @@
 2014-6-04 <JDT>
    Implemented AxesDefinition class
+   Added descriptions to AxesDefinition and MeasureDefinition
+   Simplified example_advanced_usage with new Definitions 
 2014-6-03 <JDT>
    Implemented remaining suggestions from FJ authors (Thanks!)
    Fixed bug in example_advanced_usage where wrong beta value was used for NjettinessPlugin tests.
