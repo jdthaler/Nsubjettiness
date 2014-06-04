@@ -91,6 +91,8 @@ public:
       geometric_cutoff_measure      //geometric measure with explicit Rcutoff
    };
 
+   
+   
 private:
    
    // Information about Axes and Measures to be Used
@@ -117,6 +119,11 @@ private:
    // Convert old style enums into new style MeasureDefinition
    MeasureDefinition* createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const;
 
+   // Making the copy constructor private to avoid duplicating this class
+   // For memory management reasons, the destructor of this class deletes
+   // its associated AxesDefinition, MeasureDefinition, etc., but if this
+   // class were copied, then the deletes would conflict
+   Njettiness(const Njettiness &);
    
 public:
 
