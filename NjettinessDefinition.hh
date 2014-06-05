@@ -41,8 +41,8 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
    
-// Eventually this file an NjettinessDefinition that combines an AxesDefinition with a MeasureDefinition.
-// It's not clear how useful that would be, though
+// Eventually this file might contains an NjettinessDefinition that combines an
+// AxesDefinition with a MeasureDefinition. It's not clear how useful that would be, though
    
 ///////
 //

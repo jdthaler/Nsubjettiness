@@ -285,8 +285,8 @@ class GeometricMeasureFunction : public MeasureFunction {
          return 1.0;
       }
 };
-
-
+   
+   
 } //namespace contrib
 
 FASTJET_END_NAMESPACE

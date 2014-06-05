@@ -1,17 +1,16 @@
 -------------------------
-Version 2.0
+Version 2
 -------------------------
 
 This is a streamlining of the N-subjettiness code, developed mainly by TJ
 Wilkason.  The core functionality is unchanged, but classes have been
 dramatically reorganized to allow for later expansion.  Because the API for
-Njettiness has changed, we have called this v2.0 (http://semver.org).
+Njettiness has changed, we have called this v2 (http://semver.org).
 
 Note that we have maintain backwards compatibility for the typical ways that
 Nsubjettiness was used.  In particular, all of the Nsubjettiness class code in
 the example file v1.0.3 from still compiles, as does the NjettinessPlugin class
 code that uses the default measure.
-
 
 The key new features are:
 
@@ -29,10 +28,13 @@ The key new features are:
     axes used before and after minimization.
   * In Nsubjettiness, access to currentSubjets() to get the subjet fourvectors.
 
--- 2.0.0:  Initial release of v2.0
+
+-- 2.1.0:  Inclusion of MeasureDefinition and AxesDefinition interface.
+           This was the first publicly available version of Nsubjettiness v2.
+-- 2.0.0:  Initial release of v2.0.  This was never officially made public.
 
 -------------------------
-Version 1.0
+Version 1
 -------------------------
 
 This was a new release using FastJet contrib framework, primary developed by
