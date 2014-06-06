@@ -69,7 +69,8 @@ int main(){
 class AxesStruct {
    
 private:
-   AxesDefinition * _axes_def;
+   // Shared Ptr so it handles memory management
+   SharedPtr<AxesDefinition> _axes_def;
    
 public:
    AxesStruct(const AxesDefinition & axes_def)
@@ -83,9 +84,6 @@ public:
    string description() const {return _axes_def->description();}
    string short_description() const {return _axes_def->short_description();}
 
-   AxesStruct() {
-      delete _axes_def;
-   }
 };
 
 
@@ -93,7 +91,8 @@ public:
 class MeasureStruct {
    
 private:
-   MeasureDefinition * _measure_def;
+   // Shared Ptr so it handles memory management
+   SharedPtr<MeasureDefinition> _measure_def;
    
 public:
    MeasureStruct(const MeasureDefinition& measure_def)
@@ -106,9 +105,6 @@ public:
    const MeasureDefinition & def() const {return *_measure_def;}
    string description() const {return _measure_def->description();}
    
-   ~MeasureStruct() {
-      delete _measure_def;
-   }
 };
 
 
@@ -263,7 +259,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          for (unsigned iA = 0; iA < _testAxes.size(); iA++) {
             
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].def().performsMultiPassMinimization() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
+            if (_testAxes[iA].def().givesRandomizedResults() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
             
             // define Nsubjettiness functions
             Nsubjettiness        nSub1(1,    _testAxes[iA].def(), _testMeasures[iM].def());
@@ -279,14 +275,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
             double tau32 = nSub32(antikt_jets[j]);
             
             // Make sure calculations are consistent
-            if (!_testAxes[iA].def().performsMultiPassMinimization()) {
+            if (!_testAxes[iA].def().givesRandomizedResults()) {
                assert(abs(tau21 - tau2/tau1) < epsilon);
                assert(abs(tau32 - tau3/tau2) < epsilon);
             }
             
             string axesName = _testAxes[iA].short_description();
             // comment out with # because MultiPass uses random number seed
-            if (_testAxes[iA].def().performsMultiPassMinimization()) axesName = "#    " + axesName;
+            if (_testAxes[iA].def().givesRandomizedResults()) axesName = "#    " + axesName;
             
             // Output results:
             cout << std::right
@@ -328,7 +324,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
 
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].def().performsMultiPassMinimization() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
+            if (_testAxes[iA].def().givesRandomizedResults() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
             
             // define the plugins
             NjettinessPlugin nsub_plugin1(1, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
@@ -354,7 +350,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
             cout << _testRecommendedAxes[iA].description() << ":" << endl;
             
             bool commentOut = false;
-            if (_testAxes[iA].def().performsMultiPassMinimization()) commentOut = true;  // have to comment out min_axes, because it has random values
+            if (_testAxes[iA].def().givesRandomizedResults()) commentOut = true;  // have to comment out min_axes, because it has random values
             
             // This helper function tries to find out if the jets have tau information for printing
             PrintJets(jets1,commentOut);

@@ -28,7 +28,48 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-  //empty for the time being
+   std::string NormalizedMeasure::description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Normalized Measure (beta = " << _beta << ", R0 = " << _R0 << ")";
+      return stream.str();
+   };
+   
+   std::string UnnormalizedMeasure::description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Unnormalized Measure (beta = " << _beta << ", in GeV)";
+      return stream.str();
+   };
+   
+   std::string GeometricMeasure::description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Geometric Measure (beta = " << _beta << ", in GeV)";
+      return stream.str();
+   };
+   
+   std::string NormalizedCutoffMeasure::description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Normalized Cutoff Measure (beta = " << _beta << ", R0 = " << _R0 << ", Rcut = " << _Rcutoff << ")";
+      return stream.str();
+   };
+   
+   std::string UnnormalizedCutoffMeasure::description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Unnormalized Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+      return stream.str();
+   };
+   
+   std::string GeometricCutoffMeasure::description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Geometric Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+      return stream.str();
+   };
+   
    
 } // namespace contrib
 

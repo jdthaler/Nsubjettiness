@@ -36,7 +36,7 @@ namespace contrib{
 ///////
 
 // Return all of the necessary TauComponents for specific input particles and axes
-TauComponents MeasureFunction::result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+TauComponents MeasureFunction::result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) const {
    
    // first find partition
    // this sets jetPartitionStorage and beamPartitionStorage
@@ -47,7 +47,9 @@ TauComponents MeasureFunction::result(const std::vector<fastjet::PseudoJet>& par
    return result_from_partition(jetPartitionStorage,axes,&beamPartitionStorage);
 }
 
-std::vector<fastjet::PseudoJet> MeasureFunction::get_partition(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage) {
+std::vector<fastjet::PseudoJet> MeasureFunction::get_partition(const std::vector<fastjet::PseudoJet>& particles,
+                                                               const std::vector<fastjet::PseudoJet>& axes,
+                                                               PseudoJet * beamPartitionStorage) const {
    
    std::vector<std::vector<PseudoJet> > jetPartition(axes.size());
    std::vector<PseudoJet> beamPartition;
@@ -94,7 +96,8 @@ std::vector<fastjet::PseudoJet> MeasureFunction::get_partition(const std::vector
 }
 
 // does partition, but only stores index of PseudoJets
-std::vector<std::list<int> > MeasureFunction::get_partition_list(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {
+std::vector<std::list<int> > MeasureFunction::get_partition_list(const std::vector<fastjet::PseudoJet>& particles,
+                                                                 const std::vector<fastjet::PseudoJet>& axes) const {
 
    std::vector<std::list<int> > jetPartition(axes.size());
    
@@ -130,7 +133,9 @@ std::vector<std::list<int> > MeasureFunction::get_partition_list(const std::vect
 
 // Uses existing partition and calculates result
 // TODO:  Can we cache this for speed up when doing area subtraction?
-TauComponents MeasureFunction::result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partition, const std::vector<fastjet::PseudoJet>& axes, PseudoJet * beamPartitionStorage) {
+TauComponents MeasureFunction::result_from_partition(const std::vector<fastjet::PseudoJet>& jet_partition,
+                                                     const std::vector<fastjet::PseudoJet>& axes,
+                                                     PseudoJet * beamPartitionStorage) const {
    
    std::vector<double> jetPieces(axes.size(), 0.0);
    double beamPiece = 0.0;

@@ -31,6 +31,7 @@
 #include "NjettinessDefinition.hh"
 
 #include "fastjet/PseudoJet.hh"
+#include "fastjet/SharedPtr.hh"
 #include <fastjet/LimitedWarning.hh>
 
 #include <cmath>
@@ -57,6 +58,7 @@ class Njettiness {
 public:
    
    // The various axes choices available to the user
+   // It is recommended to use AxesDefinition instead of these.
    enum AxesMode {
       kt_axes,             // exclusive kt axes
       ca_axes,             // exclusive ca axes
@@ -81,7 +83,7 @@ public:
    // The measures available to the user.
    // "normalized_cutoff_measure" was the default in v1.0 of Nsubjettiness
    // "unnormalized_measure" is now the recommended default usage
-   // TODO:  Consider deleting this enum
+   // But it is recommended to use MeasureDefinition instead of these.
    enum MeasureMode {
       normalized_measure,           //default normalized measure
       unnormalized_measure,         //default unnormalized measure
@@ -90,42 +92,6 @@ public:
       unnormalized_cutoff_measure,  //default unnormalized measure with explicit Rcutoff
       geometric_cutoff_measure      //geometric measure with explicit Rcutoff
    };
-
-   
-   
-private:
-   
-   // Information about Axes and Measures to be Used
-   AxesDefinition* _axes_def;
-   MeasureDefinition* _measure_def;
-   
-   // The chosen axes/measure mode workers
-   AxesFinder* _axesFinder;  // The chosen axes
-   MeasureFunction* _measureFunction; // The chosen measure
-   
-   // Information about the current information
-   TauComponents _current_tau_components; //automatically set to have components of 0; these values will be set by the getTau function call
-   std::vector<fastjet::PseudoJet> _currentAxes;
-   std::vector<fastjet::PseudoJet> _seedAxes; // axes used prior to minimization (if applicable)
-   std::vector<fastjet::PseudoJet> _currentJets; //partitioning information
-   fastjet::PseudoJet _currentBeam; //return beam, if requested
-
-   // created separate function to set MeasureFunction and AxesFinder in order to keep constructor cleaner.
-   void setMeasureFunctionAndAxesFinder();
-
-   // Convert old style enums into new style MeasureDefinition
-   AxesDefinition* createAxesDef(AxesMode axes_mode) const;
-
-   // Convert old style enums into new style MeasureDefinition
-   MeasureDefinition* createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const;
-
-   // Making the copy constructor private to avoid duplicating this class
-   // For memory management reasons, the destructor of this class deletes
-   // its associated AxesDefinition, MeasureDefinition, etc., but if this
-   // class were copied, then the deletes would conflict
-   Njettiness(const Njettiness &);
-   
-public:
 
    // Main constructor that uses AxesMode and MeasureDefinition to specify measure
    // Unlike Nsubjettiness or NjettinessPlugin, the value N is not chosen
@@ -147,35 +113,65 @@ public:
    }
 
    // destructor
-   ~Njettiness();
+   ~Njettiness() {};
    
    // setAxes for Manual mode
    void setAxes(const std::vector<fastjet::PseudoJet> & myAxes);
    
    // Calculates and returns all TauComponents that user would want.
    // This information is stored in _current_tau_components for later access as well.
-   TauComponents getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets);
+   TauComponents getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) const;
 
    // Calculates the value of N-subjettiness,
    // but only returns the tau value from _current_tau_components
-   double getTau(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
+   double getTau(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) const {
       return getTauComponents(n_jets, inputJets).tau();
    }
 
    // Return all relevant information about tau components
-   TauComponents currentTauComponents() {return _current_tau_components;}
-   
+   TauComponents currentTauComponents() const {return _current_tau_components;}
    // Return axes found by getTauComponents.
-   std::vector<fastjet::PseudoJet> currentAxes() { return _currentAxes;}
+   std::vector<fastjet::PseudoJet> currentAxes() const { return _currentAxes;}
    // Return seedAxes used if onepass minimization (otherwise, same as currentAxes)
-   std::vector<fastjet::PseudoJet> seedAxes() { return _seedAxes;}
+   std::vector<fastjet::PseudoJet> seedAxes() const { return _seedAxes;}
    // Return jet partition found by getTauComponents.
-   std::vector<fastjet::PseudoJet> currentJets() {return _currentJets;}
+   std::vector<fastjet::PseudoJet> currentJets() const {return _currentJets;}
    // Return beam partition found by getTauComponents.
-   fastjet::PseudoJet currentBeam() {return _currentBeam;}
+   fastjet::PseudoJet currentBeam() const {return _currentBeam;}
    
    // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
-   std::vector<std::list<int> > getPartitionList(const std::vector<fastjet::PseudoJet> & inputJets);
+   std::vector<std::list<int> > getPartitionList(const std::vector<fastjet::PseudoJet> & inputJets) const;
+
+private:
+   
+   // Information about Axes and Measures to be Used
+   // Implemented as SharedPtrs to avoid memory management headaches
+   SharedPtr<const AxesDefinition> _axes_def;
+   SharedPtr<const MeasureDefinition> _measure_def;
+   
+   // The chosen axes/measure mode workers
+   // Implemented as SharedPtrs to avoid memory management headaches
+   // TODO: make into a SharedPtr<const AxesFinder>?
+   SharedPtr<MeasureFunction> _measureFunction;  // The chosen measure
+   SharedPtr<AxesFinder> _startingAxesFinder;    // The initial axes finder
+   SharedPtr<AxesFinder> _finishingAxesFinder;   // A possible minimization step
+   
+   // Information about the current information
+   // Defined as mutables, so user should be aware that these change when getTau is called.
+   mutable TauComponents _current_tau_components; //automatically set to have components of 0; these values will be set by the getTau function call
+   mutable std::vector<fastjet::PseudoJet> _currentAxes; //axes found after minimization
+   mutable std::vector<fastjet::PseudoJet> _seedAxes; // axes used prior to minimization (if applicable)
+   mutable std::vector<fastjet::PseudoJet> _currentJets; //partitioning information
+   mutable fastjet::PseudoJet _currentBeam; //return beam, if requested
+   
+   // created separate function to set MeasureFunction and AxesFinder in order to keep constructor cleaner.
+   void setMeasureFunctionAndAxesFinder();
+   
+   // Convert old style enums into new style MeasureDefinition
+   AxesDefinition* createAxesDef(AxesMode axes_mode) const;
+   
+   // Convert old style enums into new style MeasureDefinition
+   MeasureDefinition* createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const;
 
 };
    

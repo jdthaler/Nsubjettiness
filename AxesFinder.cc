@@ -37,7 +37,7 @@ namespace contrib{
 // Given starting axes, update to find better axes by using Kmeans clustering around the old axes
 template <int N>
 std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
-                                  const std::vector <fastjet::PseudoJet> & inputJets) {
+                                  const std::vector <fastjet::PseudoJet> & inputJets) const {
    assert(old_axes.size() == N);
    
    // some storage, declared static to save allocation/re-allocation costs
@@ -130,7 +130,7 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxesFast(con
 // Given N starting axes, this function updates all axes to find N better axes. 
 // (This is just a wrapper for the templated version above.)
 std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const std::vector <LightLikeAxis> & old_axes,
-                                      const std::vector <fastjet::PseudoJet> & inputJets) {
+                                      const std::vector <fastjet::PseudoJet> & inputJets) const {
    int N = old_axes.size();
    switch (N) {
       case 1: return UpdateAxesFast<1>(old_axes, inputJets);
@@ -161,7 +161,7 @@ std::vector<LightLikeAxis> AxesFinderFromOnePassMinimization::UpdateAxes(const s
 
 // uses minimization of N-jettiness to continually update axes until convergence.
 // The function returns the axes found at the (local) minimum
-std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) {
+std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
 	  
    // convert from PseudoJets to LightLikeAxes
    std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
@@ -206,7 +206,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromOnePassMinimization::getBetterAxes
    return outputAxes;
 }
 
-PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) {
+PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) const {
    double phi_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
    double rap_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
    
@@ -221,7 +221,7 @@ PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) {
    
    
 // Repeatedly calls the one pass finder to try to find global minimum
-std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getBetterAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) {
+std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
    
    // first iteration
 	std::vector<fastjet::PseudoJet> bestAxes = _onePassFinder.getAxes(n_jets, inputJets, seedAxes);
@@ -251,10 +251,10 @@ std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getBetterAxes(
 // Uses minimization of the geometric distance in order to find the minimum axes.
 // It continually updates until it reaches convergence or it reaches the maximum number of attempts.
 // This is essentially the same as a stable cone finder.
-std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getBetterAxes(int /*n_jets*/, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
+std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getAxes(int /*n_jets*/, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
 
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
-   double seedTau = _function->tau(particles, seedAxes);
+   double seedTau = _function.tau(particles, seedAxes);
    
    for (int i = 0; i < _nAttempts; i++) {
       
@@ -265,11 +265,11 @@ std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getBetterAx
          
          // start from unclustered beam measure
          int minJ = -1;
-         double minDist = _function->beam_distance_squared(particles[i]);
+         double minDist = _function.beam_distance_squared(particles[i]);
          
          // which axis am I closest to?
          for (unsigned int j = 0; j < seedAxes.size(); j++) {
-            double tempDist = _function->jet_distance_squared(particles[i],seedAxes[j]);
+            double tempDist = _function.jet_distance_squared(particles[i],seedAxes[j]);
             if (tempDist < minDist) {
                minDist = tempDist;
                minJ = j;
@@ -282,7 +282,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getBetterAx
       
       // calculate tau on new axes
       seedAxes = newAxes;
-      double tempTau = _function->tau(particles, newAxes);
+      double tempTau = _function.tau(particles, newAxes);
       
       // close enough to stop?
       if (fabs(tempTau - seedTau) < _accuracy) break;

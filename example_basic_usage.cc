@@ -166,7 +166,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
       UnnormalizedMeasure measureSpec1(beta1);
       UnnormalizedMeasure measureSpec2(beta2);
       
-      
       // define Nsubjettiness functions (beta = 1.0)
       Nsubjettiness         nSub1_beta1(1,  axisMode1,measureSpec1);
       // an alternative (but more prone to error) constructor is nSub1_beta1(1,  axisMode1,Njettiness::unnormalized_measure,beta1);

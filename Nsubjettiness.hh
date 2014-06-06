@@ -49,14 +49,15 @@ class Nsubjettiness : public FunctionOfPseudoJet<double> {
 public:
 
    
-   // Main constructor, which takes N, the AxesMode, and the MeasureDefinition
+   // Main constructor, which takes N, the AxesDefiniation, and the MeasureDefinition.
+   // The Definitions are given in NjettinessDefinition.hh
    //
-   // The recommended axes modes are (more are available as listed in Njettiness
-   // and in the README):
-   //   kt_axes             : exclusive kt axes
-   //   wta_kt_axes         : exclusive kt with winner-take-all recombination
-   //   onepass_kt_axes     : one-pass minimization from kt starting point
-   //   onepass_wta_kt_axes : one-pass min. from wta_kt starting point
+   // The recommended AxesDefinitions are (more are available as listed in the README
+   // and defined in NjettinessDefinition.hh):
+   //   KT_Axes             : exclusive kt axes
+   //   WTA_KT_Axes         : exclusive kt with winner-take-all recombination
+   //   OnePass_KT_Axes     : one-pass minimization from kt starting point
+   //   OnePass_WTA_KT_Axes : one-pass min. from wta_kt starting point
    //
    // The recommended measure definitions are (with the corresponding parameters)
    //   NormalizedMeasure(beta,R0)
@@ -68,7 +69,9 @@ public:
    //      :  Same as normalized_measure, but cuts off at Rcutoff
    //   UnnormalizedCutoffMeasure(beta,Rcutoff)
    //      :  Same as unnormalized_measure, but cuts off at Rcutoff
-   Nsubjettiness(int N, const AxesDefinition& axes_def, const MeasureDefinition& measure_def)
+   Nsubjettiness(int N,
+                 const AxesDefinition& axes_def,
+                 const MeasureDefinition& measure_def)
    : _njettinessFinder(axes_def,measure_def), _N(N) {}
    
    
@@ -154,7 +157,7 @@ public:
    
 private:
    
-   mutable Njettiness _njettinessFinder; // TODO:  should muck with this so result can be const without this mutable
+   Njettiness _njettinessFinder; // TODO:  should muck with this so result can be const without this mutable
    int _N;
 
 };

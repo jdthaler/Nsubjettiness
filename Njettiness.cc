@@ -45,17 +45,8 @@ Njettiness::Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def
    setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
 }
    
-   
-Njettiness::~Njettiness() {
-   // clean house
-   delete _measure_def;
-   delete _axes_def;
-   delete _measureFunction;
-   delete _axesFinder;
-}
-   
-
 // Convert from MeasureMode enum to MeasureDefinition
+// This returns a pointer that will be claimed by a SharedPtr
 MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const {
 
    // definition of maximum Rcutoff for non-cutoff measures, changed later by other measures
@@ -128,6 +119,7 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
 }
 
 // Convert from AxesMode enum to AxesDefinition
+// This returns a pointer that will be claimed by a SharedPtr
 AxesDefinition* Njettiness::createAxesDef(Njettiness::AxesMode axes_mode) const {
    
    switch (axes_mode) {
@@ -167,25 +159,24 @@ AxesDefinition* Njettiness::createAxesDef(Njettiness::AxesMode axes_mode) const 
 // Parsing needed for constructor to set AxesFinder and MeasureFunction
 // All of the parameter handling is here, and checking that number of parameters is correct.
 void Njettiness::setMeasureFunctionAndAxesFinder() {
-
-   // Get the correct MeasureFunction and AxesFinder
-   _measureFunction = _measure_def->associatedMeasureFunction();
-   _axesFinder = _axes_def->associatedAxesFinder(*_measure_def);
+   // Get the correct MeasureFunction and AxesFinders
+   _measureFunction.reset(_measure_def->createMeasureFunction());
+   _startingAxesFinder.reset(_axes_def->createStartingAxesFinder(*_measure_def));
+   _finishingAxesFinder.reset(_axes_def->createFinishingAxesFinder(*_measure_def));
 }
 
 // setAxes for Manual mode
 void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
    if (_axes_def->supportsManualAxes()) {
       _currentAxes = myAxes;
-   }
-   else {
+   } else {
       throw Error("You can only use setAxes for manual AxesDefinitions");
    }
 }
    
 // Calculates and returns all TauComponents that user would want.
 // This information is stored in _current_tau_components for later access as well.
-TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) {
+TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fastjet::PseudoJet> & inputJets) const {
    if (inputJets.size() <= n_jets) {  //if not enough particles, return zero
       _currentAxes = inputJets;
       _currentAxes.resize(n_jets,fastjet::PseudoJet(0.0,0.0,0.0,0.0));
@@ -194,11 +185,13 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _currentJets = _currentAxes;
       _currentBeam = PseudoJet(0.0,0.0,0.0,0.0);
    } else {
-      
-      // Find axes and store information
-      _currentAxes = _axesFinder->getAxes(n_jets,inputJets,_currentAxes); // sets current Axes
-      _seedAxes = _axesFinder->seedAxes(); // sets seed Axes (if one pass minimization was used)
 
+      _seedAxes = _startingAxesFinder->getAxes(n_jets,inputJets,_currentAxes); //sets starting point for minimization
+      if (_finishingAxesFinder) {
+         _currentAxes = _finishingAxesFinder->getAxes(n_jets,inputJets,_seedAxes);
+      } else {
+         _currentAxes = _seedAxes;
+      }
       
       // Find partition and store information
       // (jet information in _currentJets, beam in _currentBeam)
@@ -215,7 +208,7 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 // Return a vector of length _currentAxes.size() (which should be N).
 // Each vector element is a list of ints corresponding to the indices in
 // particles of the particles belonging to that jet.
-std::vector<std::list<int> > Njettiness::getPartitionList(const std::vector<fastjet::PseudoJet> & particles) {
+std::vector<std::list<int> > Njettiness::getPartitionList(const std::vector<fastjet::PseudoJet> & particles) const {
    // core code is in MeasureFunction
    return _measureFunction->get_partition_list(particles,_currentAxes);
 }

@@ -47,23 +47,7 @@ namespace contrib {
 // TODO:  This class should probably be merged with TauComponents, since both have access
 // to similar information
 class NjettinessExtras : public ClusterSequence::Extras {
-   private:
    
-      TauComponents _tau_components;
-      std::vector<fastjet::PseudoJet> _jets;
-      std::vector<fastjet::PseudoJet> _axes;
-      
-      int labelOf(const fastjet::PseudoJet& jet) const {
-         int thisJet = -1;
-         for (unsigned int i = 0; i < _jets.size(); i++) {
-            if (_jets[i].cluster_hist_index() == jet.cluster_hist_index()) {
-               thisJet = i;
-               break;
-            }
-         }
-         return thisJet;
-      }
-      
    public:
       NjettinessExtras(TauComponents tau_components, std::vector<fastjet::PseudoJet> jets, std::vector<fastjet::PseudoJet> axes) : _tau_components(tau_components), _jets(jets), _axes(axes) {}
       
@@ -91,7 +75,23 @@ class NjettinessExtras : public ClusterSequence::Extras {
       bool has_njettiness_extras(const fastjet::PseudoJet& jet) const {
          return (labelOf(jet) >= 0);
       }
-
+   
+private:
+   
+   TauComponents _tau_components;
+   std::vector<fastjet::PseudoJet> _jets;
+   std::vector<fastjet::PseudoJet> _axes;
+   
+   int labelOf(const fastjet::PseudoJet& jet) const {
+      int thisJet = -1;
+      for (unsigned int i = 0; i < _jets.size(); i++) {
+         if (_jets[i].cluster_hist_index() == jet.cluster_hist_index()) {
+            thisJet = i;
+            break;
+         }
+      }
+      return thisJet;
+   }
 };
 
 inline const NjettinessExtras * njettiness_extras(const fastjet::PseudoJet& jet) {
@@ -195,7 +195,7 @@ public:
 
 private:
 
-   mutable Njettiness _njettinessFinder; // TODO:  should muck with this so run_clustering can be const without this mutable
+   Njettiness _njettinessFinder;
    int _N;
 
 };
