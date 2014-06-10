@@ -246,7 +246,9 @@ class GeometricMeasureFunction : public MeasureFunction {
 
 public:
    // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
-   GeometricMeasureFunction(double jet_beta, double Rcutoff) : _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff) {}
+   GeometricMeasureFunction(double jet_beta, double Rcutoff) : 
+     MeasureFunction(false), // doesn't have denominator
+     _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff) {}
 
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
@@ -270,7 +272,7 @@ public:
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
-      return 1.0;
+      return std::numeric_limits<double>::quiet_NaN();
    }
    
    

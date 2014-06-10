@@ -429,10 +429,20 @@ void analyze(const vector<PseudoJet> & input_particles) {
          ClusterSequence njet_seq3(input_particles, njet_jetDef3);
          ClusterSequence njet_seq4(input_particles, njet_jetDef4);
 
+         // and associated extras for more information
+         const NjettinessExtras * extras2 = njettiness_extras(njet_seq2);
+         const NjettinessExtras * extras3 = njettiness_extras(njet_seq3);
+         const NjettinessExtras * extras4 = njettiness_extras(njet_seq4);
+
          // and find the jets
          vector<PseudoJet> njet_jets2 = njet_seq2.inclusive_jets();
          vector<PseudoJet> njet_jets3 = njet_seq3.inclusive_jets();
          vector<PseudoJet> njet_jets4 = njet_seq4.inclusive_jets();
+
+         // (alternative way to find the jets)
+         //vector<PseudoJet> njet_jets2 = extras2->jets();
+         //vector<PseudoJet> njet_jets3 = extras3->jets();
+         //vector<PseudoJet> njet_jets4 = extras4->jets();
 
          cout << "-------------------------------------------------------------------------------------" << endl;
          cout << _testCutoffMeasures[iM].description() << ":" << endl;
@@ -445,17 +455,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
          PrintJets(njet_jets4);
 
          // The axes might point in a different direction than the jets
-         // Using the NjettinessExtras pointer (ClusterSequence::Extras) to access that information
-         vector<PseudoJet> njet_axes2;
-         vector<PseudoJet> njet_axes3;
-         vector<PseudoJet> njet_axes4;
-         const NjettinessExtras * extras2 = njettiness_extras(njet_seq2);
-         const NjettinessExtras * extras3 = njettiness_extras(njet_seq3);
-         const NjettinessExtras * extras4 = njettiness_extras(njet_seq4);
-         
-         njet_axes2 = extras2->axes();
-         njet_axes3 = extras3->axes();
-         njet_axes4 = extras4->axes();
+         // Using the NjettinessExtras pointer (ClusterSequence::Extras) to access that information         
+         vector<PseudoJet> njet_axes2 = extras2->axes();
+         vector<PseudoJet> njet_axes3 = extras3->axes();
+         vector<PseudoJet> njet_axes4 = extras4->axes();
          
          cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
          cout << "Axes Used for Above Jets" << endl;

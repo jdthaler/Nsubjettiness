@@ -1,3 +1,6 @@
+2014-6-10 <JDT>
+   Slight modification of example_advanced_usage
+   Fixed bug in GeometricCutoffMeasure (incorrect denominator setting)
 2014-6-05 <JDT>
    Moved public before private in the .hh files for readability
    Starting process of switching to SharedPtr internally

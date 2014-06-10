@@ -59,6 +59,7 @@ class NjettinessExtras : public ClusterSequence::Extras {
       double totalTau(const fastjet::PseudoJet& /*jet*/) const {
          return _tau_components.tau();
       }
+      
       double subTau(const fastjet::PseudoJet& jet) const {
          if (labelOf(jet) == -1) return std::numeric_limits<double>::quiet_NaN(); // nonsense
          return _tau_components.jet_pieces()[labelOf(jet)];

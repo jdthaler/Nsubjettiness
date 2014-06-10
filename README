@@ -240,3 +240,5 @@ Known Issues
 
 -- The MultiPass_Axes mode gives different answers on different runs, since random
    numbers are used.
+-- In rare cases, one pass minimization can give a larger value of Njettiness than
+   without minimization
