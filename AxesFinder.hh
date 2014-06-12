@@ -59,10 +59,12 @@ public:
    virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets,
                                                    const std::vector<fastjet::PseudoJet>& inputs,
                                                    const std::vector<fastjet::PseudoJet>& seedAxes) const = 0;
-   
    // convenient shorthand for squaring
    static inline double sq(double x) {return x*x;}
 
+   //virtual destructor
+   virtual ~AxesFinder(){}
+   
 };
 
    

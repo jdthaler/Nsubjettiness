@@ -1,4 +1,5 @@
 2014-06-11 <JDT>
+   Fixed virtual destructor issue in AxesFinder
    Changing copy() to create() in NjettinessDefinition for "new" clarity
    Converted some SharedPtr to regular pointers in NjettinessDefinition to be consistent on meaning of "create" commands.
 2014-06-10 <JDT>

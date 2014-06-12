@@ -58,8 +58,6 @@ class MeasureDefinition {
    
 public:
 
-   virtual ~MeasureDefinition() {};
-   
    // Description of measure and parameters
    virtual std::string description() const = 0;
    
@@ -77,6 +75,7 @@ public:
    virtual bool supportsMultiPassMinimization() const = 0;
    virtual AxesFinder* createMultiPassAxesFinder( unsigned int) const = 0;
    
+   virtual ~MeasureDefinition(){};
 };
 
 // The normalized measure, with two parameters: beta and R0
@@ -275,9 +274,6 @@ private:
 class AxesDefinition {
    
 public:
-   
-   virtual ~AxesDefinition() {};
-   
    // description of axes (and any parameters)
    virtual std::string short_description() const = 0;
    virtual std::string description() const = 0;
@@ -296,6 +292,7 @@ public:
       return NULL;  //By default, nothing.
    };
 
+   virtual ~AxesDefinition() {};
 };
 
 // kt axes

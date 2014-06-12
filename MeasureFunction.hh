@@ -132,8 +132,6 @@ private:
 class MeasureFunction {
    
 public:
-   virtual ~MeasureFunction(){}
-   
    //These functions define the measure by which tau_N is calculated,
    //and are overloaded by the various measures below
    
@@ -173,6 +171,9 @@ public:
    // shorthand for squaring
    static inline double sq(double x) {return x*x;}
 
+   //virtual destructor
+   virtual ~MeasureFunction(){}
+   
 protected:
    //bool set by derived classes to choose whether or not to use the denominator
    bool _has_denominator;
