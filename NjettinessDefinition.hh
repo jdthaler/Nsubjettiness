@@ -65,17 +65,17 @@ public:
    
    // In derived classes, this should return a copy of the corresponding
    // derived class
-   virtual MeasureDefinition* copy() const = 0;
+   virtual MeasureDefinition* create() const = 0;
    
    //Return the MeasureFunction corresponding to this definition
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const = 0;
+   virtual MeasureFunction* createMeasureFunction() const = 0;
    
    //Return the AxesFinder that should be used for one-pass minimization
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const = 0;
+   virtual AxesFinder* createOnePassAxesFinder() const = 0;
 
    //Specify whether multi-pass minimization makes sense, and if so, return the AxesFinder that should be used for multi-pass minimization
    virtual bool supportsMultiPassMinimization() const = 0;
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder( unsigned int) const = 0;
+   virtual AxesFinder* createMultiPassAxesFinder( unsigned int) const = 0;
    
 };
 
@@ -88,17 +88,17 @@ public:
    
    virtual std::string description() const;
 
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const {
-      return SharedPtr<MeasureFunction>(new DefaultNormalizedMeasureFunction(_beta,_R0,std::numeric_limits<double>::max()));
+   virtual MeasureFunction* createMeasureFunction() const {
+      return (new DefaultNormalizedMeasureFunction(_beta,_R0,std::numeric_limits<double>::max()));
    }
 
-   virtual NormalizedMeasure* copy() const {return new NormalizedMeasure(*this);}
+   virtual NormalizedMeasure* create() const {return new NormalizedMeasure(*this);}
    
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromOnePassMinimization(_beta, std::numeric_limits<double>::max()));
+   virtual AxesFinder* createOnePassAxesFinder() const {
+      return (new AxesFinderFromOnePassMinimization(_beta, std::numeric_limits<double>::max()));
    }
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder( unsigned int Npass) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
+   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
+      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
    }
 
    virtual bool supportsMultiPassMinimization() const { return true; }
@@ -115,20 +115,20 @@ public:
    UnnormalizedMeasure(double beta)
    : _beta(beta) {}
 
-   virtual UnnormalizedMeasure* copy() const {return new UnnormalizedMeasure(*this);}
+   virtual UnnormalizedMeasure* create() const {return new UnnormalizedMeasure(*this);}
    
    virtual std::string description() const;
    
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const {
-      return SharedPtr<MeasureFunction>(new DefaultUnnormalizedMeasureFunction(_beta,std::numeric_limits<double>::max()));
+   virtual MeasureFunction* createMeasureFunction() const {
+      return (new DefaultUnnormalizedMeasureFunction(_beta,std::numeric_limits<double>::max()));
    }
 
    
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromOnePassMinimization(_beta, std::numeric_limits<double>::max()));
+   virtual AxesFinder* createOnePassAxesFinder() const {
+      return (new AxesFinderFromOnePassMinimization(_beta, std::numeric_limits<double>::max()));
    }
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder( unsigned int Npass) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
+   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
+      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
    }
 
    virtual bool supportsMultiPassMinimization() const { return true; }
@@ -146,20 +146,20 @@ public:
    GeometricMeasure(double beta)
    : _beta(beta) {}
    
-   virtual GeometricMeasure* copy() const {return new GeometricMeasure(*this);}
+   virtual GeometricMeasure* create() const {return new GeometricMeasure(*this);}
    
    virtual std::string description() const;
    
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const {
-      return SharedPtr<MeasureFunction>(new GeometricMeasureFunction(_beta,std::numeric_limits<double>::max()));
+   virtual MeasureFunction* createMeasureFunction() const {
+      return (new GeometricMeasureFunction(_beta,std::numeric_limits<double>::max()));
    }
    
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromGeometricMinimization(_beta, std::numeric_limits<double>::max()));
+   virtual AxesFinder* createOnePassAxesFinder() const {
+      return (new AxesFinderFromGeometricMinimization(_beta, std::numeric_limits<double>::max()));
    }
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder(unsigned int) const {
+   virtual AxesFinder* createMultiPassAxesFinder(unsigned int) const {
       throw Error("GeometricMeasure does not support multi-pass minimization.");
-      return SharedPtr<AxesFinder>();
+      return NULL;
    }
    
    virtual bool supportsMultiPassMinimization() const { return false; }
@@ -179,17 +179,17 @@ public:
 
    virtual std::string description() const;
    
-   virtual NormalizedCutoffMeasure* copy() const {return new NormalizedCutoffMeasure(*this);}
+   virtual NormalizedCutoffMeasure* create() const {return new NormalizedCutoffMeasure(*this);}
    
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const {
-      return SharedPtr<MeasureFunction>(new DefaultNormalizedMeasureFunction(_beta,_R0,_Rcutoff));
+   virtual MeasureFunction* createMeasureFunction() const {
+      return (new DefaultNormalizedMeasureFunction(_beta,_R0,_Rcutoff));
    }
    
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromOnePassMinimization(_beta, _Rcutoff));
+   virtual AxesFinder* createOnePassAxesFinder() const {
+      return (new AxesFinderFromOnePassMinimization(_beta, _Rcutoff));
    }
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder( unsigned int Npass) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
+   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
+      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
    }
   
    virtual bool supportsMultiPassMinimization() const { return true; }
@@ -210,17 +210,17 @@ public:
 
    virtual std::string description() const;
    
-   virtual UnnormalizedCutoffMeasure* copy() const {return new UnnormalizedCutoffMeasure(*this);}
+   virtual UnnormalizedCutoffMeasure* create() const {return new UnnormalizedCutoffMeasure(*this);}
 
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const {
-      return SharedPtr<MeasureFunction>(new DefaultUnnormalizedMeasureFunction(_beta,_Rcutoff));
+   virtual MeasureFunction* createMeasureFunction() const {
+      return (new DefaultUnnormalizedMeasureFunction(_beta,_Rcutoff));
    }
    
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromOnePassMinimization(_beta, _Rcutoff));
+   virtual AxesFinder* createOnePassAxesFinder() const {
+      return (new AxesFinderFromOnePassMinimization(_beta, _Rcutoff));
    }
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder( unsigned int Npass) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
+   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
+      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
    }
 
    virtual bool supportsMultiPassMinimization() const { return true; }
@@ -239,20 +239,20 @@ public:
    GeometricCutoffMeasure(double beta, double Rcutoff)
    : _beta(beta), _Rcutoff(Rcutoff) {}
 
-   virtual GeometricCutoffMeasure* copy() const {return new GeometricCutoffMeasure(*this);}
+   virtual GeometricCutoffMeasure* create() const {return new GeometricCutoffMeasure(*this);}
 
    virtual std::string description() const;
    
-   virtual SharedPtr<MeasureFunction> createMeasureFunction() const {
-      return SharedPtr<MeasureFunction>(new GeometricMeasureFunction(_beta,_Rcutoff));
+   virtual MeasureFunction* createMeasureFunction() const {
+      return (new GeometricMeasureFunction(_beta,_Rcutoff));
    }
    
-   virtual SharedPtr<AxesFinder> createOnePassAxesFinder() const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromGeometricMinimization(_beta, _Rcutoff));
+   virtual AxesFinder* createOnePassAxesFinder() const {
+      return (new AxesFinderFromGeometricMinimization(_beta, _Rcutoff));
    }
-   virtual SharedPtr<AxesFinder> createMultiPassAxesFinder(unsigned int) const {
+   virtual AxesFinder* createMultiPassAxesFinder(unsigned int) const {
       throw Error("GeometricCutoffMeasure does not support multi-pass minimization.");
-      return SharedPtr<AxesFinder>();
+      return NULL;
    }
    
    virtual bool supportsMultiPassMinimization() const { return false; }
@@ -284,16 +284,16 @@ public:
    
    // In derived classes, this should return a copy of the corresponding
    // derived class
-   virtual AxesDefinition* copy() const = 0;
+   virtual AxesDefinition* create() const = 0;
    
    // These describe how the axes finder works
    virtual bool givesRandomizedResults() const = 0;
    virtual bool supportsManualAxes() const = 0;
    
    //for best testing
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const = 0;
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>();  //By default, nothing.
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const = 0;
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition &) const {
+      return NULL;  //By default, nothing.
    };
 
 };
@@ -314,13 +314,13 @@ public:
       return stream.str();
    };
    
-   virtual KT_Axes* copy() const {return new KT_Axes(*this);}
+   virtual KT_Axes* create() const {return new KT_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKT());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
+      return (new AxesFinderFromKT());
    }
    
 };
@@ -341,13 +341,13 @@ public:
       return stream.str();
    };
    
-   virtual CA_Axes* copy() const {return new CA_Axes(*this);}
+   virtual CA_Axes* create() const {return new CA_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromCA());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
+      return (new AxesFinderFromCA());
    }
    
 };
@@ -372,13 +372,13 @@ public:
       return stream.str();
    };
    
-   virtual AntiKT_Axes* copy() const {return new AntiKT_Axes(*this);}
+   virtual AntiKT_Axes* create() const {return new AntiKT_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromAntiKT(_R0));
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
+      return (new AxesFinderFromAntiKT(_R0));
    }
    
    
@@ -403,13 +403,13 @@ public:
       return stream.str();
    };
    
-   virtual WTA_KT_Axes* copy() const {return new WTA_KT_Axes(*this);}
+   virtual WTA_KT_Axes* create() const {return new WTA_KT_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromWTA_KT());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
+      return (new AxesFinderFromWTA_KT());
    }
 
    
@@ -431,13 +431,13 @@ public:
       return stream.str();
    };
    
-   virtual WTA_CA_Axes* copy() const {return new WTA_CA_Axes(*this);}
+   virtual WTA_CA_Axes* create() const {return new WTA_CA_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromWTA_CA());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
+      return (new AxesFinderFromWTA_CA());
    }
    
 };
@@ -458,15 +458,15 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_KT_Axes* copy() const {return new OnePass_KT_Axes(*this);}
+   virtual OnePass_KT_Axes* create() const {return new OnePass_KT_Axes(*this);}
    
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKT());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromKT());
    }
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createOnePassAxesFinder();
    }
 
@@ -488,15 +488,15 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_CA_Axes* copy() const {return new OnePass_CA_Axes(*this);}
+   virtual OnePass_CA_Axes* create() const {return new OnePass_CA_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromCA());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromCA());
    }
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createOnePassAxesFinder();
    }
 };
@@ -521,15 +521,15 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_AntiKT_Axes* copy() const {return new OnePass_AntiKT_Axes(*this);}
+   virtual OnePass_AntiKT_Axes* create() const {return new OnePass_AntiKT_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromAntiKT(_R0));
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromAntiKT(_R0));
    }
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createOnePassAxesFinder();
    }
 
@@ -553,15 +553,15 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_WTA_KT_Axes* copy() const {return new OnePass_WTA_KT_Axes(*this);}
+   virtual OnePass_WTA_KT_Axes* create() const {return new OnePass_WTA_KT_Axes(*this);}
    
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromWTA_KT());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromWTA_KT());
    }
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createOnePassAxesFinder();
    }
 };
@@ -583,17 +583,17 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_WTA_CA_Axes* copy() const {return new OnePass_WTA_CA_Axes(*this);}
+   virtual OnePass_WTA_CA_Axes* create() const {return new OnePass_WTA_CA_Axes(*this);}
    
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return false;}
 
    
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromWTA_CA());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromWTA_CA());
    }
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createOnePassAxesFinder();
    }
 
@@ -616,13 +616,13 @@ public:
       return stream.str();
    };
    
-   virtual Manual_Axes* copy() const {return new Manual_Axes(*this);}
+   virtual Manual_Axes* create() const {return new Manual_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return true;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition &) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromUserInput());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
+      return (new AxesFinderFromUserInput());
    }
 };
 
@@ -642,15 +642,15 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_Manual_Axes* copy() const {return new OnePass_Manual_Axes(*this);}
+   virtual OnePass_Manual_Axes* create() const {return new OnePass_Manual_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return false;}
    virtual bool supportsManualAxes() const {return true;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromUserInput());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromUserInput());
    }
-   virtual SharedPtr<AxesFinder> createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createOnePassAxesFinder();
    }
 
@@ -674,15 +674,15 @@ public:
       return stream.str();
    };
    
-   virtual MultiPass_Axes* copy() const {return new MultiPass_Axes(*this);}
+   virtual MultiPass_Axes* create() const {return new MultiPass_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return true;}
    virtual bool supportsManualAxes() const {return false;}
 
-   virtual SharedPtr<AxesFinder> createStartingAxesFinder(const MeasureDefinition & ) const {
-      return SharedPtr<AxesFinder>(new AxesFinderFromKT());
+   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
+      return (new AxesFinderFromKT());
    }
-   virtual SharedPtr<AxesFinder> createFnishingAxesFinder(const MeasureDefinition & measure_def) const {
+   virtual AxesFinder* createFnishingAxesFinder(const MeasureDefinition & measure_def) const {
       return measure_def.createMultiPassAxesFinder(_Npass);
    }
    

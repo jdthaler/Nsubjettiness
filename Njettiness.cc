@@ -36,12 +36,12 @@ namespace contrib {
 ///////
 
 Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def)
-: _axes_def(axes_def.copy()), _measure_def(measure_def.copy()) {
+: _axes_def(axes_def.create()), _measure_def(measure_def.create()) {
    setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
 }
 
 Njettiness::Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def)
-: _axes_def(createAxesDef(axes_mode)), _measure_def(measure_def.copy()) {
+: _axes_def(createAxesDef(axes_mode)), _measure_def(measure_def.create()) {
    setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
 }
    

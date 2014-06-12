@@ -74,11 +74,11 @@ private:
    
 public:
    AxesStruct(const AxesDefinition & axes_def)
-   : _axes_def(axes_def.copy()) {}
+   : _axes_def(axes_def.create()) {}
 
    // Need special copy constructor to make it possible to put in a std::vector
    AxesStruct(const AxesStruct& myStruct)
-   : _axes_def(myStruct._axes_def->copy()) {}
+   : _axes_def(myStruct._axes_def->create()) {}
    
    const AxesDefinition & def() const {return *_axes_def;}
    string description() const {return _axes_def->description();}
@@ -96,11 +96,11 @@ private:
    
 public:
    MeasureStruct(const MeasureDefinition& measure_def)
-   : _measure_def(measure_def.copy()) {}
+   : _measure_def(measure_def.create()) {}
    
    // Need special copy constructor to make it possible to put in a std::vector
    MeasureStruct(const MeasureStruct& myStruct)
-   : _measure_def(myStruct._measure_def->copy()) {}
+   : _measure_def(myStruct._measure_def->create()) {}
    
    const MeasureDefinition & def() const {return *_measure_def;}
    string description() const {return _measure_def->description();}
