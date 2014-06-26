@@ -1,3 +1,5 @@
+2014-06-25 <JDT>
+   Declaring release candidate of 2.1
 2014-06-11 <JDT>
    Fixed virtual destructor issue in AxesFinder
    Changing copy() to create() in NjettinessDefinition for "new" clarity
