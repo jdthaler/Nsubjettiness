@@ -43,7 +43,32 @@ namespace contrib {
    
 // Eventually this file might contains an NjettinessDefinition that combines an
 // AxesDefinition with a MeasureDefinition. It's not clear how useful that would be, though
-   
+  
+// The following Measures are available (and the relevant arguments):
+class NormalizedMeasure;         // (beta,R0)
+class UnnormalizedMeasure;       // (beta)
+class GeometricMeasure;          // (beta)
+class NormalizedCutoffMeasure;   // (beta,R0,Rcutoff)
+class UnnormalizedCutoffMeasure; // (beta,Rcutoff)
+class GeometricCutoffMeasure;    // (beta,Rcutoff)
+
+// The following Axes are available (and the relevant arguments, if needed)
+class KT_Axes;
+class CA_Axes;
+class AntiKT_Axes;   // (R0)
+class WTA_KT_Axes;
+class WTA_CA_Axes;
+class Manual_Axes;
+class OnePass_KT_Axes;
+class OnePass_CA_Axes;
+class OnePass_AntiKT_Axes;   // (R0)
+class OnePass_WTA_KT_Axes;
+class OnePass_WTA_CA_Axes;
+class OnePass_Manual_Axes;
+class MultiPass_Axes;
+
+// Below are just technical implementations of the variable axes and measures.
+  
 ///////
 //
 // MeasureDefinition

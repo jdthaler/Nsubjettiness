@@ -1,3 +1,6 @@
+2014-07-07 <JDT>
+   Added forward declaration of options in NjettinessDefinition for readability.
+   Updated README with some clarifications
 2014-06-25 <JDT>
    Declaring release candidate of 2.1
 2014-06-11 <JDT>

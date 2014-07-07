@@ -1,6 +1,6 @@
--------------------------
+--------------------------------------------------------------------------------
 Nsubjettiness Package
--------------------------
+--------------------------------------------------------------------------------
 
 The Nsubjettiness package is based on the physics described in:
 
@@ -20,58 +20,31 @@ New in v2.0 is the winner-take-all axis, which is described in:
 
 as well as in unpublished work by Gavin Salam.
 
--------------------------
+--------------------------------------------------------------------------------
 Core Classes
--------------------------
+--------------------------------------------------------------------------------
 
-There are three different ways to access N-(sub)jettiness variables, described
+There are various ways to access N-(sub)jettiness variables, described
 in more detail below:
 
-Nsubjettiness.hh: 
-   A simple FunctionOfPseudoJet<double> interface to measure N-subjettiness
+Nsubjettiness       [Nsubjettiness.hh]:
+   A FunctionOfPseudoJet<double> interface to measure N-subjettiness
    (Recommended for most users)
-NjettinessPlugin.hh:
+NsubjettinessRatio  [Nsubjettiness.hh]:
+   A FunctionOfPseudoJet<double> interface to measure ratios of
+   two different N-subjettiness (i.e. tau3/tau2)
+NjettinessPlugin    [NjettinessPlugin.hh]:
    A FastJet plugin for finding jets by minimizing N-jettiness
-Njettiness.hh:
-   Core code for N-(sub)jettiness minimization 
-   (users typically will not need to use this directly)
+   (Recommended for advanced users)
+Njettiness          [Njettiness.hh]:
+   Access to the core Njettiness code.
+   (Not recommended for users, since the interface might change)
 
 The code assumes that you have FastJet 3.
 
--------------------------
-Nsubjettiness.hh (i.e. Nsubjettiness function)
--------------------------
-
-The Nsubjettiness class is a simple wrapper that implements the
-fastjet::FunctionOfPseudoJet<double> interface for ease of plugging in to other
-analyses.  Since Nsubjettiness operates the same way as Njettiness, just on
-constituents instead of all particles in an event, the Nsubjettiness constructor
-is identical to the one for the plugin (other than the name).
-
--------------------------
-NjettinessPlugin.hh (i.e. Njettiness jet finding plugin):
--------------------------
-
-The Njettiness FastJet plugin represents an exclusive jet finder (yielding a
-fixed N number of jets). The algorithm finds N axes, and jets are simply the sum
-of particles closest to a given axis (or unclustered if they are closest to the
-beam).  There are various axis methods including minimizing the event shape
-Njettiness or using exclusive kT axis.  The presently recommended methods are
-winner-take-all axes or one-pass minimization from kT seeds, both of which are
-much cheaper than full minimization and nearly as effective.
-
--------------------------
-Njettiness.hh (i.e. core Njettiness framework):
--------------------------
-
-Most users will want to use the Nsubjettiness.hh or NjettinessPlugin.hh headers.
-For direct access to the Njettiness class, one can use Njettiness.hh directly.
-This class is still evolving, so users who wish to extend its functionality
-should contact the authors first.
-
--------------------------
-Basic Usage (Nsubjettiness and NsubjettinessRatio)
-------------------------- 
+--------------------------------------------------------------------------------
+Basic Usage: Nsubjettiness and NsubjettinessRatio  [Nsubjettiness.hh]
+--------------------------------------------------------------------------------
 
 Most users will only need to use the Nsubjettiness class.  The basic
 functionality is given by:
@@ -83,20 +56,20 @@ functionality is given by:
    //                      NormalizedMeasure(beta,R0), etc.
       
    // get tau value
-   double tauN = nSub.result(some jet);
+   double tauN = nSub.result(PseudoJet);
 
-Also available are ratios of N-(sub)jettiness values
+Also available are ratios of N-subjettiness values
     NsubjettinessRatio nSubRatio(N, M, AxesDefinition,
                                  MeasureDefinition)
     // N and M give tau_N / tau_M, all other options the same
 
--------------------------
-AxesDefinition
--------------------------
+--------------------------------------------------------------------------------
+AxesDefinition  [NjettinessDefinition.hh]
+--------------------------------------------------------------------------------
 
 N-(sub)jettiness requires choosing axes as well as a measure (see below). There
 are a number of axes choices available to the user, though modes with a (*) are
-recommended. Arguments in paratheses are parameters that the user must set.
+recommended. Arguments in parentheses are parameters that the user must set.
 
 Axes can be found using standard recursive clustering procedures.  New is the
 option to use the "winner-take-all" recombination scheme:
@@ -129,9 +102,9 @@ number seeds, MultiPass_Axes is not IRC safe (and the code is rather slow).  Not
 that for the minimization routines, beta = 1.1 is faster than beta = 1, with
 comparable performance.
 
--------------------------
-MeasureDefinition
-------------------------- 
+--------------------------------------------------------------------------------
+MeasureDefinition  [NjettinessDefinition.hh]
+--------------------------------------------------------------------------------
 
 At the moment, there are only a few measures.  Note that each one has a
 different number of parameters.  The one indicated by (*)
@@ -155,9 +128,9 @@ change since there should be separate beam and jet beta factors.)
     GeometricMeasure(beta)               //geometric measure with exponent beta
     GeometricCutoffMeasure(beta,Rcutoff) //geometric measure with Rcutoff
 
--------------------------
+--------------------------------------------------------------------------------
 A note on beta dependence
--------------------------
+--------------------------------------------------------------------------------
 
 The angular exponent in N-subjettiness is called beta.  The original
 N-subjettiness paper advocated beta = 1, but it is now understood that different
@@ -174,9 +147,9 @@ N.B. The minimization routines are only valid for 1 < beta < 3.
 For quark/gluon discrimination with N = 1, beta~0.2 with wta_kt_axes appears
 to be a good choice. 
 
--------------------------
-TauComponents.hh
--------------------------
+--------------------------------------------------------------------------------
+TauComponents  [MeasureFunction.hh]
+--------------------------------------------------------------------------------
 
 For most users, they will only need the value of N-subjettiness (i.e. tau)
 itself.  For advanced users, they can access individual tau components (i.e. 
@@ -186,9 +159,9 @@ the individual numerator pieces, the denominator, etc.)
    vector<double> numer = tauComp.jet_pieces_numerator(); //tau for each subjet
    double denom = tauComp.denominator();  //normalization factor
 
--------------------------
-WinnerTakeAllRecombiner.hh:
--------------------------
+--------------------------------------------------------------------------------
+WinnerTakeAllRecombiner  [WinnerTakeAllRecombiner.hh]
+--------------------------------------------------------------------------------
 
 New for version 2.0 of Nsubjettiness are winner-take-all axes.  They are found
 with the help of the WinnerTakeAllRecombiner. This class defines a new
@@ -205,9 +178,35 @@ itself for jet finding.  For example, the direction of anti-kT jets found
 with the WinnerTakeAllRecombiner is particularly robust against soft jet
 contamination.
 
--------------------------
+--------------------------------------------------------------------------------
+Advanced Usage:  NjettinessPlugin  [NjettinessPlugin.hh]
+--------------------------------------------------------------------------------
+
+The Njettiness FastJet plugin represents an exclusive jet finder (yielding a
+fixed N number of jets). The algorithm finds N axes, and jets are simply the sum
+of particles closest to a given axis (or unclustered if they are closest to the
+beam).  The axes finding methods and measures are the same as for Nsubjettiness.
+
+   NjettinessPlugin plugin(N, AxesDefinition, MeasureDefinition);
+   JetDefinition def(&plugin);
+   ClusterSequence cs(vector<PseudoJet>,def);
+   vector<PseudoJet> jets = cs.inclusive_jets();
+
+Note that despite being an exclusive jet algorithm, one finds the jets using the
+inclusive_jets() call.
+
+--------------------------------------------------------------------------------
+Very Advanced Usage:  Njettiness  [Njettiness.hh]
+--------------------------------------------------------------------------------
+
+Most users will want to use the Nsubjettiness or NjettinessPlugin classes to
+access N-(sub)jettiness information.  For direct access to the Njettiness class,
+one can use Njettiness.hh directly. This class is still evolving, so users who
+wish to extend its functionality should contact the authors first.
+
+--------------------------------------------------------------------------------
 Technical Details
-------------------------- 
+--------------------------------------------------------------------------------
 
 In general, the user will never need access to these header files.  Here is a
 brief description about how they are used to help the calculation of
@@ -234,11 +233,12 @@ and its axis, and beta is the angular exponent.  Again, in the future the user
 will be able to write their own measures, but for the time being, only the
 predefined MeasureDefinition values should be used.
 
--------------------------
+--------------------------------------------------------------------------------
 Known Issues
-------------------------- 
+--------------------------------------------------------------------------------
 
--- The MultiPass_Axes mode gives different answers on different runs, since random
-   numbers are used.
--- In rare cases, one pass minimization can give a larger value of Njettiness than
-   without minimization
+-- The MultiPass_Axes mode gives different answers on different runs, since
+   random numbers are used.
+-- In rare cases, one pass minimization can give a larger value of Njettiness
+   than without minimization.
+-- Nsubjettiness is not thread safe, since there are mutables in Njettiness.
