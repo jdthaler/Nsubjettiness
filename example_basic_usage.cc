@@ -4,6 +4,9 @@
 //  Copyright (c) 2011-13
 //  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
+//  Run this example with:
+//     ./example_basic_usage < ../data/single-event.dat
+//
 //  $Id$
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.

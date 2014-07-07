@@ -4,7 +4,7 @@
 //  Copyright (c) 2011-14
 //  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
-//  $Id: Njettiness.hh 653 2014-06-02 08:49:04Z jthaler $
+//  $Id$
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
 //

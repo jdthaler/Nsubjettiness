@@ -1,6 +1,8 @@
 2014-07-07 <JDT>
    Added forward declaration of options in NjettinessDefinition for readability.
    Updated README with some clarifications
+   Added usage information in the example file
+   Reran svn propset svn:keywords Id *.cc *.hh
 2014-06-25 <JDT>
    Declaring release candidate of 2.1
 2014-06-11 <JDT>
