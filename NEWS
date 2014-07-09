@@ -29,7 +29,7 @@ The key new features are:
   * In Nsubjettiness, access to currentSubjets() to get the subjet fourvectors.
 
 
--- 2.1.0:  Inclusion of MeasureDefinition and AxesDefinition interface.
+-- 2.1.0:  (July 9, 2014) Inclusion of MeasureDefinition/AxesDefinition interface.
            This was the first publicly available version of Nsubjettiness v2.
 -- 2.0.0:  Initial release of v2.0.  This was never officially made public.
 
