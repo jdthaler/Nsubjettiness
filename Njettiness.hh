@@ -57,60 +57,9 @@ namespace contrib {
 class Njettiness {
 public:
    
-   // The various axes choices available to the user
-   // It is recommended to use AxesDefinition instead of these.
-   enum AxesMode {
-      kt_axes,             // exclusive kt axes
-      ca_axes,             // exclusive ca axes
-      antikt_0p2_axes,     // inclusive hardest axes with antikt-0.2
-      wta_kt_axes,         // Winner Take All axes with kt
-      wta_ca_axes,         // Winner Take All axes with CA
-      onepass_kt_axes,     // one-pass minimization from kt starting point
-      onepass_ca_axes,     // one-pass minimization from ca starting point
-      onepass_antikt_0p2_axes,  // one-pass minimization from antikt-0.2 starting point
-      onepass_wta_kt_axes, //one-pass minimization of WTA axes with kt 
-      onepass_wta_ca_axes, //one-pass minimization of WTA axes with ca 
-      min_axes,            // axes that minimize N-subjettiness (100 passes by default)
-      manual_axes,         // set your own axes with setAxes()
-      onepass_manual_axes  // one-pass minimization from manual starting point
-      //  These options are commented out because they have not been fully tested
-      //      wta2_kt_axes,        // Winner Take All (alpha = 2) with kt
-      //      wta2_ca_axes,         // Winner Take All (alpha = 2) with CA
-      //      onepass_wta2_kt_axes, //one-pass minimization of WTA (alpha = 2) axes with kt
-      //      onepass_wta2_ca_axes, //one-pass minimization of WTA (alpha = 2) axes with ca
-   };
-
-   // The measures available to the user.
-   // "normalized_cutoff_measure" was the default in v1.0 of Nsubjettiness
-   // "unnormalized_measure" is now the recommended default usage
-   // But it is recommended to use MeasureDefinition instead of these.
-   enum MeasureMode {
-      normalized_measure,           //default normalized measure
-      unnormalized_measure,         //default unnormalized measure
-      geometric_measure,            //geometric measure
-      normalized_cutoff_measure,    //default normalized measure with explicit Rcutoff
-      unnormalized_cutoff_measure,  //default unnormalized measure with explicit Rcutoff
-      geometric_cutoff_measure      //geometric measure with explicit Rcutoff
-   };
-
    // Main constructor that uses AxesMode and MeasureDefinition to specify measure
    // Unlike Nsubjettiness or NjettinessPlugin, the value N is not chosen
    Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def);
-
-   // Intermediate constructor (needed to enable v1.0.3 backwards compatibility?)
-   Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def);
-
-   // Alternative constructor which takes axes/measure information as enums with measure parameters
-   // This version is not recommended
-   Njettiness(AxesMode axes_mode,
-              MeasureMode measure_mode,
-              int num_para,
-              double para1 = std::numeric_limits<double>::quiet_NaN(),
-              double para2 = std::numeric_limits<double>::quiet_NaN(),
-              double para3 = std::numeric_limits<double>::quiet_NaN())
-   : _axes_def(createAxesDef(axes_mode)), _measure_def(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
-      setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
-   }
 
    // destructor
    ~Njettiness() {};
@@ -149,12 +98,12 @@ private:
    SharedPtr<const AxesDefinition> _axes_def;
    SharedPtr<const MeasureDefinition> _measure_def;
    
-   // The chosen axes/measure mode workers
-   // Implemented as SharedPtrs to avoid memory management headaches
-   // TODO: make into a SharedPtr<const AxesFinder>?
-   SharedPtr<MeasureFunction> _measureFunction;  // The chosen measure
-   SharedPtr<AxesFinder> _startingAxesFinder;    // The initial axes finder
-   SharedPtr<AxesFinder> _finishingAxesFinder;   // A possible minimization step
+   // Intermediate storage for easy access to pointers
+   SharedPtr<MeasureFunction> _measureFunction;
+   SharedPtr<StartingAxesFinder> _startingFinder;
+   SharedPtr<RefiningAxesFinder> _refiningFinder;
+   
+   void setMeasureFunctionAndAxesFinder();
    
    // Information about the current information
    // Defined as mutables, so user should be aware that these change when getTau is called.
@@ -164,9 +113,61 @@ private:
    mutable std::vector<fastjet::PseudoJet> _currentJets; //partitioning information
    mutable fastjet::PseudoJet _currentBeam; //return beam, if requested
    
-   // created separate function to set MeasureFunction and AxesFinder in order to keep constructor cleaner.
-   void setMeasureFunctionAndAxesFinder();
+public:
    
+   // These interfaces are included for backwards compability, and may be deprecated in a future release
+   
+   // The various axes choices available to the user
+   // It is recommended to use AxesDefinition instead of these.
+   enum AxesMode {
+      kt_axes,             // exclusive kt axes
+      ca_axes,             // exclusive ca axes
+      antikt_0p2_axes,     // inclusive hardest axes with antikt-0.2
+      wta_kt_axes,         // Winner Take All axes with kt
+      wta_ca_axes,         // Winner Take All axes with CA
+      onepass_kt_axes,     // one-pass minimization from kt starting point
+      onepass_ca_axes,     // one-pass minimization from ca starting point
+      onepass_antikt_0p2_axes,  // one-pass minimization from antikt-0.2 starting point
+      onepass_wta_kt_axes, //one-pass minimization of WTA axes with kt
+      onepass_wta_ca_axes, //one-pass minimization of WTA axes with ca
+      min_axes,            // axes that minimize N-subjettiness (100 passes by default)
+      manual_axes,         // set your own axes with setAxes()
+      onepass_manual_axes  // one-pass minimization from manual starting point
+      //  These options are commented out because they have not been fully tested
+      //      wta2_kt_axes,        // Winner Take All (alpha = 2) with kt
+      //      wta2_ca_axes,         // Winner Take All (alpha = 2) with CA
+      //      onepass_wta2_kt_axes, //one-pass minimization of WTA (alpha = 2) axes with kt
+      //      onepass_wta2_ca_axes, //one-pass minimization of WTA (alpha = 2) axes with ca
+   };
+   
+   // The measures available to the user.
+   // "normalized_cutoff_measure" was the default in v1.0 of Nsubjettiness
+   // "unnormalized_measure" is now the recommended default usage
+   // But it is recommended to use MeasureDefinition instead of these.
+   enum MeasureMode {
+      normalized_measure,           //default normalized measure
+      unnormalized_measure,         //default unnormalized measure
+      geometric_measure,            //geometric measure
+      normalized_cutoff_measure,    //default normalized measure with explicit Rcutoff
+      unnormalized_cutoff_measure,  //default unnormalized measure with explicit Rcutoff
+      geometric_cutoff_measure      //geometric measure with explicit Rcutoff
+   };
+   
+   // Intermediate constructor (needed to enable v1.0.3 backwards compatibility?)
+   Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def);
+   
+   // Alternative constructor which takes axes/measure information as enums with measure parameters
+   // This version is not recommended
+   Njettiness(AxesMode axes_mode,
+              MeasureMode measure_mode,
+              int num_para,
+              double para1 = std::numeric_limits<double>::quiet_NaN(),
+              double para2 = std::numeric_limits<double>::quiet_NaN(),
+              double para3 = std::numeric_limits<double>::quiet_NaN())
+   : _axes_def(createAxesDef(axes_mode)), _measure_def(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
+      setMeasureFunctionAndAxesFinder();
+   }
+  
    // Convert old style enums into new style MeasureDefinition
    AxesDefinition* createAxesDef(AxesMode axes_mode) const;
    

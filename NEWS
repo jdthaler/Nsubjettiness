@@ -9,7 +9,7 @@ Njettiness has changed, we have called this v2 (http://semver.org).
 
 Note that we have maintain backwards compatibility for the typical ways that
 Nsubjettiness was used.  In particular, all of the Nsubjettiness class code in
-the example file v1.0.3 from still compiles, as does the NjettinessPlugin class
+the example file from v1.0.3 still compiles, as does the NjettinessPlugin class
 code that uses the default measure.
 
 The key new features are:

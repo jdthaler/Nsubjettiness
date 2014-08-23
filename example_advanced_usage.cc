@@ -262,7 +262,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          for (unsigned iA = 0; iA < _testAxes.size(); iA++) {
             
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].def().givesRandomizedResults() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
+            if (_testAxes[iA].def().givesRandomizedResults()) continue;
             
             // define Nsubjettiness functions
             Nsubjettiness        nSub1(1,    _testAxes[iA].def(), _testMeasures[iM].def());
@@ -327,7 +327,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
 
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].def().givesRandomizedResults() && !_testMeasures[iM].def().supportsMultiPassMinimization()) continue;
+            if (_testAxes[iA].def().givesRandomizedResults()) continue;
             
             // define the plugins
             NjettinessPlugin nsub_plugin1(1, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());

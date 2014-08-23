@@ -25,6 +25,8 @@
 #ifndef __FASTJET_CONTRIB_NJETTINESSPLUGIN_HH__
 #define __FASTJET_CONTRIB_NJETTINESSPLUGIN_HH__
 
+#include <fastjet/config.h>
+
 #include "Njettiness.hh"
 #include "MeasureFunction.hh"
 #include "AxesFinder.hh"

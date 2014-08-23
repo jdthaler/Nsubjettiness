@@ -91,16 +91,18 @@ public:
    virtual MeasureDefinition* create() const = 0;
    
    //Return the MeasureFunction corresponding to this definition
-   virtual MeasureFunction* createMeasureFunction() const = 0;
+   SharedPtr<MeasureFunction> measureFunction() const { return _measureFunction;}
    
-   //Return the AxesFinder that should be used for one-pass minimization
-   virtual AxesFinder* createOnePassAxesFinder() const = 0;
-
-   //Specify whether multi-pass minimization makes sense, and if so, return the AxesFinder that should be used for multi-pass minimization
-   virtual bool supportsMultiPassMinimization() const = 0;
-   virtual AxesFinder* createMultiPassAxesFinder( unsigned int) const = 0;
-   
+   //Return the AxesFinder that should be used for minimization
+   SharedPtr<RefiningAxesFinder> refiningAxesFinder() const {return _refiningAxesFinder;}
+      
    virtual ~MeasureDefinition(){};
+   
+protected:
+   
+   SharedPtr<MeasureFunction> _measureFunction;
+   SharedPtr<RefiningAxesFinder> _refiningAxesFinder;
+   
 };
 
 // The normalized measure, with two parameters: beta and R0
@@ -108,25 +110,15 @@ class NormalizedMeasure : public MeasureDefinition {
    
 public:
    NormalizedMeasure(double beta, double R0)
-   : _beta(beta), _R0(R0) {}
+   : _beta(beta), _R0(R0) {
+      _measureFunction.reset(new ConicalNormalizedMeasureFunction(_beta,_R0,std::numeric_limits<double>::max()));
+      _refiningAxesFinder.reset(new AxesFinderFromConicalMinimization(_beta, std::numeric_limits<double>::max()));
+   }
    
    virtual std::string description() const;
 
-   virtual MeasureFunction* createMeasureFunction() const {
-      return (new DefaultNormalizedMeasureFunction(_beta,_R0,std::numeric_limits<double>::max()));
-   }
-
    virtual NormalizedMeasure* create() const {return new NormalizedMeasure(*this);}
-   
-   virtual AxesFinder* createOnePassAxesFinder() const {
-      return (new AxesFinderFromOnePassMinimization(_beta, std::numeric_limits<double>::max()));
-   }
-   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
-      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
-   }
 
-   virtual bool supportsMultiPassMinimization() const { return true; }
-   
 private:
    double _beta;
    double _R0;
@@ -137,25 +129,14 @@ class UnnormalizedMeasure : public MeasureDefinition {
 
 public:
    UnnormalizedMeasure(double beta)
-   : _beta(beta) {}
+   : _beta(beta) {
+      _measureFunction.reset(new ConicalUnnormalizedMeasureFunction(_beta,std::numeric_limits<double>::max()));
+      _refiningAxesFinder.reset(new AxesFinderFromConicalMinimization(_beta, std::numeric_limits<double>::max()));
+   }
 
    virtual UnnormalizedMeasure* create() const {return new UnnormalizedMeasure(*this);}
    
    virtual std::string description() const;
-   
-   virtual MeasureFunction* createMeasureFunction() const {
-      return (new DefaultUnnormalizedMeasureFunction(_beta,std::numeric_limits<double>::max()));
-   }
-
-   
-   virtual AxesFinder* createOnePassAxesFinder() const {
-      return (new AxesFinderFromOnePassMinimization(_beta, std::numeric_limits<double>::max()));
-   }
-   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
-      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
-   }
-
-   virtual bool supportsMultiPassMinimization() const { return true; }
 
 private:
    double _beta;
@@ -168,26 +149,15 @@ class GeometricMeasure : public MeasureDefinition {
    
 public:
    GeometricMeasure(double beta)
-   : _beta(beta) {}
+   : _beta(beta) {
+      _measureFunction.reset(new GeometricMeasureFunction(_beta,std::numeric_limits<double>::max()));
+      _refiningAxesFinder.reset(new AxesFinderFromGeometricMinimization(_beta, std::numeric_limits<double>::max()));
+   }
    
    virtual GeometricMeasure* create() const {return new GeometricMeasure(*this);}
    
    virtual std::string description() const;
    
-   virtual MeasureFunction* createMeasureFunction() const {
-      return (new GeometricMeasureFunction(_beta,std::numeric_limits<double>::max()));
-   }
-   
-   virtual AxesFinder* createOnePassAxesFinder() const {
-      return (new AxesFinderFromGeometricMinimization(_beta, std::numeric_limits<double>::max()));
-   }
-   virtual AxesFinder* createMultiPassAxesFinder(unsigned int) const {
-      throw Error("GeometricMeasure does not support multi-pass minimization.");
-      return NULL;
-   }
-   
-   virtual bool supportsMultiPassMinimization() const { return false; }
-
 private:
    double _beta;
 
@@ -199,25 +169,15 @@ class NormalizedCutoffMeasure : public MeasureDefinition {
 
 public:
    NormalizedCutoffMeasure(double beta, double R0, double Rcutoff)
-   : _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
+   : _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {
+      _measureFunction.reset(new ConicalNormalizedMeasureFunction(_beta,_R0,_Rcutoff));
+      _refiningAxesFinder.reset(new AxesFinderFromConicalMinimization(_beta, _Rcutoff));
+   }
 
    virtual std::string description() const;
    
    virtual NormalizedCutoffMeasure* create() const {return new NormalizedCutoffMeasure(*this);}
    
-   virtual MeasureFunction* createMeasureFunction() const {
-      return (new DefaultNormalizedMeasureFunction(_beta,_R0,_Rcutoff));
-   }
-   
-   virtual AxesFinder* createOnePassAxesFinder() const {
-      return (new AxesFinderFromOnePassMinimization(_beta, _Rcutoff));
-   }
-   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
-      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
-   }
-  
-   virtual bool supportsMultiPassMinimization() const { return true; }
-
 private:
    double _beta;
    double _R0;
@@ -230,24 +190,14 @@ class UnnormalizedCutoffMeasure : public MeasureDefinition {
    
 public:
    UnnormalizedCutoffMeasure(double beta, double Rcutoff)
-   : _beta(beta), _Rcutoff(Rcutoff) {}
+   : _beta(beta), _Rcutoff(Rcutoff) {
+      _measureFunction.reset(new ConicalUnnormalizedMeasureFunction(_beta,_Rcutoff));
+      _refiningAxesFinder.reset(new AxesFinderFromConicalMinimization(_beta, _Rcutoff));
+   }
 
    virtual std::string description() const;
    
    virtual UnnormalizedCutoffMeasure* create() const {return new UnnormalizedCutoffMeasure(*this);}
-
-   virtual MeasureFunction* createMeasureFunction() const {
-      return (new DefaultUnnormalizedMeasureFunction(_beta,_Rcutoff));
-   }
-   
-   virtual AxesFinder* createOnePassAxesFinder() const {
-      return (new AxesFinderFromOnePassMinimization(_beta, _Rcutoff));
-   }
-   virtual AxesFinder* createMultiPassAxesFinder( unsigned int Npass) const {
-      return (new AxesFinderFromKmeansMinimization(_beta, std::numeric_limits<double>::max(),Npass));
-   }
-
-   virtual bool supportsMultiPassMinimization() const { return true; }
 
 private:
    double _beta;
@@ -261,25 +211,14 @@ class GeometricCutoffMeasure : public MeasureDefinition {
    
 public:
    GeometricCutoffMeasure(double beta, double Rcutoff)
-   : _beta(beta), _Rcutoff(Rcutoff) {}
+   : _beta(beta), _Rcutoff(Rcutoff) {
+      _measureFunction.reset(new GeometricMeasureFunction(_beta,_Rcutoff));
+      _refiningAxesFinder.reset(new AxesFinderFromGeometricMinimization(_beta, _Rcutoff));
+   }
 
    virtual GeometricCutoffMeasure* create() const {return new GeometricCutoffMeasure(*this);}
 
    virtual std::string description() const;
-   
-   virtual MeasureFunction* createMeasureFunction() const {
-      return (new GeometricMeasureFunction(_beta,_Rcutoff));
-   }
-   
-   virtual AxesFinder* createOnePassAxesFinder() const {
-      return (new AxesFinderFromGeometricMinimization(_beta, _Rcutoff));
-   }
-   virtual AxesFinder* createMultiPassAxesFinder(unsigned int) const {
-      throw Error("GeometricCutoffMeasure does not support multi-pass minimization.");
-      return NULL;
-   }
-   
-   virtual bool supportsMultiPassMinimization() const { return false; }
 
 private:
    double _beta;
@@ -293,37 +232,63 @@ private:
 // AxesDefinition
 //
 ///////
-
+  
+  
 //Analogous to MeasureDefinition, AxesDefinition defines which AxesFinder to use
 //At the moment, most AxesDefinition do not have an arugment (except the Anti-KT ones)
 class AxesDefinition {
    
 public:
+
+   enum AxesRefiningMode { // define the cases of zero pass and one pass for convenience
+      NO_REFINING,
+      ONE_PASS,
+      MULTI_PASS,
+   };
+   
+   AxesDefinition(AxesRefiningMode mode, int nPass = 0) : _refiningMode(mode), _Npass(nPass) {}
+   
    // description of axes (and any parameters)
    virtual std::string short_description() const = 0;
    virtual std::string description() const = 0;
    
-   // In derived classes, this should return a copy of the corresponding
-   // derived class
+   // This has to be defined in all derived classes
    virtual AxesDefinition* create() const = 0;
+
    
    // These describe how the axes finder works
-   virtual bool givesRandomizedResults() const = 0;
-   virtual bool supportsManualAxes() const = 0;
+   bool givesRandomizedResults() const {
+      return (_refiningMode == MULTI_PASS);
+   }
    
-   //for best testing
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const = 0;
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition &) const {
-      return NULL;  //By default, nothing.
-   };
+   bool needsManualAxes() const {
+      return (_startingAxesFinder() == NULL); // if there is no starting axes finder
+   }
+   
+   // return starting Axes finder already defined
+   SharedPtr<StartingAxesFinder> startingAxesFinder() const { return _startingAxesFinder; }
+   
+   AxesRefiningMode refiningMode() const { return _refiningMode; }
+   
+   int nPass() const { return _Npass; }
 
    virtual ~AxesDefinition() {};
+   
+protected:
+   
+   SharedPtr<StartingAxesFinder> _startingAxesFinder;
+   AxesRefiningMode _refiningMode;
+   int _Npass;
+   
 };
-
+  
+  
 // kt axes
 class KT_Axes : public AxesDefinition {
 public:
-   KT_Axes() {}
+   KT_Axes() : AxesDefinition(NO_REFINING) {
+      _startingAxesFinder.reset(new AxesFinderFromKT());
+   }
 
    virtual std::string short_description() const {
       return "KT";
@@ -338,19 +303,14 @@ public:
    
    virtual KT_Axes* create() const {return new KT_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
-      return (new AxesFinderFromKT());
-   }
-   
 };
 
 // ca axes
 class CA_Axes : public AxesDefinition {
 public:
-   CA_Axes() {}
+   CA_Axes() : AxesDefinition(NO_REFINING) {
+      _startingAxesFinder.reset(new AxesFinderFromCA());
+   }
 
    virtual std::string short_description() const {
       return "CA";
@@ -364,13 +324,6 @@ public:
    };
    
    virtual CA_Axes* create() const {return new CA_Axes(*this);}
-
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
-      return (new AxesFinderFromCA());
-   }
    
 };
 
@@ -378,7 +331,9 @@ public:
 class AntiKT_Axes : public AxesDefinition {
 
 public:
-   AntiKT_Axes(double R0 = 0.2): _R0(R0) {}
+   AntiKT_Axes(double R0 = 0.2) : AxesDefinition(NO_REFINING), _R0(R0) {
+      _startingAxesFinder.reset(new AxesFinderFromAntiKT(_R0));
+   }
 
    virtual std::string short_description() const {
       std::stringstream stream;
@@ -395,14 +350,6 @@ public:
    };
    
    virtual AntiKT_Axes* create() const {return new AntiKT_Axes(*this);}
-
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
-      return (new AxesFinderFromAntiKT(_R0));
-   }
-   
    
 private:
    double _R0;
@@ -412,7 +359,9 @@ private:
 // winner-take-all recombination with kt axes
 class WTA_KT_Axes : public AxesDefinition {
 public:
-   WTA_KT_Axes() {}
+   WTA_KT_Axes() : AxesDefinition(NO_REFINING) {
+      _startingAxesFinder.reset(new AxesFinderFromWTA_KT());
+   }
 
    virtual std::string short_description() const {
       return "WTA KT";
@@ -427,20 +376,15 @@ public:
    
    virtual WTA_KT_Axes* create() const {return new WTA_KT_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
-      return (new AxesFinderFromWTA_KT());
-   }
-
    
 };
 
 // winner-take-all recombination with CA axes
 class WTA_CA_Axes : public AxesDefinition {
 public:
-   WTA_CA_Axes() {}
+   WTA_CA_Axes() : AxesDefinition(NO_REFINING) {
+      _startingAxesFinder.reset(new AxesFinderFromWTA_CA());
+   }
 
    virtual std::string short_description() const {
       return "WTA CA";
@@ -455,19 +399,15 @@ public:
    
    virtual WTA_CA_Axes* create() const {return new WTA_CA_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
 
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
-      return (new AxesFinderFromWTA_CA());
-   }
-   
 };
    
 // Onepass minimization from kt axes
 class OnePass_KT_Axes : public AxesDefinition {
 public:
-   OnePass_KT_Axes() {}
+   OnePass_KT_Axes() : AxesDefinition(ONE_PASS) {
+      _startingAxesFinder.reset(new AxesFinderFromKT());
+   }
    
    virtual std::string short_description() const {
       return "OnePass KT";
@@ -482,22 +422,15 @@ public:
    
    virtual OnePass_KT_Axes* create() const {return new OnePass_KT_Axes(*this);}
    
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromKT());
-   }
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createOnePassAxesFinder();
-   }
 
 };
 
 // Onepass minimization from CA axes
 class OnePass_CA_Axes : public AxesDefinition {
 public:
-   OnePass_CA_Axes() {}
+   OnePass_CA_Axes() : AxesDefinition(ONE_PASS) {
+      _startingAxesFinder.reset(new AxesFinderFromCA());
+   }
 
    virtual std::string short_description() const {
       return "OnePass CA";
@@ -512,22 +445,16 @@ public:
    
    virtual OnePass_CA_Axes* create() const {return new OnePass_CA_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
 
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromCA());
-   }
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createOnePassAxesFinder();
-   }
 };
 
 // Onepass minimization from AntiKT axes, one parameter R0
 class OnePass_AntiKT_Axes : public AxesDefinition {
 
 public:
-   OnePass_AntiKT_Axes(double R0): _R0(R0) {}
+   OnePass_AntiKT_Axes(double R0) : AxesDefinition(ONE_PASS), _R0(R0) {
+      _startingAxesFinder.reset(new AxesFinderFromAntiKT(_R0));
+   }
    
    virtual std::string short_description() const {
       std::stringstream stream;
@@ -545,15 +472,7 @@ public:
    
    virtual OnePass_AntiKT_Axes* create() const {return new OnePass_AntiKT_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
 
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromAntiKT(_R0));
-   }
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createOnePassAxesFinder();
-   }
 
 private:
    double _R0;
@@ -562,7 +481,9 @@ private:
 // Onepass minimization from winner-take-all kt axes
 class OnePass_WTA_KT_Axes : public AxesDefinition {
 public:
-   OnePass_WTA_KT_Axes() {}
+   OnePass_WTA_KT_Axes() : AxesDefinition(ONE_PASS) {
+      _startingAxesFinder.reset(new AxesFinderFromWTA_KT());
+   }
    
    virtual std::string short_description() const {
       return "OnePass WTA KT";
@@ -577,22 +498,17 @@ public:
    
    virtual OnePass_WTA_KT_Axes* create() const {return new OnePass_WTA_KT_Axes(*this);}
    
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
 
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromWTA_KT());
-   }
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createOnePassAxesFinder();
-   }
 };
 
 
 // Onepass minimization from winner-take-all CA axes
 class OnePass_WTA_CA_Axes : public AxesDefinition {
+   
 public:
-   OnePass_WTA_CA_Axes() {}
+   OnePass_WTA_CA_Axes() : AxesDefinition(ONE_PASS) {
+      _startingAxesFinder.reset(new AxesFinderFromWTA_CA());
+   }
 
    virtual std::string short_description() const {
       return "OnePass WTA CA";
@@ -608,16 +524,6 @@ public:
    virtual OnePass_WTA_CA_Axes* create() const {return new OnePass_WTA_CA_Axes(*this);}
    
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromWTA_CA());
-   }
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createOnePassAxesFinder();
-   }
 
    
 };
@@ -625,7 +531,9 @@ public:
 // set axes manually
 class Manual_Axes : public AxesDefinition {
 public:
-   Manual_Axes() {}
+   Manual_Axes() : AxesDefinition(NO_REFINING) {
+      _startingAxesFinder.reset(); // NULL
+   }
    
    virtual std::string short_description() const {
       return "Manual";
@@ -640,18 +548,15 @@ public:
    
    virtual Manual_Axes* create() const {return new Manual_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return true;}
 
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition &) const {
-      return (new AxesFinderFromUserInput());
-   }
 };
 
 // one pass minimization from manual starting point
 class OnePass_Manual_Axes : public AxesDefinition {
 public:
-   OnePass_Manual_Axes() {}
+   OnePass_Manual_Axes() : AxesDefinition(ONE_PASS) {
+      _startingAxesFinder.reset(); // NULL
+   }
 
    virtual std::string short_description() const {
       return "OnePass Manual";
@@ -666,16 +571,6 @@ public:
    
    virtual OnePass_Manual_Axes* create() const {return new OnePass_Manual_Axes(*this);}
 
-   virtual bool givesRandomizedResults() const {return false;}
-   virtual bool supportsManualAxes() const {return true;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromUserInput());
-   }
-   virtual AxesFinder* createFinishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createOnePassAxesFinder();
-   }
-
    
 };
    
@@ -683,7 +578,9 @@ public:
 class MultiPass_Axes : public AxesDefinition {
 
 public:
-   MultiPass_Axes(unsigned int Npass) : _Npass(Npass) {}
+   MultiPass_Axes(unsigned int Npass) : AxesDefinition(MULTI_PASS,Npass) {
+      _startingAxesFinder.reset(new AxesFinderFromKT());
+   }
 
    virtual std::string short_description() const {
       return "MultiPass";
@@ -699,17 +596,6 @@ public:
    virtual MultiPass_Axes* create() const {return new MultiPass_Axes(*this);}
 
    virtual bool givesRandomizedResults() const {return true;}
-   virtual bool supportsManualAxes() const {return false;}
-
-   virtual AxesFinder* createStartingAxesFinder(const MeasureDefinition & ) const {
-      return (new AxesFinderFromKT());
-   }
-   virtual AxesFinder* createFnishingAxesFinder(const MeasureDefinition & measure_def) const {
-      return measure_def.createMultiPassAxesFinder(_Npass);
-   }
-   
-private:
-   unsigned int _Npass;
    
 };
    

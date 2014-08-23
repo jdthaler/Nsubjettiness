@@ -35,14 +35,37 @@ namespace contrib {
 //
 ///////
 
+void Njettiness::setMeasureFunctionAndAxesFinder() {
+   _measureFunction.reset(_measure_def->measureFunction());
+   _startingFinder.reset(_axes_def->startingAxesFinder());
+   
+   // Figure out what refining steps are needed
+   if (_axes_def->refiningMode() == AxesDefinition::NO_REFINING) {
+      _refiningFinder.reset();
+   } else {
+      _refiningFinder.reset(_measure_def->refiningAxesFinder());
+      if (!_refiningFinder()) {
+         throw Error("The selected MeasureDefinition does not support minimization.");
+      } else {
+         if (_axes_def->refiningMode() == AxesDefinition::ONE_PASS) {
+            _refiningFinder->setOnePassMode();
+         } else if (_axes_def->refiningMode() == AxesDefinition::MULTI_PASS) {
+            _refiningFinder->setMultiPassMode(_axes_def->nPass());
+         } else {
+            assert(false); // should never get here.
+         }
+      }
+   }
+}
+   
 Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def)
 : _axes_def(axes_def.create()), _measure_def(measure_def.create()) {
-   setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
+   setMeasureFunctionAndAxesFinder();
 }
 
 Njettiness::Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def)
 : _axes_def(createAxesDef(axes_mode)), _measure_def(measure_def.create()) {
-   setMeasureFunctionAndAxesFinder();  // call helper function to do the hard work
+   setMeasureFunctionAndAxesFinder();
 }
    
 // Convert from MeasureMode enum to MeasureDefinition
@@ -155,19 +178,10 @@ AxesDefinition* Njettiness::createAxesDef(Njettiness::AxesMode axes_mode) const 
    }
 }
 
-   
-// Parsing needed for constructor to set AxesFinder and MeasureFunction
-// All of the parameter handling is here, and checking that number of parameters is correct.
-void Njettiness::setMeasureFunctionAndAxesFinder() {
-   // Get the correct MeasureFunction and AxesFinders
-   _measureFunction.reset(_measure_def->createMeasureFunction());
-   _startingAxesFinder.reset(_axes_def->createStartingAxesFinder(*_measure_def));
-   _finishingAxesFinder.reset(_axes_def->createFinishingAxesFinder(*_measure_def));
-}
 
 // setAxes for Manual mode
 void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-   if (_axes_def->supportsManualAxes()) {
+   if (_axes_def->needsManualAxes()) {
       _currentAxes = myAxes;
    } else {
       throw Error("You can only use setAxes for manual AxesDefinitions");
@@ -185,10 +199,16 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _currentJets = _currentAxes;
       _currentBeam = PseudoJet(0.0,0.0,0.0,0.0);
    } else {
-
-      _seedAxes = _startingAxesFinder->getAxes(n_jets,inputJets,_currentAxes); //sets starting point for minimization
-      if (_finishingAxesFinder) {
-         _currentAxes = _finishingAxesFinder->getAxes(n_jets,inputJets,_seedAxes);
+      // Initial axes finding
+      if (_startingFinder()) {
+         _seedAxes = _startingFinder->getAxes(n_jets,inputJets); //sets starting point for minimization
+      } else {
+         _seedAxes = _currentAxes; //manual mode
+      }
+   
+      // One-pass or multi-pass minimization step
+      if (_refiningFinder()) {
+         _currentAxes = _refiningFinder->getAxes(n_jets,inputJets,_seedAxes);
       } else {
          _currentAxes = _seedAxes;
       }
@@ -210,7 +230,7 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 // particles of the particles belonging to that jet.
 std::vector<std::list<int> > Njettiness::getPartitionList(const std::vector<fastjet::PseudoJet> & particles) const {
    // core code is in MeasureFunction
-   return _measureFunction->get_partition_list(particles,_currentAxes);
+   return _measure_def->measureFunction()->get_partition_list(particles,_currentAxes);
 }
 
    

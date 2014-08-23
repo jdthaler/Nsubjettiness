@@ -74,69 +74,28 @@ public:
                  const MeasureDefinition& measure_def)
    : _njettinessFinder(axes_def,measure_def), _N(N) {}
    
-   
-   // Alternative constructors that define the measure via enums and parameters
-   // These constructors are likely be removed
-   // Zero parameter arguments
-   // (Currently, no measure uses this)
-   Nsubjettiness(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode)
-   : _njettinessFinder(axes_mode, measure_mode, 0), _N(N) {}
-
-   // One parameter argument
-   // (for unnormalized_measure, para1=beta)
-   Nsubjettiness(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode,
-                 double para1)
-   : _njettinessFinder(axes_mode, measure_mode, 1, para1), _N(N) {}
-
-   // Two parameter arguments
-   // (for normalized_measure, para1=beta, para2=R0)
-   // (for unnormalized_cutoff_measure, para1=beta, para2=Rcutoff)
-   Nsubjettiness(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode,
-                 double para1,
-                 double para2)
-   : _njettinessFinder(axes_mode, measure_mode, 2, para1, para2), _N(N) {}
-
-   // Three parameter arguments
-   // (for unnormalized_cutoff_measure, para1=beta, para2=R0, para3=Rcutoff)
-   Nsubjettiness(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode,
-                 double para1,
-                 double para2,
-                 double para3)
-   : _njettinessFinder(axes_mode, measure_mode, 3, para1, para2, para3), _N(N) {}
-
-   // Old constructor for backwards compatibility with v1.0,
-   // where normalized_cutoff_measure was the only option
-   Nsubjettiness(int N,
-                 Njettiness::AxesMode axes_mode,
-                 double beta,
-                 double R0,
-                 double Rcutoff=std::numeric_limits<double>::max())
-   : _njettinessFinder(axes_mode, NormalizedCutoffMeasure(beta,R0,Rcutoff)), _N(N) {}
-   
    /// returns tau_N, measured on the constituents of this jet 
    double result(const PseudoJet& jet) const;
 
    /// returns components of tau_N, so that user can find individual tau values.
    TauComponents component_result(const PseudoJet& jet) const;
    
-   /// returns current axes found by result() calculation
-   std::vector<fastjet::PseudoJet> currentAxes() const {
-      return _njettinessFinder.currentAxes();
+   // To set axes for manual use
+   void setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
+      // Cross check that manual axes are being used is in Njettiness
+    	_njettinessFinder.setAxes(myAxes);
    }
-
+   
    /// returns seed axes used for onepass minimization (otherwise same as currentAxes)
    std::vector<fastjet::PseudoJet> seedAxes() const {
       return _njettinessFinder.seedAxes();
    }
    
+   /// returns current axes found by result() calculation
+   std::vector<fastjet::PseudoJet> currentAxes() const {
+      return _njettinessFinder.currentAxes();
+   }
+
    /// returns subjet regions found by result() calculation (these have valid constituents)
    /// Note that the axes and the subjets are not the same
    std::vector<fastjet::PseudoJet> currentSubjets() const {
@@ -148,18 +107,63 @@ public:
       return _njettinessFinder.currentTauComponents();
    }
    
-   // To set axes for manual use
-   void setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-      // Cross check that manual axes are being used is in Njettiness
-    	_njettinessFinder.setAxes(myAxes);
-   }
-   
    
 private:
    
    Njettiness _njettinessFinder; // TODO:  should muck with this so result can be const without this mutable
    int _N;
 
+public:
+   
+   // The following interfaces are included for backwards compatibility, but no longer recommended.
+   // They may be deprecated at some point.
+   
+   // Alternative constructors that define the measure via enums and parameters
+   // These constructors are likely be removed
+   // Zero parameter arguments
+   // (Currently, no measure uses this)
+   Nsubjettiness(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode)
+   : _njettinessFinder(axes_mode, measure_mode, 0), _N(N) {}
+   
+   // One parameter argument
+   // (for unnormalized_measure, para1=beta)
+   Nsubjettiness(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode,
+                 double para1)
+   : _njettinessFinder(axes_mode, measure_mode, 1, para1), _N(N) {}
+   
+   // Two parameter arguments
+   // (for normalized_measure, para1=beta, para2=R0)
+   // (for unnormalized_cutoff_measure, para1=beta, para2=Rcutoff)
+   Nsubjettiness(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode,
+                 double para1,
+                 double para2)
+   : _njettinessFinder(axes_mode, measure_mode, 2, para1, para2), _N(N) {}
+   
+   // Three parameter arguments
+   // (for unnormalized_cutoff_measure, para1=beta, para2=R0, para3=Rcutoff)
+   Nsubjettiness(int N,
+                 Njettiness::AxesMode axes_mode,
+                 Njettiness::MeasureMode measure_mode,
+                 double para1,
+                 double para2,
+                 double para3)
+   : _njettinessFinder(axes_mode, measure_mode, 3, para1, para2, para3), _N(N) {}
+   
+   // Old constructor for backwards compatibility with v1.0,
+   // where normalized_cutoff_measure was the only option
+   Nsubjettiness(int N,
+                 Njettiness::AxesMode axes_mode,
+                 double beta,
+                 double R0,
+                 double Rcutoff=std::numeric_limits<double>::max())
+   : _njettinessFinder(axes_mode, NormalizedCutoffMeasure(beta,R0,Rcutoff)), _N(N) {}
+   
 };
 
 
@@ -178,6 +182,19 @@ public:
                       const MeasureDefinition & measure_def)
    : _nsub_numerator(N,axes_def,measure_def),
    _nsub_denominator(M,axes_def,measure_def) {}
+
+   //returns tau_N/tau_M based off the input jet using result function from Nsubjettiness
+   double result(const PseudoJet& jet) const;
+
+private: 
+
+   Nsubjettiness _nsub_numerator;
+   Nsubjettiness _nsub_denominator;
+
+public:
+   
+   // The following interfaces are included for backwards compatibility, but no longer recommended.
+   // They may be deprecated at some point.
    
    // Alternative constructor with enums and parameters
    // Again, likely to be removed
@@ -187,7 +204,7 @@ public:
                       Njettiness::MeasureMode measure_mode)
    : _nsub_numerator(N, axes_mode, measure_mode),
    _nsub_denominator(M, axes_mode, measure_mode) {}
-
+   
    
    NsubjettinessRatio(int N,
                       int M,
@@ -196,7 +213,7 @@ public:
                       double para1)
    : _nsub_numerator(N, axes_mode, measure_mode, para1),
    _nsub_denominator(M, axes_mode, measure_mode, para1) {}
-
+   
    NsubjettinessRatio(int N,
                       int M,
                       Njettiness::AxesMode axes_mode,
@@ -216,14 +233,7 @@ public:
    : _nsub_numerator(N, axes_mode, measure_mode, para1, para2, para3),
    _nsub_denominator(M, axes_mode, measure_mode, para1, para2, para3) {}
 
-   //returns tau_N/tau_M based off the input jet using result function from Nsubjettiness
-   double result(const PseudoJet& jet) const;
-
-private: 
-
-   Nsubjettiness _nsub_numerator;
-   Nsubjettiness _nsub_denominator;
-
+   
 };
 
 } // namespace contrib

@@ -43,44 +43,39 @@ namespace contrib{
 
 ///////
 //
-// Axes Finder Options
+// Starting Axes Finders
 //
 ///////
-
+  
 //------------------------------------------------------------------------
-/// \class AxesFinder
-// This is the base class for all axes finders. These axes are used along with the MeasureFunctions to calculate 
-// tau_N. There are different implementations of axes finding that are defined in derived classes below.
-class AxesFinder {
+/// \class StartingAxesFinder
+// This is the base class for all starting axes finders.  Starting axes finders do not need
+// seed axes and typical are based on sequential jet algorithms
+class StartingAxesFinder {
    
 public:
    
    // This function should be overloaded, and updates the seedAxes to return new axes
    virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets,
-                                                   const std::vector<fastjet::PseudoJet>& inputs,
-                                                   const std::vector<fastjet::PseudoJet>& seedAxes) const = 0;
-   // convenient shorthand for squaring
-   static inline double sq(double x) {return x*x;}
-
+                                                   const std::vector<fastjet::PseudoJet>& inputs) const = 0;
+   
    //virtual destructor
-   virtual ~AxesFinder(){}
+   virtual ~StartingAxesFinder(){}
    
 };
-
    
 //------------------------------------------------------------------------
 /// \class AxesFinderFromExclusiveJetDefinition
 // This class finds axes by clustering the particles and then finding the exclusive jets. This can be implemented
 // with different jet algorithms.
-class AxesFinderFromExclusiveJetDefinition : public AxesFinder {
+class AxesFinderFromExclusiveJetDefinition : public StartingAxesFinder {
    
 public:
    AxesFinderFromExclusiveJetDefinition(fastjet::JetDefinition def)
    : _def(def) {}
    
    virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets,
-                                                   const std::vector <fastjet::PseudoJet> & inputs,
-                                                   const std::vector<fastjet::PseudoJet>& /*seedAxes*/) const {
+                                                   const std::vector <fastjet::PseudoJet> & inputs) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
       return jet_clust_seq.exclusive_jets(n_jets);
    }
@@ -160,14 +155,13 @@ public:
 /// \class AxesFinderFromHardestJetDefinition
 // This class finds axes by clustering the particles and then finding the n hardest inclusive jets. 
 // This can be implemented with different jet algorithms.
-class AxesFinderFromHardestJetDefinition : public AxesFinder {
+class AxesFinderFromHardestJetDefinition : public StartingAxesFinder {
 public:
    AxesFinderFromHardestJetDefinition(fastjet::JetDefinition def)
    : _def(def) {}
    
    virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets,
-                                                   const std::vector <fastjet::PseudoJet> & inputs,
-                                                   const std::vector<fastjet::PseudoJet>& /*seedAxes*/) const {
+                                                   const std::vector <fastjet::PseudoJet> & inputs) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
       std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
       myJets.resize(n_jets);  // only keep n hardest
@@ -190,45 +184,90 @@ public:
                              R0,fastjet::E_scheme,fastjet::Best)) {}
 };
 
+   
+
+///////
+//
+// Refining Axes Finders
+//
+///////
 
 //------------------------------------------------------------------------
-/// \class AxesFinderFromUserInput
-// This class allows the user to manually define the axes.
-class AxesFinderFromUserInput : public AxesFinder {
-
-public:
-   AxesFinderFromUserInput() {}
+/// \class RefiningAxesFinder
+// This is the base class for all refining axes finders. These require seed axes, which are
+// then refined using an algorithm that is specific to a particular measure.
+class RefiningAxesFinder {
    
-   virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & /*inputs*/, const std::vector<fastjet::PseudoJet>& currentAxes) const {
-      assert(currentAxes.size() == (unsigned int) n_jets);
-      (void)(n_jets);  // adding this line to fix unused-parameter warning
-      return currentAxes;
+public:
+   
+   // This function should be overloaded, and updates the seedAxes to return new axes (should be deterministic)
+   virtual std::vector<fastjet::PseudoJet> getOnePassAxes(int n_jets,
+                                                          const std::vector<fastjet::PseudoJet>& inputs,
+                                                          const std::vector<fastjet::PseudoJet>& seedAxes) const = 0;
+   
+   // Uses the value of Npass to decide whether to do one pass or multi-pass minimization
+   std::vector<fastjet::PseudoJet> getAxes(int n_jets,
+                                           const std::vector<fastjet::PseudoJet>& inputs,
+                                           const std::vector<fastjet::PseudoJet>& seedAxes) const;
+   
+   void setMultiPassMode(int n_pass) {
+      if (n_pass <= 1) Error("MultiPassMode can only be set with n_pass > 1.");
+      _noise_range = 1.0;  //TODO:  Allow this to be changed by the user
+      _Npass = n_pass;
    }
+   
+   void setOnePassMode() { _Npass = 1; }
+   
+   //virtual destructor
+   virtual ~RefiningAxesFinder(){}
+   
+protected:
+   
+   // Constructor
+   RefiningAxesFinder() : _Npass(1) // default to one pass in case setOnePassMode() isn't called
+   {}
+   
+   // information for multi pass mode
+   int _Npass;
+   double _noise_range; // noise range for random initialization
+   
+   // This has to be set in each derived class so multi pass minimization knows when better axes are found
+   SharedPtr<MeasureFunction> _associatedMeasure;
+   
+   // Does multi-pass minimization by jiggling the axes.
+   std::vector<fastjet::PseudoJet> getMultiPassAxes(int n_jets,
+                                                    const std::vector<fastjet::PseudoJet>& inputs,
+                                                    const std::vector<fastjet::PseudoJet>& seedAxes) const;
+   
+   
+   PseudoJet jiggle(const PseudoJet& axis) const;
 };
+
 
 //This is a helper class for the Minimum Axes Finders. It is defined later.
 class LightLikeAxis;                                          
 
 
 //------------------------------------------------------------------------
-/// \class AxesFinderFromOnePassMinimization
+/// \class AxesFinderFromConicalMinimization
 // This class defines an AxesFinder that uses Kmeans minimization, but only on a single pass.
-class AxesFinderFromOnePassMinimization : public AxesFinder {
+class AxesFinderFromConicalMinimization : public RefiningAxesFinder {
 
 public:
 
    // From a startingFinder, try to minimize the unnormalized_measure
-   AxesFinderFromOnePassMinimization(double beta, double Rcutoff)
+   AxesFinderFromConicalMinimization(double beta, double Rcutoff)
       : _precision(0.0001), //hard coded for now
         _halt(1000), //hard coded for now
         _beta(beta),
-        _Rcutoff(Rcutoff),
-        _measureFunction(beta, Rcutoff)
-        {}
+        _Rcutoff(Rcutoff)
+   {
+      _associatedMeasure.reset(new ConicalUnnormalizedMeasureFunction(beta,Rcutoff));
+   }
 
-   virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets,
-                                                   const std::vector <fastjet::PseudoJet> & inputJets,
-                                                   const std::vector<fastjet::PseudoJet>& currentAxes) const;
+   virtual std::vector<fastjet::PseudoJet> getOnePassAxes(int n_jets,
+                                                          const std::vector <fastjet::PseudoJet> & inputJets,
+                                                          const std::vector<fastjet::PseudoJet>& currentAxes) const;
    
 private:
    double _precision;  // Desired precision in axes alignment
@@ -237,7 +276,8 @@ private:
    double _beta;
    double _Rcutoff;
    
-   DefaultUnnormalizedMeasureFunction _measureFunction;
+   // convenient shorthand for squaring
+   static inline double sq(double x) {return x*x;}
    
    template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes,
                                                               const std::vector <fastjet::PseudoJet> & inputJets) const;
@@ -247,59 +287,28 @@ private:
 
 };
 
-
-//------------------------------------------------------------------------
-/// \class AxesFinderFromKmeansMinimization
-// This class finds finds axes by using Kmeans clustering to minimizaiton N-jettiness. Given a first set of 
-// starting axes, it updates n times to get as close to the global minimum as possible. This class calls OnePass many times,
-// added noise to the axes.
-class AxesFinderFromKmeansMinimization : public AxesFinder{
-
-public:
-   AxesFinderFromKmeansMinimization(double beta, double Rcutoff, int n_iterations)
-   :  _n_iterations(n_iterations),
-      _noise_range(1.0), // hard coded for the time being
-      _measureFunction(beta, Rcutoff),
-      _onePassFinder(beta, Rcutoff)
-      {}
-
-   virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& currentAxes) const;
-   
-private:
-   int _n_iterations;   // Number of iterations to run  (0 for no minimization, 1 for one-pass, >>1 for global minimum)
-   double _noise_range; // noise range for random initialization
-   
-   DefaultUnnormalizedMeasureFunction _measureFunction; //function to test whether minimum is reached
-   
-   AxesFinderFromOnePassMinimization _onePassFinder;  //one pass finder that is repeatedly called
-   
-   PseudoJet jiggle(const PseudoJet& axis) const;
-};
-
 //------------------------------------------------------------------------
 /// \class AxesFinderFromGeometricMinimization
 // This class finds axes by minimizing the Lorentz dot product distance between axes and particles. Given a first set of starting axes,
 // it essentially does stable cone finxing.
-class AxesFinderFromGeometricMinimization : public AxesFinder {
+class AxesFinderFromGeometricMinimization : public RefiningAxesFinder {
 
 public:
    AxesFinderFromGeometricMinimization(double beta, double Rcutoff)
    :  _nAttempts(100),
-      _accuracy(0.000000001),
-      _function(beta,Rcutoff)
+      _accuracy(0.000000001)
    {
       if (beta != 2.0) {
          throw Error("Geometric minimization is currently only defined for beta = 2.0.");
       }
+      _associatedMeasure.reset(new GeometricMeasureFunction(beta,Rcutoff));
    }
 
-   virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const;
+   virtual std::vector<fastjet::PseudoJet> getOnePassAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const;
 
 private:
    double _nAttempts;
    double _accuracy;
-   GeometricMeasureFunction _function;
-
 
 };
 

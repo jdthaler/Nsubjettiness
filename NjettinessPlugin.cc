@@ -78,9 +78,16 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    //HACK:  Re-reverse order of reading to match CS order
    reverse(jet_indices_for_extras.begin(),jet_indices_for_extras.end());
 
+   // Store extra information about jets 
    NjettinessExtras * extras = new NjettinessExtras(_njettinessFinder.currentTauComponents(),jet_indices_for_extras,_njettinessFinder.currentAxes());
+
+#if FASTJET_VERSION_NUMBER>=30100
+   cs.plugin_associate_extras(extras);
+#else
+   // auto_ptr no longer supported, apparently
    cs.plugin_associate_extras(std::auto_ptr<ClusterSequence::Extras>(extras));
-   
+#endif
+  
 }
 
 

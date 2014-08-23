@@ -185,15 +185,15 @@ protected:
 };
 
 
-/// \class DefaultNormalizedMeasureFunction
+/// \class ConicalNormalizedMeasureFunction
 // This class is the default measure, inheriting from the class above. This class will calculate tau_N 
 // of a jet according to this measure. This measure is defined as the pT of the particle multiplied by deltaR 
 // to the power of beta. This class includes the normalization factor determined by R0
-class DefaultNormalizedMeasureFunction : public MeasureFunction {
+class ConicalNormalizedMeasureFunction : public MeasureFunction {
 
 public:
 
-   DefaultNormalizedMeasureFunction(double beta, double R0, double Rcutoff, bool normalized = true)
+   ConicalNormalizedMeasureFunction(double beta, double R0, double Rcutoff, bool normalized = true)
    : MeasureFunction(normalized), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
 
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
@@ -225,17 +225,17 @@ private:
 };
 
 //------------------------------------------------------------------------
-/// \class DefaultUnnormalizedMeasureFunction
+/// \class ConicalUnnormalizedMeasureFunction
 // This class is the unnormalized default measure, inheriting from the class above. The only difference from above
 // is that the denominator is defined to be 1.0 by setting _has_denominator to false.
-class DefaultUnnormalizedMeasureFunction : public DefaultNormalizedMeasureFunction {
+class ConicalUnnormalizedMeasureFunction : public ConicalNormalizedMeasureFunction {
 
 public:
    // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureFunction to false so no denominator is used.
-   DefaultUnnormalizedMeasureFunction(double beta, double Rcutoff)
-   : DefaultNormalizedMeasureFunction(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, false) {}
+   ConicalUnnormalizedMeasureFunction(double beta, double Rcutoff)
+   : ConicalNormalizedMeasureFunction(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, false) {}
 };
 
 //------------------------------------------------------------------------
