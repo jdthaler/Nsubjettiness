@@ -39,8 +39,8 @@ namespace contrib {
 //------------------------------------------------------------------------
 /// \class WinnerTakeAllRecombiner
 // WinnerTakeAllRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
-// This scheme compares the energy of two input particles, and then combines them into a particle with
-// an energy equal to the sum of the two particle energies and a direction identical to that of the harder 
+// This scheme compares the pT of two input particles, and then combines them into a particle with
+// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) identical to that of the harder 
 // particle. This creates a jet with an axis guaranteed to align with a particle in the event.
 class WinnerTakeAllRecombiner : public fastjet::JetDefinition::Recombiner {
 public:

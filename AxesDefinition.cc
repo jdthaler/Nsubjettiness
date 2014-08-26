@@ -29,7 +29,8 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 namespace contrib {
    
 std::vector<fastjet::PseudoJet> Manual_Axes::get_starting_axes(int,
-                                                          const std::vector<fastjet::PseudoJet>&) const {
+                                                               const std::vector<fastjet::PseudoJet>&,
+                                                               const MeasureDefinition *) const {
    // This is a function dummy and should never be called
    assert(false);
    std::vector<fastjet::PseudoJet> dummy;

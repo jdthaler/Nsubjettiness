@@ -87,9 +87,9 @@ public:
    std::vector<fastjet::PseudoJet> currentJets() const {return _currentPartition.jets();}
    // Return beam partition found by getTauComponents.
    fastjet::PseudoJet currentBeam() const {return _currentPartition.beam();}
+   // Return beam partition found by getTauComponents.
+   TauPartition currentPartition() const {return _currentPartition;}
    
-   // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
-   TauPartition getPartition(const std::vector<fastjet::PseudoJet> & inputJets) const;
 
 private:
    

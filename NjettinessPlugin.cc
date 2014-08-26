@@ -47,11 +47,11 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    }
    
    
-   _njettinessFinder.getTau(_N, particles);
-   TauPartition tau_partition = _njettinessFinder.getPartition(particles);
+   TauComponents tau_components = _njettinessFinder.getTauComponents(_N, particles);
+   TauPartition tau_partition = _njettinessFinder.currentPartition();
    std::vector<std::list<int> > partition = tau_partition.jets_list();
    
-   std::vector<fastjet::PseudoJet> jet_indices_for_extras;
+   std::vector<int> jet_indices_for_extras;
 
    // output clusterings for each jet
    for (size_t i0 = 0; i0 < partition.size(); ++i0) {
@@ -72,14 +72,14 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
       
       int finalJet = indices.back();
       cs.plugin_record_iB_recombination(finalJet, fakeDib);
-      jet_indices_for_extras.push_back(cs.jets()[finalJet]);  // Get the four vector for the final jets to compare later.
+      jet_indices_for_extras.push_back(cs.jets()[finalJet].cluster_hist_index());  // Get the four vector for the final jets to compare later.
    }
 
    //HACK:  Re-reverse order of reading to match CS order
    reverse(jet_indices_for_extras.begin(),jet_indices_for_extras.end());
 
    // Store extra information about jets 
-   NjettinessExtras * extras = new NjettinessExtras(_njettinessFinder.currentTauComponents(),jet_indices_for_extras,_njettinessFinder.currentAxes());
+   NjettinessExtras * extras = new NjettinessExtras(tau_components,jet_indices_for_extras);
 
 #if FASTJET_VERSION_NUMBER>=30100
    cs.plugin_associate_extras(extras);

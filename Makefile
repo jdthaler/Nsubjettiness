@@ -92,7 +92,7 @@ AxesRefiner.o: TauComponents.hh
 WinnerTakeAllRecombiner.o: WinnerTakeAllRecombiner.hh
 AxesDefinition.o: AxesDefinition.hh MeasureDefinition.hh TauComponents.hh
 AxesDefinition.o: AxesRefiner.hh WinnerTakeAllRecombiner.hh
-TauComponents.o: TauComponents.hh
+TauComponents.o: TauComponents.hh MeasureDefinition.hh
 example_basic_usage.o: Nsubjettiness.hh Njettiness.hh MeasureDefinition.hh
 example_basic_usage.o: TauComponents.hh AxesDefinition.hh AxesRefiner.hh
 example_basic_usage.o: WinnerTakeAllRecombiner.hh NjettinessPlugin.hh

@@ -116,7 +116,7 @@ TauPartition MeasureDefinition::get_partition(const std::vector<fastjet::PseudoJ
       // find minimum distance; start with beam (-1) for reference
       int j_min = -1;
       double minRsq;
-      if (_has_beam) minRsq = beam_distance_squared(particles[i]);
+      if (has_beam()) minRsq = beam_distance_squared(particles[i]);
       else minRsq = std::numeric_limits<double>::max(); // make it large value
       
       // check to see which axis the particle is closest to
@@ -129,8 +129,8 @@ TauPartition MeasureDefinition::get_partition(const std::vector<fastjet::PseudoJ
       }
       
       if (j_min == -1) {
-         if (_has_beam) myPartition.push_back_beam(particles[i],i);
-         else assert(_has_beam);  // this should never happen.
+         assert(has_beam());  // should have beam for this to make sense.
+         myPartition.push_back_beam(particles[i],i);
       } else {
          myPartition.push_back_jet(j_min,particles[i],i);
       }
@@ -148,27 +148,31 @@ TauComponents MeasureDefinition::component_result_from_partition(const TauPartit
    double beamPiece = 0.0;
    
    double tauDen = 0.0;
-   if (!_has_denominator) tauDen = 1.0;  // if no denominator, then 1.0 for no normalization factor
+   if (!has_denominator()) tauDen = 1.0;  // if no denominator, then 1.0 for no normalization factor
    
    // first find jet pieces
    for (unsigned j = 0; j < axes.size(); j++) {
       std::vector<PseudoJet> thisPartition = partition.jet(j).constituents();
       for (unsigned i = 0; i < thisPartition.size(); i++) {
          jetPieces[j] += jet_numerator(thisPartition[i],axes[j]); //numerator jet piece
-         if (_has_denominator) tauDen += denominator(thisPartition[i]); // denominator
+         if (has_denominator()) tauDen += denominator(thisPartition[i]); // denominator
       }
    }
    
    // then find beam piece
-   if (_has_beam) {
+   if (has_beam()) {
       std::vector<PseudoJet> beamPartition = partition.beam().constituents();
 
       for (unsigned i = 0; i < beamPartition.size(); i++) {
          beamPiece += beam_numerator(beamPartition[i]); //numerator beam piece
-         if (_has_denominator) tauDen += denominator(beamPartition[i]); // denominator
+         if (has_denominator()) tauDen += denominator(beamPartition[i]); // denominator
       }
    }
-   return TauComponents(jetPieces, beamPiece, tauDen, _has_denominator, _has_beam);
+   
+   // create jets for storage in TauComponents
+   std::vector<PseudoJet> jets = partition.jets();
+   
+   return TauComponents(_tau_mode, jetPieces, beamPiece, tauDen, jets, axes);
 }
 
    

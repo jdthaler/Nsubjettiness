@@ -119,13 +119,16 @@ public:
    virtual ~MeasureDefinition(){}
    
 protected:
-   //bool set by derived classes to choose whether or not to use the denominator
-   bool _has_denominator;
-   bool _has_beam;
+   
+   //flag set by derived classes to choose whether or not to use beam/denominator
+   TauMode _tau_mode;
    
    // This constructor allows _has_denominator to be set by derived classes
-   MeasureDefinition(bool has_denominator = true, bool has_beam = true) : _has_denominator(has_denominator), _has_beam(has_beam) {
+   MeasureDefinition(TauMode tau_mode) : _tau_mode(tau_mode) {
    }
+   
+   bool has_denominator() const { return (_tau_mode == NORMALIZED_JET_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
+   bool has_beam() const {return (_tau_mode == UNNORMALIZED_EVENT_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
    
    
 };
@@ -139,8 +142,8 @@ class NormalizedCutoffMeasure : public MeasureDefinition {
    
 public:
    
-   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff, bool normalized = true)
-   : MeasureDefinition(normalized), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
+   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff, TauMode tau_mode = NORMALIZED_EVENT_SHAPE)
+   : MeasureDefinition(tau_mode), _beta(beta), _R0(R0), _Rcutoff(Rcutoff) {}
    
    virtual std::string description() const;
    
@@ -185,8 +188,8 @@ protected:
 class NormalizedMeasure : public NormalizedCutoffMeasure {
 
 public:
-   NormalizedMeasure(double beta, double R0)
-   : NormalizedCutoffMeasure(beta,R0,std::numeric_limits<double>::max()) {}
+   NormalizedMeasure(double beta, double R0,TauMode tau_mode = NORMALIZED_JET_SHAPE)
+   : NormalizedCutoffMeasure(beta,R0,std::numeric_limits<double>::max(),tau_mode) {}
    
    virtual std::string description() const;
 
@@ -204,8 +207,8 @@ public:
    // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
-   UnnormalizedCutoffMeasure(double beta, double Rcutoff)
-   : NormalizedCutoffMeasure(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, false) {}
+   UnnormalizedCutoffMeasure(double beta, double Rcutoff,TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE)
+   : NormalizedCutoffMeasure(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, tau_mode) {}
 
    virtual std::string description() const;
    
@@ -224,8 +227,8 @@ public:
    // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
-   UnnormalizedMeasure(double beta)
-   : UnnormalizedCutoffMeasure(beta, std::numeric_limits<double>::max()) {}
+   UnnormalizedMeasure(double beta,TauMode tau_mode = UNNORMALIZED_JET_SHAPE)
+   : UnnormalizedCutoffMeasure(beta, std::numeric_limits<double>::max(),tau_mode) {}
 
    virtual std::string description() const;
 
@@ -244,8 +247,8 @@ class GeometricCutoffMeasure : public MeasureDefinition {
 
 public:
    // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
-   GeometricCutoffMeasure(double jet_beta, double Rcutoff)
-   :   MeasureDefinition(false), // doesn't have denominator
+   GeometricCutoffMeasure(double jet_beta, double Rcutoff,TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE)
+   :   MeasureDefinition(tau_mode),
       _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff) {}
 
    virtual std::string description() const;
@@ -300,8 +303,8 @@ protected:
 class GeometricMeasure : public GeometricCutoffMeasure {
    
 public:
-   GeometricMeasure(double beta)
-   : GeometricCutoffMeasure(beta,std::numeric_limits<double>::max()) {}
+   GeometricMeasure(double beta,TauMode tau_mode = UNNORMALIZED_JET_SHAPE)
+   : GeometricCutoffMeasure(beta,std::numeric_limits<double>::max(),tau_mode) {}
 
    virtual std::string description() const;
 

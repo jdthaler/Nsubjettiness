@@ -82,7 +82,7 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
    } else {
       // Initial axes finding
       if (_axes_def()) {
-         _seedAxes = _axes_def->get_starting_axes(n_jets,inputJets); //sets starting point for minimization
+         _seedAxes = _axes_def->get_starting_axes(n_jets,inputJets,_measure_def()); //sets starting point for minimization
       } else {
          _seedAxes = _currentAxes; //manual mode
       }
@@ -103,17 +103,6 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
    return _current_tau_components;
 }
    
-   
-// Partition a list of particles according to which N-jettiness axis they are closest to.
-// Return a vector of length _currentAxes.size() (which should be N).
-// Each vector element is a list of ints corresponding to the indices in
-// particles of the particles belonging to that jet.
-TauPartition Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) const {
-   // core code is in MeasureFunction
-   return _measure_def->get_partition(particles,_currentAxes);
-}
-
-
 
 ///////
 //

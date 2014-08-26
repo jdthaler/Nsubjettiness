@@ -22,6 +22,7 @@ The key new features are:
     minimization, but with comparable performance.
   * TauComponents to get access to the pieces of the N-(sub)jettiness
     calculation.
+  * TauExtras to get complete access to get partitioning and axes information.
   * For clarity, split the example file into an example_basic_usage and
     example_advanced_usage
   * In Nsubjettiness, access to seedAxes() and currentAxes() to figure out the
@@ -29,6 +30,8 @@ The key new features are:
   * In Nsubjettiness, access to currentSubjets() to get the subjet fourvectors.
 
 
+-- 2.2.0:  (XXX)  Improvement of the MeasureDefinition/AxesDefinition interface
+           to allow for direct use in calculations.
 -- 2.1.0:  (July 9, 2014) Inclusion of MeasureDefinition/AxesDefinition interface.
            This was the first publicly available version of Nsubjettiness v2.
 -- 2.0.0:  Initial release of v2.0.  This was never officially made public.

@@ -131,6 +131,7 @@ void read_event(vector<PseudoJet> &event){
 
 // Helper Function for Printing out Jet Information
 void PrintJets(const vector <PseudoJet>& jets, bool commentOut = false);
+void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut = false);
 
 ////////
 //
@@ -325,8 +326,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
       //
       //  Finding axes/jets found by N-subjettiness partitioning
       //
-      //  This uses the NjettinessPlugin as a jet finder (in this case, acting on an individual jet)
-      //  Recommended usage is same as above
+      //  This uses the component_results function to get the subjet information
       //
       ///////
 
@@ -341,53 +341,44 @@ void analyze(const vector<PseudoJet> & input_particles) {
          
          for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
 
-            // This case doesn't work, so skip it.
-            if (_testAxes[iA].def().givesRandomizedResults()) continue;
+            const PseudoJet         & my_jet      = antikt_jets[j];
+            const AxesDefinition    & axes_def    = _testRecommendedAxes[iA].def();
+            const MeasureDefinition & measure_def = _testMeasures[iM].def();
             
-            // define the plugins
-            NjettinessPlugin nsub_plugin1(1, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
-            NjettinessPlugin nsub_plugin2(2, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
-            NjettinessPlugin nsub_plugin3(3, _testRecommendedAxes[iA].def(), _testMeasures[iM].def());
+            // This case doesn't work, so skip it.
+            if (axes_def.givesRandomizedResults()) continue;
+            
+            // define Nsubjettiness functions
+            Nsubjettiness        nSub1(1,    axes_def, measure_def);
+            Nsubjettiness        nSub2(2,    axes_def, measure_def);
+            Nsubjettiness        nSub3(3,    axes_def, measure_def);
+            
+            // get component results
+            TauComponents tau1comp = nSub1.component_result(my_jet);
+            TauComponents tau2comp = nSub2.component_result(my_jet);
+            TauComponents tau3comp = nSub3.component_result(my_jet);
+            
+            vector<PseudoJet> jets1 = tau1comp.jets();
+            vector<PseudoJet> jets2 = tau2comp.jets();
+            vector<PseudoJet> jets3 = tau3comp.jets();
 
-            // define the corresponding jet definitions
-            JetDefinition nsub_jetDef1(&nsub_plugin1);
-            JetDefinition nsub_jetDef2(&nsub_plugin2);
-            JetDefinition nsub_jetDef3(&nsub_plugin3);
-
-            // and the corresponding cluster sequences
-            ClusterSequence nsub_seq1(antikt_jets[j].constituents(), nsub_jetDef1);
-            ClusterSequence nsub_seq2(antikt_jets[j].constituents(), nsub_jetDef2);
-            ClusterSequence nsub_seq3(antikt_jets[j].constituents(), nsub_jetDef3);
-
-            vector<PseudoJet> jets1 = nsub_seq1.inclusive_jets();
-            vector<PseudoJet> jets2 = nsub_seq2.inclusive_jets();
-            vector<PseudoJet> jets3 = nsub_seq3.inclusive_jets();
+            vector<PseudoJet> axes1 = tau1comp.axes();
+            vector<PseudoJet> axes2 = tau2comp.axes();
+            vector<PseudoJet> axes3 = tau3comp.axes();
 
             cout << "-------------------------------------------------------------------------------------" << endl;
-            cout << _testMeasures[iM].description() << ":" << endl;
-            cout << _testRecommendedAxes[iA].description() << ":" << endl;
+            cout << measure_def.description() << ":" << endl;
+            cout << axes_def.description() << ":" << endl;
             
             bool commentOut = false;
-            if (_testAxes[iA].def().givesRandomizedResults()) commentOut = true;  // have to comment out min_axes, because it has random values
+            if (axes_def.givesRandomizedResults()) commentOut = true;  // have to comment out min_axes, because it has random values
             
             // This helper function tries to find out if the jets have tau information for printing
-            PrintJets(jets1,commentOut);
+            PrintJetsWithComponents(jets1,commentOut);
             cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-            PrintJets(jets2,commentOut);
+            PrintJetsWithComponents(jets2,commentOut);
             cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-            PrintJets(jets3,commentOut);
-            
-            // Also try to find axes location (if njettiness_extras works)
-            vector<PseudoJet> axes1;
-            vector<PseudoJet> axes2;
-            vector<PseudoJet> axes3;
-            const NjettinessExtras * extras1 = njettiness_extras(nsub_seq1);
-            const NjettinessExtras * extras2 = njettiness_extras(nsub_seq2);
-            const NjettinessExtras * extras3 = njettiness_extras(nsub_seq3);
-
-            axes1 = extras1->axes();
-            axes2 = extras2->axes();
-            axes3 = extras3->axes();
+            PrintJetsWithComponents(jets3,commentOut);
             
             cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
             cout << "Axes Used for Above Subjets" << endl;
@@ -432,10 +423,13 @@ void analyze(const vector<PseudoJet> & input_particles) {
       
       for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
          
+         const AxesDefinition    & axes_def    = _testRecommendedAxes[iA].def();
+         const MeasureDefinition & measure_def = _testCutoffMeasures[iM].def();
+         
          // define the plugins
-         NjettinessPlugin njet_plugin2(2, _testRecommendedAxes[iA].def(), _testCutoffMeasures[iM].def());
-         NjettinessPlugin njet_plugin3(3, _testRecommendedAxes[iA].def(), _testCutoffMeasures[iM].def());
-         NjettinessPlugin njet_plugin4(4, _testRecommendedAxes[iA].def(), _testCutoffMeasures[iM].def());
+         NjettinessPlugin njet_plugin2(2, axes_def,measure_def);
+         NjettinessPlugin njet_plugin3(3, axes_def,measure_def);
+         NjettinessPlugin njet_plugin4(4, axes_def,measure_def);
    
          // and the jet definitions
          JetDefinition njet_jetDef2(&njet_plugin2);
@@ -463,8 +457,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
          //vector<PseudoJet> njet_jets4 = extras4->jets();
 
          cout << "-------------------------------------------------------------------------------------" << endl;
-         cout << _testCutoffMeasures[iM].description() << ":" << endl;
-         cout << _testRecommendedAxes[iA].description() << ":" << endl;
+         cout << measure_def.description() << ":" << endl;
+         cout << axes_def.description() << ":" << endl;
          
          PrintJets(njet_jets2);
          cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
@@ -592,5 +586,62 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    }
    
 }
+
+void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut) {
+   
+   string commentStr = "";
+   if (commentOut) commentStr = "#";
+   
+   bool useArea = jets[0].has_area();
+   
+   // define nice tauN header
+   int N = jets.size();
+   stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
+   
+   cout << fixed << right;
+   
+   cout << commentStr << setw(5) << "jet #" << "   "
+   <<  setw(10) << "rap"
+   <<  setw(10) << "phi"
+   <<  setw(11) << "pt"
+   <<  setw(11) << "m"
+   <<  setw(11) << "e"
+   << setw(14) << tauName;
+   if (useArea) cout << setw(10) << "area";
+   cout << endl;
+   
+   fastjet::PseudoJet total(0,0,0,0);
+   double total_tau = 0;
+   
+   
+   // print out individual jet information
+   for (unsigned i = 0; i < jets.size(); i++) {
+      double thisTau = jets[i].structure_of<TauComponents>().tau();
+      
+      cout << commentStr << setw(5) << i+1  << "   "
+      << setprecision(4) <<  setw(10) << jets[i].rap()
+      << setprecision(4) <<  setw(10) << jets[i].phi()
+      << setprecision(4) <<  setw(11) << jets[i].perp()
+      << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
+      << setprecision(4) <<  setw(11) << jets[i].e()
+      << setprecision(6) <<  setw(14) << max(thisTau,0.0);
+      if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
+      cout << endl;
+      total += jets[i];
+      total_tau += thisTau;
+   }
+   
+   cout << commentStr << setw(5) << "total" << "   "
+   <<  setprecision(4) << setw(10) << total.rap()
+   <<  setprecision(4) << setw(10) << total.phi()
+   <<  setprecision(4) << setw(11) << total.perp()
+   <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
+   <<  setprecision(4) <<  setw(11) << total.e()
+   <<  setprecision(6) << setw(14) << total_tau;
+   if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
+   cout << endl;
+   
+}
+
 
 

@@ -88,7 +88,7 @@ void read_event(vector<PseudoJet> &event){
 }
 
 // Helper Function for Printing out Jet Information
-void PrintJets(const vector <PseudoJet>& jets, TauComponents components, bool showTotal = true);
+void PrintJets(const vector <PseudoJet>& jets, const TauComponents & components, bool showTotal = true);
 
 ////////
 //
@@ -171,7 +171,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
       
       // define Nsubjettiness functions (beta = 1.0)
       Nsubjettiness         nSub1_beta1(1,  axisMode1,measureSpec1);
-      // an alternative (but more prone to error) constructor is nSub1_beta1(1,  axisMode1,Njettiness::unnormalized_measure,beta1);
       Nsubjettiness         nSub2_beta1(2,  axisMode1,measureSpec1);
       Nsubjettiness         nSub3_beta1(3,  axisMode1,measureSpec1);
       NsubjettinessRatio   nSub21_beta1(2,1,axisMode1,measureSpec1);
@@ -244,7 +243,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
 }
 
-void PrintJets(const vector <PseudoJet>& jets, TauComponents components, bool showTotal) {
+void PrintJets(const vector <PseudoJet>& jets, const TauComponents & components, bool showTotal) {
    
    string commentStr = "";
    

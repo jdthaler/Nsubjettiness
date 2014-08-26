@@ -1,3 +1,10 @@
+2014-08-26 <JDT>
+   Enhanced TauComponents to include more infomation
+   NjettinessExtras now inherits from TauComponents
+   Removed getPartition from Njettiness, to avoid code duplication
+   Fixed double calculating issue in NjettinessPlugin::run_clustering()
+   Now AxesDefinition can use measure information without running AxesRefiner
+   Added TauStructure so the jets returned by TauComponents can know their tau value.
 2014-08-25 <JDT>
    Merged MeasureDefinition and MeasureFunction into new MeasureDefinition.
    Merged StartingAxesFinder and AxesDefinition into new AxesDefinition.

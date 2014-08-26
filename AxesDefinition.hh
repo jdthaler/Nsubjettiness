@@ -75,8 +75,11 @@ class AxesDefinition {
 public:
    
    // This function should be overloaded in all derived classes, and defines how to find the starting axes
+   // If desired, the measure information (which might be NULL) can be used to test multiple axes choices, but should
+   // not be used for interative refining (since that is the job of AxesRefiner).
    virtual std::vector<fastjet::PseudoJet> get_starting_axes(int n_jets,
-                                                             const std::vector<fastjet::PseudoJet>& inputs) const = 0;
+                                                             const std::vector<fastjet::PseudoJet>& inputs,
+                                                             const MeasureDefinition * measure) const = 0;
    
    // description of AxesDefinitions (and any parameters)
    virtual std::string short_description() const = 0;
@@ -96,11 +99,11 @@ public:
       if (_needsManualAxes) throw Error("AxesDefinition:  You can't get_axes in Manual Mode");
       
       if (_Npass == 0) {
-         return get_starting_axes(n_jets,inputs);
+         return get_starting_axes(n_jets,inputs,measure);
       } else {
          if (measure == NULL) throw Error("AxesDefinition:  Minimization requires specifying a MeasureDefinition.");
          SharedPtr<AxesRefiner> refiner(measure->createAxesRefiner(_Npass));
-         return refiner->get_axes(n_jets,inputs,get_starting_axes(n_jets,inputs));
+         return refiner->get_axes(n_jets,inputs,get_starting_axes(n_jets,inputs,measure));
       }
    }
    
@@ -155,7 +158,8 @@ public:
    : AxesDefinition(nPass), _def(def) {}
    
    virtual std::vector<fastjet::PseudoJet> get_starting_axes(int n_jets,
-                                                             const std::vector <fastjet::PseudoJet> & inputs) const {
+                                                             const std::vector <fastjet::PseudoJet> & inputs,
+                                                             const MeasureDefinition * ) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
       return jet_clust_seq.exclusive_jets(n_jets);
    }
@@ -176,11 +180,12 @@ private:
 // This can be implemented with different jet algorithms, and can be called by the user
 class HardestJetAxes : public AxesDefinition {
 public:
-   HardestJetAxes(fastjet::JetDefinition def, int nPass)
+   HardestJetAxes(fastjet::JetDefinition def, int nPass = NO_REFINING)  // default to no minimization
    : AxesDefinition(nPass), _def(def) {}
    
    virtual std::vector<fastjet::PseudoJet> get_starting_axes(int n_jets,
-                                                             const std::vector <fastjet::PseudoJet> & inputs) const {
+                                                             const std::vector <fastjet::PseudoJet> & inputs,
+                                                             const MeasureDefinition * ) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
       std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
       myJets.resize(n_jets);  // only keep n hardest
@@ -479,7 +484,8 @@ public:
    
    // dummy function since this is manual mode
    virtual std::vector<fastjet::PseudoJet> get_starting_axes(int,
-                                                             const std::vector<fastjet::PseudoJet>&) const;
+                                                             const std::vector<fastjet::PseudoJet>&,
+                                                             const MeasureDefinition *) const;
 
    
    virtual std::string short_description() const {

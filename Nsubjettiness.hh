@@ -111,7 +111,11 @@ public:
    TauComponents currentTauComponents() const {
       return _njettinessFinder.currentTauComponents();
    }
-   
+
+   /// returns components of tau_N without recalculating anything
+   TauPartition currentPartition() const {
+      return _njettinessFinder.currentPartition();
+   }
    
 private:
    

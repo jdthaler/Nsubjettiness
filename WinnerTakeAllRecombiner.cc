@@ -29,7 +29,7 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 namespace contrib{
 
 std::string WinnerTakeAllRecombiner::description() const {
-   return "Winner Take All scheme recombination";
+   return "Winner-Take-All recombination";
 }
 
 // recombine pa and pb by creating pab with energy of the sum of particle energies in the direction of the harder particle
