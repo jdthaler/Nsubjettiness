@@ -37,6 +37,11 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
+// Classes defined in this file.
+class Nsubjettiness;
+class NsubjettinessRatio;
+   
+   
 //------------------------------------------------------------------------
 /// \class Nsubjettiness
 /// Nsubjettiness extends the concept of Njettiness to a jet shape, but other

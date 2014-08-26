@@ -15,9 +15,9 @@ check_script = ../utils/check.sh
 #------------------------------------------------------------------------
 # things that are specific to this contrib
 NAME=Nsubjettiness
-SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc MeasureFunction.cc AxesFinder.cc WinnerTakeAllRecombiner.cc NjettinessDefinition.cc
+SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc MeasureDefinition.cc AxesRefiner.cc WinnerTakeAllRecombiner.cc AxesDefinition.cc TauComponents.cc
 EXAMPLES=example_basic_usage example_advanced_usage example_v1p0p3
-INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureFunction.hh AxesFinder.hh WinnerTakeAllRecombiner.hh NjettinessDefinition.hh
+INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureDefinition.hh AxesRefiner.hh WinnerTakeAllRecombiner.hh AxesDefinition.hh TauComponents.hh
 #------------------------------------------------------------------------
 
 CXXFLAGS+= $(shell $(FASTJETCONFIG) --cxxflags)
@@ -77,25 +77,28 @@ depend:
 	makedepend -Y --   -- $(SRCS) $(EXAMPLES_SRCS)
 # DO NOT DELETE
 
-Nsubjettiness.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
-Nsubjettiness.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-Nsubjettiness.o: NjettinessDefinition.hh
-Njettiness.o: Njettiness.hh MeasureFunction.hh AxesFinder.hh
-Njettiness.o: WinnerTakeAllRecombiner.hh NjettinessDefinition.hh
-NjettinessPlugin.o: NjettinessPlugin.hh Njettiness.hh MeasureFunction.hh
-NjettinessPlugin.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-NjettinessPlugin.o: NjettinessDefinition.hh
-MeasureFunction.o: MeasureFunction.hh
-AxesFinder.o: AxesFinder.hh WinnerTakeAllRecombiner.hh MeasureFunction.hh
+Nsubjettiness.o: Nsubjettiness.hh Njettiness.hh MeasureDefinition.hh
+Nsubjettiness.o: TauComponents.hh AxesDefinition.hh AxesRefiner.hh
+Nsubjettiness.o: WinnerTakeAllRecombiner.hh
+Njettiness.o: Njettiness.hh MeasureDefinition.hh TauComponents.hh
+Njettiness.o: AxesDefinition.hh AxesRefiner.hh WinnerTakeAllRecombiner.hh
+NjettinessPlugin.o: NjettinessPlugin.hh Njettiness.hh MeasureDefinition.hh
+NjettinessPlugin.o: TauComponents.hh AxesDefinition.hh AxesRefiner.hh
+NjettinessPlugin.o: WinnerTakeAllRecombiner.hh
+MeasureDefinition.o: AxesRefiner.hh WinnerTakeAllRecombiner.hh
+MeasureDefinition.o: MeasureDefinition.hh TauComponents.hh
+AxesRefiner.o: AxesRefiner.hh WinnerTakeAllRecombiner.hh MeasureDefinition.hh
+AxesRefiner.o: TauComponents.hh
 WinnerTakeAllRecombiner.o: WinnerTakeAllRecombiner.hh
-NjettinessDefinition.o: NjettinessDefinition.hh MeasureFunction.hh
-NjettinessDefinition.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-example_basic_usage.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
-example_basic_usage.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-example_basic_usage.o: NjettinessDefinition.hh NjettinessPlugin.hh
-example_advanced_usage.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
-example_advanced_usage.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-example_advanced_usage.o: NjettinessDefinition.hh NjettinessPlugin.hh
-example_v1p0p3.o: Nsubjettiness.hh Njettiness.hh MeasureFunction.hh
-example_v1p0p3.o: AxesFinder.hh WinnerTakeAllRecombiner.hh
-example_v1p0p3.o: NjettinessDefinition.hh NjettinessPlugin.hh
+AxesDefinition.o: AxesDefinition.hh MeasureDefinition.hh TauComponents.hh
+AxesDefinition.o: AxesRefiner.hh WinnerTakeAllRecombiner.hh
+TauComponents.o: TauComponents.hh
+example_basic_usage.o: Nsubjettiness.hh Njettiness.hh MeasureDefinition.hh
+example_basic_usage.o: TauComponents.hh AxesDefinition.hh AxesRefiner.hh
+example_basic_usage.o: WinnerTakeAllRecombiner.hh NjettinessPlugin.hh
+example_advanced_usage.o: Nsubjettiness.hh Njettiness.hh MeasureDefinition.hh
+example_advanced_usage.o: TauComponents.hh AxesDefinition.hh AxesRefiner.hh
+example_advanced_usage.o: WinnerTakeAllRecombiner.hh NjettinessPlugin.hh
+example_v1p0p3.o: Nsubjettiness.hh Njettiness.hh MeasureDefinition.hh
+example_v1p0p3.o: TauComponents.hh AxesDefinition.hh AxesRefiner.hh
+example_v1p0p3.o: WinnerTakeAllRecombiner.hh NjettinessPlugin.hh

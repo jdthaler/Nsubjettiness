@@ -28,8 +28,10 @@
 #include <fastjet/config.h>
 
 #include "Njettiness.hh"
-#include "MeasureFunction.hh"
-#include "AxesFinder.hh"
+#include "MeasureDefinition.hh"
+#include "AxesDefinition.hh"
+#include "AxesRefiner.hh"
+#include "TauComponents.hh"
 
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/JetDefinition.hh"
@@ -42,72 +44,6 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-//------------------------------------------------------------------------
-/// \class NjettinessExtras
-// This class contains the same information as Njettiness, but redoes it in terms of the ClusterSequence::Extras class.
-// This is done in order to help improve the interface for the main NjettinessPlugin class.
-// TODO:  This class should probably be merged with TauComponents, since both have access
-// to similar information
-class NjettinessExtras : public ClusterSequence::Extras {
-   
-   public:
-      NjettinessExtras(TauComponents tau_components, std::vector<fastjet::PseudoJet> jets, std::vector<fastjet::PseudoJet> axes) : _tau_components(tau_components), _jets(jets), _axes(axes) {}
-      
-      double totalTau() const {return _tau_components.tau();}
-      std::vector<double> subTaus() const {return _tau_components.jet_pieces();}
-      std::vector<fastjet::PseudoJet> jets() const {return _jets;}
-      std::vector<fastjet::PseudoJet> axes() const {return _axes;}
-      
-      double totalTau(const fastjet::PseudoJet& /*jet*/) const {
-         return _tau_components.tau();
-      }
-      
-      double subTau(const fastjet::PseudoJet& jet) const {
-         if (labelOf(jet) == -1) return std::numeric_limits<double>::quiet_NaN(); // nonsense
-         return _tau_components.jet_pieces()[labelOf(jet)];
-      }
-      
-      double beamTau() const {
-         return _tau_components.beam_piece();
-      }
-      
-      fastjet::PseudoJet axis(const fastjet::PseudoJet& jet) const {
-         return _axes[labelOf(jet)];
-      }
-
-      bool has_njettiness_extras(const fastjet::PseudoJet& jet) const {
-         return (labelOf(jet) >= 0);
-      }
-   
-private:
-   
-   TauComponents _tau_components;
-   std::vector<fastjet::PseudoJet> _jets;
-   std::vector<fastjet::PseudoJet> _axes;
-   
-   int labelOf(const fastjet::PseudoJet& jet) const {
-      int thisJet = -1;
-      for (unsigned int i = 0; i < _jets.size(); i++) {
-         if (_jets[i].cluster_hist_index() == jet.cluster_hist_index()) {
-            thisJet = i;
-            break;
-         }
-      }
-      return thisJet;
-   }
-};
-
-inline const NjettinessExtras * njettiness_extras(const fastjet::PseudoJet& jet) {
-   const ClusterSequence * myCS = jet.associated_cluster_sequence();   
-   if (myCS == NULL) return NULL;
-   const NjettinessExtras* extras = dynamic_cast<const NjettinessExtras*>(myCS->extras());   
-   return extras;   
-}
-
-inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence& myCS) {
-   const NjettinessExtras* extras = dynamic_cast<const NjettinessExtras*>(myCS.extras());   
-   return extras;   
-}
 
 /// The Njettiness jet algorithm
 /**
@@ -118,10 +54,10 @@ inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence
  * Axes can be found in several ways, specified by the AxesMode argument.  The
  * recommended choices are
  *
- * kt_axes              : exclusive kT
- * wta_kt_axes          : exclusive kT with winner-take-all-recombination
- * onepass_kt_axes      : one-pass minimization seeded by kt (pretty good)
- * onepass_wta_kt_axes  : one-pass minimization seeded by wta_kt
+ * KT_Axes              : exclusive kT
+ * WTA_KT_axes          : exclusive kT with winner-take-all-recombination
+ * OnePass_KT_Axes      : one-pass minimization seeded by kt (pretty good)
+ * OnePass_WTA_KT_Axes  : one-pass minimization seeded by wta_kt
  *
  * For the UnnormalizedMeasure(beta), N-jettiness is defined as:
  *
@@ -145,49 +81,6 @@ public:
                     const MeasureDefinition & measure_def)
    : _njettinessFinder(axes_def, measure_def), _N(N) {}
    
-   
-   // Alternative constructors that define the measure via enums and parameters
-   // These constructors are likely be removed
-   NjettinessPlugin(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode)
-   : _njettinessFinder(axes_mode, measure_mode, 0), _N(N) {}
-   
-   
-   NjettinessPlugin(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode,
-                 double para1)
-   : _njettinessFinder(axes_mode, measure_mode, 1, para1), _N(N) {}
-   
-   
-   NjettinessPlugin(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode,
-                 double para1,
-                 double para2)
-   : _njettinessFinder(axes_mode, measure_mode, 2, para1, para2), _N(N) {}
-   
-   
-   NjettinessPlugin(int N,
-                 Njettiness::AxesMode axes_mode,
-                 Njettiness::MeasureMode measure_mode,
-                 double para1,
-                 double para2,
-                 double para3)
-   : _njettinessFinder(axes_mode, measure_mode, 3, para1, para2, para3), _N(N) {}
-
-
-   // Old constructor for backwards compatibility with v1.0,
-   // where NormalizedCutoffMeasure was the only option
-   NjettinessPlugin(int N,
-                    Njettiness::AxesMode mode,
-                    double beta,
-                    double R0,
-                    double Rcutoff=std::numeric_limits<double>::max())
-   : _njettinessFinder(mode, NormalizedCutoffMeasure(beta, R0, Rcutoff)), _N(N) {}
-
-
 
    // The things that are required by base class.
    virtual std::string description () const;
@@ -200,6 +93,50 @@ private:
 
    Njettiness _njettinessFinder;
    int _N;
+
+public:
+   
+   // Alternative constructors that define the measure via enums and parameters
+   // These constructors are likely be deprecated in a future version.
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode axes_mode,
+                    Njettiness::MeasureMode measure_mode)
+   : _njettinessFinder(axes_mode, measure_mode, 0), _N(N) {}
+   
+   
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode axes_mode,
+                    Njettiness::MeasureMode measure_mode,
+                    double para1)
+   : _njettinessFinder(axes_mode, measure_mode, 1, para1), _N(N) {}
+   
+   
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode axes_mode,
+                    Njettiness::MeasureMode measure_mode,
+                    double para1,
+                    double para2)
+   : _njettinessFinder(axes_mode, measure_mode, 2, para1, para2), _N(N) {}
+   
+   
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode axes_mode,
+                    Njettiness::MeasureMode measure_mode,
+                    double para1,
+                    double para2,
+                    double para3)
+   : _njettinessFinder(axes_mode, measure_mode, 3, para1, para2, para3), _N(N) {}
+   
+   
+   // Old constructor for backwards compatibility with v1.0,
+   // where NormalizedCutoffMeasure was the only option
+   NjettinessPlugin(int N,
+                    Njettiness::AxesMode mode,
+                    double beta,
+                    double R0,
+                    double Rcutoff=std::numeric_limits<double>::max())
+   : _njettinessFinder(mode, NormalizedCutoffMeasure(beta, R0, Rcutoff)), _N(N) {}
+
 
 };
 

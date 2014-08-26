@@ -260,22 +260,37 @@ void analyze(const vector<PseudoJet> & input_particles) {
             << endl;
          
          for (unsigned iA = 0; iA < _testAxes.size(); iA++) {
+
+            // Current axes/measure modes and particles
+            const PseudoJet         & my_jet      = antikt_jets[j];
+            const vector<PseudoJet>   particles   = my_jet.constituents();
+            const AxesDefinition    & axes_def    = _testAxes[iA].def();
+            const MeasureDefinition & measure_def = _testMeasures[iM].def();
             
             // This case doesn't work, so skip it.
-            if (_testAxes[iA].def().givesRandomizedResults()) continue;
-            
+            if (axes_def.givesRandomizedResults()) continue;
+
             // define Nsubjettiness functions
-            Nsubjettiness        nSub1(1,    _testAxes[iA].def(), _testMeasures[iM].def());
-            Nsubjettiness        nSub2(2,    _testAxes[iA].def(), _testMeasures[iM].def());
-            Nsubjettiness        nSub3(3,    _testAxes[iA].def(), _testMeasures[iM].def());
-            NsubjettinessRatio   nSub21(2,1, _testAxes[iA].def(), _testMeasures[iM].def());
-            NsubjettinessRatio   nSub32(3,2, _testAxes[iA].def(), _testMeasures[iM].def());
+            Nsubjettiness        nSub1(1,    axes_def, measure_def);
+            Nsubjettiness        nSub2(2,    axes_def, measure_def);
+            Nsubjettiness        nSub3(3,    axes_def, measure_def);
+            NsubjettinessRatio   nSub21(2,1, axes_def, measure_def);
+            NsubjettinessRatio   nSub32(3,2, axes_def, measure_def);
             // calculate Nsubjettiness values
-            double tau1 = nSub1(antikt_jets[j]);
-            double tau2 = nSub2(antikt_jets[j]);
-            double tau3 = nSub3(antikt_jets[j]);
-            double tau21 = nSub21(antikt_jets[j]);
-            double tau32 = nSub32(antikt_jets[j]);
+            double tau1 = nSub1(my_jet);
+            double tau2 = nSub2(my_jet);
+            double tau3 = nSub3(my_jet);
+            double tau21 = nSub21(my_jet);
+            double tau32 = nSub32(my_jet);
+            
+            
+            // An entirely equivalent, but painful way to calculate is:
+            double tau1alt = measure_def(particles,axes_def(1,particles,&measure_def));
+            double tau2alt = measure_def(particles,axes_def(2,particles,&measure_def));
+            double tau3alt = measure_def(particles,axes_def(3,particles,&measure_def));
+            assert(tau1alt == tau1);
+            assert(tau2alt == tau2);
+            assert(tau3alt == tau3);
             
             // Make sure calculations are consistent
             if (!_testAxes[iA].def().givesRandomizedResults()) {

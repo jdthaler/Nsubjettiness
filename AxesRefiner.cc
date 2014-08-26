@@ -22,7 +22,7 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-#include "AxesFinder.hh"
+#include "AxesRefiner.hh"
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
@@ -36,7 +36,7 @@ namespace contrib{
   
 // Given starting axes, update to find better axes by using Kmeans clustering around the old axes
 template <int N>
-std::vector<LightLikeAxis> AxesFinderFromConicalMinimization::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes, 
+std::vector<LightLikeAxis> ConicalAxesRefiner::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes,
                                   const std::vector <fastjet::PseudoJet> & inputJets) const {
    assert(old_axes.size() == N);
    
@@ -129,7 +129,7 @@ std::vector<LightLikeAxis> AxesFinderFromConicalMinimization::UpdateAxesFast(con
 
 // Given N starting axes, this function updates all axes to find N better axes. 
 // (This is just a wrapper for the templated version above.)
-std::vector<LightLikeAxis> AxesFinderFromConicalMinimization::UpdateAxes(const std::vector <LightLikeAxis> & old_axes,
+std::vector<LightLikeAxis> ConicalAxesRefiner::UpdateAxes(const std::vector <LightLikeAxis> & old_axes,
                                       const std::vector <fastjet::PseudoJet> & inputJets) const {
    int N = old_axes.size();
    switch (N) {
@@ -161,7 +161,7 @@ std::vector<LightLikeAxis> AxesFinderFromConicalMinimization::UpdateAxes(const s
 
 // uses minimization of N-jettiness to continually update axes until convergence.
 // The function returns the axes found at the (local) minimum
-std::vector<fastjet::PseudoJet> AxesFinderFromConicalMinimization::getOnePassAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
+std::vector<fastjet::PseudoJet> ConicalAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
 	  
    // convert from PseudoJets to LightLikeAxes
    std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
@@ -196,36 +196,23 @@ std::vector<fastjet::PseudoJet> AxesFinderFromConicalMinimization::getOnePassAxe
    bool do_debug = false;
    if (do_debug) {
       // get this information to make sure that minimization is working properly
-      TauComponents seed_tau_components = _associatedMeasure->result(inputJets, seedAxes);
-      double seed_tau = seed_tau_components.tau();
-      TauComponents tau_components = _associatedMeasure->result(inputJets, outputAxes);
-      double outputTau = tau_components.tau();
+      double seed_tau = _associatedMeasure->result(inputJets, seedAxes);
+      double outputTau = _associatedMeasure->result(inputJets, outputAxes);
       assert(outputTau <= seed_tau);
    }
    
    return outputAxes;
 }
-
-//PseudoJet AxesFinderFromKmeansMinimization::jiggle(const PseudoJet& axis) const {
-//   double phi_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
-//   double rap_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
-//   
-//   double new_phi = axis.phi() + phi_noise;
-//   if (new_phi >= 2.0*M_PI) new_phi -= 2.0*M_PI;
-//   if (new_phi <= -2.0*M_PI) new_phi += 2.0*M_PI;
-//
-//   PseudoJet newAxis(0,0,0,0);
-//   newAxis.reset_PtYPhiM(axis.perp(),axis.rap() + rap_noise,new_phi);
-//   return newAxis;
-//}
    
 // Repeatedly calls the one pass finder to try to find global minimum
-std::vector<fastjet::PseudoJet> RefiningAxesFinder::getMultiPassAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
+std::vector<fastjet::PseudoJet> AxesRefiner::get_multi_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
+   
+   assert(n_jets == seedAxes.size());
    
    // first iteration
-   std::vector<fastjet::PseudoJet> bestAxes = getOnePassAxes(n_jets, inputJets, seedAxes);
+   std::vector<fastjet::PseudoJet> bestAxes = get_one_pass_axes(n_jets, inputJets, seedAxes);
    
-   double bestTau = (_associatedMeasure->result(inputJets,bestAxes)).tau();
+   double bestTau = _associatedMeasure->result(inputJets,bestAxes);
    
    for (int l = 1; l < _Npass; l++) { // Do minimization procedure multiple times (l = 1 to start since first iteration is done already)
       
@@ -235,8 +222,8 @@ std::vector<fastjet::PseudoJet> RefiningAxesFinder::getMultiPassAxes(int n_jets,
          noiseAxes[k] = jiggle(bestAxes[k]);
       }
       
-      std::vector<fastjet::PseudoJet> testAxes = getOnePassAxes(n_jets, inputJets, noiseAxes);
-      double testTau = (_associatedMeasure->result(inputJets,testAxes)).tau();
+      std::vector<fastjet::PseudoJet> testAxes = get_one_pass_axes(n_jets, inputJets, noiseAxes);
+      double testTau = _associatedMeasure->result(inputJets,testAxes);
       
       if (testTau < bestTau) {
          bestTau = testTau;
@@ -248,7 +235,7 @@ std::vector<fastjet::PseudoJet> RefiningAxesFinder::getMultiPassAxes(int n_jets,
 }
 
    
-PseudoJet RefiningAxesFinder::jiggle(const PseudoJet& axis) const {
+PseudoJet AxesRefiner::jiggle(const PseudoJet& axis) const {
    double phi_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
    double rap_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
    
@@ -260,44 +247,16 @@ PseudoJet RefiningAxesFinder::jiggle(const PseudoJet& axis) const {
    newAxis.reset_PtYPhiM(axis.perp(),axis.rap() + rap_noise,new_phi);
    return newAxis;
 }
-   
-   
-   
-//// Repeatedly calls the one pass finder to try to find global minimum
-//std::vector<fastjet::PseudoJet> AxesFinderFromKmeansMinimization::getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes, int n_pass) const {
-//   
-//   // first iteration
-//	std::vector<fastjet::PseudoJet> bestAxes = _onePassFinder.getAxes(n_jets, inputJets, seedAxes);
-//   
-//   double bestTau = (_measureFunction.result(inputJets,bestAxes)).tau();
-//   
-//   for (int l = 1; l < n_pass; l++) { // Do minimization procedure multiple times (l = 1 to start since first iteration is done already)
-//   
-//      // Add noise to current best axes
-//      std::vector< PseudoJet > noiseAxes(n_jets, PseudoJet(0,0,0,0));
-//      for (int k = 0; k < n_jets; k++) {
-//         noiseAxes[k] = jiggle(bestAxes[k]);
-//      }
-//
-//      std::vector<fastjet::PseudoJet> testAxes = _onePassFinder.getAxes(n_jets, inputJets, noiseAxes);
-//      double testTau = (_measureFunction.result(inputJets,testAxes)).tau();
-//      
-//      if (testTau < bestTau) {
-//         bestTau = testTau;
-//         bestAxes = testAxes;
-//      }
-//   }
-//   
-//   return bestAxes;
-//}
 
 // Uses minimization of the geometric distance in order to find the minimum axes.
 // It continually updates until it reaches convergence or it reaches the maximum number of attempts.
 // This is essentially the same as a stable cone finder.
-std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getOnePassAxes(int /*n_jets*/, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
+std::vector<fastjet::PseudoJet> GeometricAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
 
+   assert(n_jets == currentAxes.size());
+   
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
-   double seedTau = _associatedMeasure->tau(particles, seedAxes);
+   double seedTau = _associatedMeasure->result(particles, seedAxes);
    
    for (int i = 0; i < _nAttempts; i++) {
       
@@ -325,7 +284,7 @@ std::vector<fastjet::PseudoJet> AxesFinderFromGeometricMinimization::getOnePassA
       
       // calculate tau on new axes
       seedAxes = newAxes;
-      double tempTau = _associatedMeasure->tau(particles, newAxes);
+      double tempTau = _associatedMeasure->result(particles, newAxes);
       
       // close enough to stop?
       if (fabs(tempTau - seedTau) < _accuracy) break;
@@ -345,14 +304,14 @@ fastjet::PseudoJet LightLikeAxis::ConvertToPseudoJet() {
     return fastjet::PseudoJet(px,py,pz,E);
 }
    
-std::vector<fastjet::PseudoJet> RefiningAxesFinder::getAxes(int n_jets,
+std::vector<fastjet::PseudoJet> AxesRefiner::get_axes(int n_jets,
                                         const std::vector<fastjet::PseudoJet>& inputs,
                                         const std::vector<fastjet::PseudoJet>& seedAxes) const {
    if (_Npass == 1) {
-      return getOnePassAxes(n_jets,inputs,seedAxes);
+      return get_one_pass_axes(n_jets,inputs,seedAxes);
    } else {
       assert(_Npass > 1);
-      return getMultiPassAxes(n_jets,inputs,seedAxes);
+      return get_multi_pass_axes(n_jets,inputs,seedAxes);
    }
 }
    

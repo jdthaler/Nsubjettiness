@@ -26,9 +26,10 @@
 #define __FASTJET_CONTRIB_NJETTINESS_HH__
 
 
-#include "MeasureFunction.hh"
-#include "AxesFinder.hh"
-#include "NjettinessDefinition.hh"
+#include "MeasureDefinition.hh"
+#include "AxesDefinition.hh"
+#include "AxesRefiner.hh"
+#include "TauComponents.hh"
 
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/SharedPtr.hh"
@@ -50,10 +51,9 @@ namespace contrib {
 
 //------------------------------------------------------------------------
 /// \class Njettiness
-// Njettiness uses AxesFinder and MeasureFunction together in order to find tau_N for the event. The user specifies
-// which AxesFinder and which MeasureFunction to use in the calculation, and then Njettiness returns tau_N for the event.
-// It also can return information about the axes and jets it used in the calculation, as well as information about 
-// how the event was partitioned.
+// Njettiness uses AxesDefinition and MeasureDefinition together in order to find tau_N for the event.
+// It also can return information about the axes and jets it used in the calculation, as well as
+// information about how the event was partitioned.
 class Njettiness {
 public:
    
@@ -84,12 +84,12 @@ public:
    // Return seedAxes used if onepass minimization (otherwise, same as currentAxes)
    std::vector<fastjet::PseudoJet> seedAxes() const { return _seedAxes;}
    // Return jet partition found by getTauComponents.
-   std::vector<fastjet::PseudoJet> currentJets() const {return _currentJets;}
+   std::vector<fastjet::PseudoJet> currentJets() const {return _currentPartition.jets();}
    // Return beam partition found by getTauComponents.
-   fastjet::PseudoJet currentBeam() const {return _currentBeam;}
+   fastjet::PseudoJet currentBeam() const {return _currentPartition.beam();}
    
    // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
-   std::vector<std::list<int> > getPartitionList(const std::vector<fastjet::PseudoJet> & inputJets) const;
+   TauPartition getPartition(const std::vector<fastjet::PseudoJet> & inputJets) const;
 
 private:
    
@@ -98,24 +98,22 @@ private:
    SharedPtr<const AxesDefinition> _axes_def;
    SharedPtr<const MeasureDefinition> _measure_def;
    
-   // Intermediate storage for easy access to pointers
-   SharedPtr<MeasureFunction> _measureFunction;
-   SharedPtr<StartingAxesFinder> _startingFinder;
-   SharedPtr<RefiningAxesFinder> _refiningFinder;
-   
-   void setMeasureFunctionAndAxesFinder();
+   // The AxesRefiner depends on the Npass settings of _axes_def, but the minimization routines specified by _measure_def,
+   // hense the need for a helper function to set this.
+   void setAxesRefinerAndManualMode();
+   SharedPtr<const AxesRefiner> _axes_refiner;
    
    // Information about the current information
    // Defined as mutables, so user should be aware that these change when getTau is called.
+   // TODO:  These are not thread safe and should be fixed somehow
    mutable TauComponents _current_tau_components; //automatically set to have components of 0; these values will be set by the getTau function call
    mutable std::vector<fastjet::PseudoJet> _currentAxes; //axes found after minimization
    mutable std::vector<fastjet::PseudoJet> _seedAxes; // axes used prior to minimization (if applicable)
-   mutable std::vector<fastjet::PseudoJet> _currentJets; //partitioning information
-   mutable fastjet::PseudoJet _currentBeam; //return beam, if requested
+   mutable TauPartition _currentPartition; //partitioning information
    
 public:
    
-   // These interfaces are included for backwards compability, and may be deprecated in a future release
+   // These interfaces are included for backwards compability, and will be deprecated in a future release
    
    // The various axes choices available to the user
    // It is recommended to use AxesDefinition instead of these.
@@ -165,7 +163,7 @@ public:
               double para2 = std::numeric_limits<double>::quiet_NaN(),
               double para3 = std::numeric_limits<double>::quiet_NaN())
    : _axes_def(createAxesDef(axes_mode)), _measure_def(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
-      setMeasureFunctionAndAxesFinder();
+      setAxesRefinerAndManualMode();
    }
   
    // Convert old style enums into new style MeasureDefinition

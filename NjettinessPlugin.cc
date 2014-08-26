@@ -48,9 +48,9 @@ void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    
    
    _njettinessFinder.getTau(_N, particles);
-
-   std::vector<std::list<int> > partition = _njettinessFinder.getPartitionList(particles);
-
+   TauPartition tau_partition = _njettinessFinder.getPartition(particles);
+   std::vector<std::list<int> > partition = tau_partition.jets_list();
+   
    std::vector<fastjet::PseudoJet> jet_indices_for_extras;
 
    // output clusterings for each jet

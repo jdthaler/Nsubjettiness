@@ -1,3 +1,16 @@
+2014-08-25 <JDT>
+   Merged MeasureDefinition and MeasureFunction into new MeasureDefinition.
+   Merged StartingAxesFinder and AxesDefinition into new AxesDefinition.
+   Renamed AxesFinder.cc/hh to AxesRefiner.cc/hh
+   Renamed NjettinessDefinition.cc/hh to AxesDefinition.cc/hh
+   Renamed MeasureFunction.cc/hh to MeasureDefinition.cc/hh
+   Renaming result() function in MeasureDefinition to be consistent with Nsubjettiness interface.
+   Split off TauComponents into separate header
+   Added TauPartition class for readability of partitioning
+   Moved NjettinessExtras into TauComponents, as this will eventually be the logical location
+   Added cross check of new MeasureDefinition and AxesDefinition in example_advanced_usage.
+   Lots of comments updated.
+   Changed version number to 2.2.0-alpha-dev, since this is going to be a bigger update than I had originally thought
 2014-08-20 <JDT>
    Incorporated code in NjettinessPlugin to handle FJ3.1 treatment of auto_ptr (thanks Gregory)
    Changed version number to 2.1.1-alpha-dev
