@@ -31,10 +31,33 @@
 #include <cmath>
 #include <vector>
 #include <list>
+#include <limits>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
+
+//Added General Recomber to allow user to choose different values of delta in recombination scheme (name will be changing) -- TJW
+//------------------------------------------------------------------------
+/// \class GeneralERecombiner
+// GeneralERecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
+// This scheme compares the pT of two input particles, and then combines them into a particle with
+// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) weighted by the respective momenta of the 
+// particle. The weighting is dependent on the power delta. For delta = infinity, this should return the same result as WTA
+class GeneralERecombiner : public fastjet::JetDefinition::Recombiner {
+public:
+  GeneralERecombiner(double delta) : _delta(delta) {}
+  
+  virtual std::string description() const;
+  
+  virtual void recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const;
+
+private:
+  double _delta;
+};
 
 //------------------------------------------------------------------------
 /// \class WinnerTakeAllRecombiner

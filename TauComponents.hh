@@ -48,6 +48,7 @@ class NjettinessExtras;
 
 // Specified whether there are beam or denominators
 enum TauMode {
+   DEFAULT = -1, // Added so that constructor would default to some value -- TJW 
    UNNORMALIZED_JET_SHAPE = 0,
    NORMALIZED_JET_SHAPE = 1,
    UNNORMALIZED_EVENT_SHAPE = 2,
@@ -162,7 +163,7 @@ public:
    
    std::vector<PseudoJet> jets() const {
       std::vector<PseudoJet> jets;
-      for (int i = 0; i < _jets_partition.size(); i++) {
+      for (unsigned int i = 0; i < _jets_partition.size(); i++) { // made unsigned int to get rid of compiler warnings -- TJW
          jets.push_back(jet(i));
       }
       return jets;

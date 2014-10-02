@@ -83,13 +83,12 @@ std::string GeometricCutoffMeasure::description() const {
 };
    
    
-   
-AxesRefiner* NormalizedCutoffMeasure::createAxesRefiner(int nPass) const {
+// changed from cutoff measure to normal measure due to inheritance switching -- TJW   
+AxesRefiner* NormalizedMeasure::createAxesRefiner(int nPass) const {
    return (new ConicalAxesRefiner(_beta, _Rcutoff, nPass));
 }
 
-   
-AxesRefiner* GeometricCutoffMeasure::createAxesRefiner(int nPass) const {
+AxesRefiner* GeometricMeasure::createAxesRefiner(int nPass) const {
    return (new GeometricAxesRefiner(_jet_beta, _Rcutoff, nPass));
 }
    
@@ -175,10 +174,40 @@ TauComponents MeasureDefinition::component_result_from_partition(const TauPartit
    return TauComponents(_tau_mode, jetPieces, beamPiece, tauDen, jets, axes);
 }
 
+// new methods added to generalize energy and angle squared for different measure types -- TJW
+double MeasureDefinition::energy(const PseudoJet& jet) const {
+   if (_measure_type == pt_R) {
+      return jet.perp();
+   }  else if (_measure_type == E_theta || _measure_type == lorentz_dot) {
+      return jet.e();
+   } else {
+      assert(_measure_type == pt_R || _measure_type == E_theta || _measure_type == lorentz_dot);
+      return std::numeric_limits<double>::quiet_NaN();
+   }
+}
    
-   
-   
-   
+double MeasureDefinition::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2) const {
+   if (_measure_type == pt_R) {
+      return jet1.squared_distance(jet2);
+   } else if (_measure_type == E_theta) {
+      // doesn't seem to be a fastjet built in for this
+      double dot = jet1.px()*jet2.px() + jet1.py()*jet2.py() + jet1.pz()*jet2.pz();
+      double norm1 = sqrt(jet1.px()*jet1.px() + jet1.py()*jet1.py() + jet1.pz()*jet1.pz());
+      double norm2 = sqrt(jet2.px()*jet2.px() + jet2.py()*jet2.py() + jet2.pz()*jet2.pz());
+        
+      double costheta = dot/(norm1 * norm2);
+      if (costheta > 1.0) costheta = 1.0; // Need to handle case of numerical overflow
+      double theta = acos(costheta);
+      return theta*theta;   
+   } else if (_measure_type == lorentz_dot) {
+      double dotproduct = dot_product(jet1,jet2);
+      return 2.0 * dotproduct / (jet1.e() * jet2.e());
+   } else {
+      assert(_measure_type == pt_R || _measure_type == E_theta);
+      return std::numeric_limits<double>::quiet_NaN();
+   }
+}
+
 } //namespace contrib
 
 FASTJET_END_NAMESPACE

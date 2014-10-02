@@ -27,6 +27,39 @@
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
+  
+std::string GeneralERecombiner::description() const {
+   return "General E-scheme recombination";
+}
+  
+void GeneralERecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
+
+  // definition of ratio done so that we do not encounter issues about numbers being too large for huge values of delta -- TJW
+  double ratio;
+  double epsilon = 0.00001;
+  if (abs(_delta - 1) < epsilon) ratio = pb.perp()/pa.perp();
+  else ratio = pow(pb.perp()/pa.perp(), _delta);
+  double weighta = 1/(1 + ratio);
+  double weightb = 1/(1 + 1/ratio);
+
+  double perp_ab = pa.perp() + pb.perp();
+  if (perp_ab != 0.0) { // weights also non-zero...
+    double y_ab = (weighta * pa.rap() + weightb * pb.rap());
+    
+    // take care with periodicity in phi...
+    double phi_a = pa.phi(), phi_b = pb.phi();
+    if (phi_a - phi_b > pi)  phi_b += twopi;
+    if (phi_a - phi_b < -pi) phi_b -= twopi;
+    double phi_ab = (weighta * phi_a + weightb * phi_b);
+    
+    pab.reset_PtYPhiM(perp_ab, y_ab, phi_ab);
+
+  }
+  else { // weights are zero
+    pab.reset(0.0,0.0,0.0,0.0);
+  }
+}
+
 
 std::string WinnerTakeAllRecombiner::description() const {
    return "Winner-Take-All recombination";

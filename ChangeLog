@@ -1,3 +1,15 @@
+2014-10-01 <TJW>
+   Added new parameterized recombination scheme to Winner-Take-All recombiner
+   Created Winner-Take-All GenKT and general Recomb GenKT axes finders and onepass versions
+   Created new N choose M minimization axis finder, created N choose M WTA GenKT axis finder as example
+   Removed NPass as constructor argument in AxesDefinition, made it set through protected method
+   Removed TauMode as constructor argument in MeasureDefinition, made it set through protected method
+   Flipped inheritance of NormalizedMeasure and NormalizedCutoffMeasure (same for Geometric) to remove error of squaring the integer maximum
+   Created new MeasureType enum to allow user to choose between pp and ee variables (ee variables need testing)
+   Updated MeasureDefinition constructors to take in extra MeasureType parameter (but defaulted to pp variables)
+   Added new Default TauMode argument 
+   Fixed unsigned integers in various places
+   Added setAxes method to NjettinessPlugin
 2014-08-26 <JDT>
    Enhanced TauComponents to include more infomation
    NjettinessExtras now inherits from TauComponents
