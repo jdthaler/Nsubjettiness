@@ -36,8 +36,7 @@ void GeneralERecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet:
 
   // definition of ratio done so that we do not encounter issues about numbers being too large for huge values of delta -- TJW
   double ratio;
-  double epsilon = 0.00001;
-  if (abs(_delta - 1) < epsilon) ratio = pb.perp()/pa.perp();
+  if (abs(_delta - 1.0) < std::numeric_limits<double>::epsilon()) ratio = pb.perp()/pa.perp();
   else ratio = pow(pb.perp()/pa.perp(), _delta);
   double weighta = 1/(1 + ratio);
   double weightb = 1/(1 + 1/ratio);

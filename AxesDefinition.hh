@@ -518,9 +518,9 @@ protected:
 class GenRecomb_GenKT_Axes : public ExclusiveJetAxes {
 
 public:
-   GenRecomb_GenKT_Axes(double p, double delta, double R0 = fastjet::JetDefinition::max_allowable_R)
+   GenRecomb_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralERecombiner(delta))).getJetDef() /*, nPass*/), 
-    _p(p), _delta(delta), _R0(R0) {
+    _delta(delta), _p(p), _R0(R0) {
         setNpass(NO_REFINING);
     }
 
@@ -534,15 +534,15 @@ public:
    virtual std::string description() const {
       std::stringstream stream;
       stream << std::fixed << std::setprecision(2)
-      << "General KT (p = " << _p << "), General Recombiner (delta = " << _delta << ") Axes, R0 = " << _R0;
+      << "General Recombiner (delta = " << _delta << ")" << "General KT (p = " << _p << "),  Axes, R0 = " << _R0;
       return stream.str();
    };
    
    virtual GenRecomb_GenKT_Axes* create() const {return new GenRecomb_GenKT_Axes(*this);}
    
 protected:
-   double _p;
    double _delta;
+   double _p;
    double _R0;
    const GeneralERecombiner *_recomb;
 };
@@ -705,7 +705,7 @@ public:
 class OnePass_GenRecomb_GenKT_Axes : public GenRecomb_GenKT_Axes {
    
 public:
-   OnePass_GenRecomb_GenKT_Axes(double p, double delta, double R0 = fastjet::JetDefinition::max_allowable_R) : GenRecomb_GenKT_Axes(p, delta, R0) {
+   OnePass_GenRecomb_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R) : GenRecomb_GenKT_Axes(delta, p, R0) {
       setNpass(ONE_PASS);
    }
 
@@ -809,9 +809,11 @@ public:
 /// \class Comb_WTA_KT_Axes -- TJW
 // Axes from kT algorithm and winner-take-all recombination
 // Requires nExtra parameter and returns set of N that minimizes N-jettiness
+
+// default p value added due to compilation issues -- TJW
 class Comb_WTA_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
 public:
-   Comb_WTA_GenKT_Axes(double p, double R0 = fastjet::JetDefinition::max_allowable_R, int nExtra = 0)
+   Comb_WTA_GenKT_Axes(int nExtra = 0, double p = 1.0, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new WinnerTakeAllRecombiner())).getJetDef(), nExtra),
     _p(p), _R0(R0) {
         setNpass(NO_REFINING);

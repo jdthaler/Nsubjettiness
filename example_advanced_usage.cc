@@ -148,7 +148,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //
    ///////
 
-   //Define test parameters to use here -- TJW
+   //Define characteristic test parameters to use here -- TJW
    double p = 0.5;
    double delta = 10.0;
    double R0 = 0.2;
@@ -162,16 +162,16 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(WTA_KT_Axes());
    _testAxes.push_back(WTA_CA_Axes());
    _testAxes.push_back(WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(GenRecomb_GenKT_Axes(p, delta, R0)); // -- TJW
+   _testAxes.push_back(GenRecomb_GenKT_Axes(delta, p, R0)); // -- TJW
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
    _testAxes.push_back(OnePass_WTA_KT_Axes());
    _testAxes.push_back(OnePass_WTA_CA_Axes());
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(OnePass_GenRecomb_GenKT_Axes(p, delta, R0)); // -- TJW
+   _testAxes.push_back(OnePass_GenRecomb_GenKT_Axes(delta, p, R0)); // -- TJW
    _testAxes.push_back(MultiPass_Axes(100));
-   _testAxes.push_back(Comb_WTA_GenKT_Axes(p, R0, nExtra)); // -- TJW
+   _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0)); // -- TJW
 
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -193,18 +193,27 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // since cutoffs aren't typically helpful when applied to single jets)
    // Note that we are calling measures by their MeasureDefinition
    vector<MeasureStruct> _testMeasures;
-   _testMeasures.push_back(  NormalizedMeasure(1.0, 1.0));
-   _testMeasures.push_back(UnnormalizedMeasure(1.0     ));
-   _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0));
-   _testMeasures.push_back(UnnormalizedMeasure(2.0     ));
-   _testMeasures.push_back(   GeometricMeasure(2.0     ));
+   _testMeasures.push_back(  NormalizedMeasure(1.0, 1.0, pt_R));
+   _testMeasures.push_back(UnnormalizedMeasure(1.0     , pt_R));
+   _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, pt_R));
+   _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
+   _testMeasures.push_back(   GeometricMeasure(2.0     , pt_R));
+   // e+e- versions of the measures -- TJW
+   _testMeasures.push_back(  NormalizedMeasure(1.0, 1.0, E_theta));
+   _testMeasures.push_back(UnnormalizedMeasure(1.0     , E_theta));
+   _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, E_theta));
+   _testMeasures.push_back(UnnormalizedMeasure(2.0     , E_theta));
+   _testMeasures.push_back(   GeometricMeasure(2.0     , E_theta));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8));
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8));
-   _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, pt_R));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, pt_R));
+   _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, pt_R));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, E_theta));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, E_theta));
+   _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, E_theta));
    
    
    /////// N-subjettiness /////////////////////////////

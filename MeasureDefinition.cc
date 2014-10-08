@@ -39,46 +39,47 @@ namespace contrib {
 //
 ///////
 
-   
+
+//descriptions updated to include measure type -- TJW   
 std::string NormalizedMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Normalized Measure (beta = " << _beta << ", R0 = " << _R0 << ")";
+   << "Normalized Measure (beta = " << _beta << ", R0 = " << _R0 << ") " << measure_type_name();
    return stream.str();
 };
 
 std::string UnnormalizedMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Unnormalized Measure (beta = " << _beta << ", in GeV)";
+   << "Unnormalized Measure (beta = " << _beta << ", in GeV) " << measure_type_name();
    return stream.str();
 };
 
 std::string GeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Geometric Measure (beta = " << _jet_beta << ", in GeV)";
+   << "Geometric Measure (beta = " << _jet_beta << ", in GeV) " << measure_type_name();
    return stream.str();
 };
 
 std::string NormalizedCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Normalized Cutoff Measure (beta = " << _beta << ", R0 = " << _R0 << ", Rcut = " << _Rcutoff << ")";
+   << "Normalized Cutoff Measure (beta = " << _beta << ", R0 = " << _R0 << ", Rcut = " << _Rcutoff << ") " << measure_type_name();
    return stream.str();
 };
 
 std::string UnnormalizedCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Unnormalized Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+   << "Unnormalized Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
    return stream.str();
 };
 
 std::string GeometricCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+   << "Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
    return stream.str();
 };
    

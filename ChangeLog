@@ -1,3 +1,8 @@
+2014-10-08 <TJW>
+   Updated example file with new e+e- measure definitions
+   Added measure type to measure definition descriptions
+   Changed order of parameters in new axes definitions
+   Added standard C++ epsilon definition to GeneralERecombiner
 2014-10-07 <TJW>
    Updated example_advanced_usage with new axes choices
    Reversed inheritance of NormalizedMeasure and NormalizedCutoffMeasure (and Geometric) back to original

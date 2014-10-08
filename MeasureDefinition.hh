@@ -77,7 +77,7 @@ public:
    
    // In derived classes, this should return a copy of the corresponding derived class
    virtual MeasureDefinition* create() const = 0;
-   
+
    //The follwoing five functions define the measure by which tau_N is calculated,
    //and are overloaded by the various measures below
    
@@ -153,7 +153,15 @@ protected:
 
    bool has_denominator() const { return (_tau_mode == NORMALIZED_JET_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
    bool has_beam() const {return (_tau_mode == UNNORMALIZED_EVENT_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
-      
+
+   // added so that description will include the measure type -- TJW
+   std::string measure_type_name() const {
+      if (_measure_type == pt_R) return "pt_R";
+      else if (_measure_type == E_theta) return "E_theta";
+      else if (_measure_type == lorentz_dot) return "lorentz_dot";
+      else return "Measure Type Undefined";
+   }      
+
 };
 
 
@@ -302,7 +310,8 @@ public:
    
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+      // double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(energy(lightAxis)*energy(particle));
       return pseudoRsquared;
    }
 
@@ -313,13 +322,17 @@ public:
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
-      return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+      // double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
+      // return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(energy(lightAxis),_beam_beta - 1.0);
+      return energy(particle) * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
-      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
-      return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
+      // double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
+      // return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
+      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(energy(particle)/energy(particle),_beam_beta - 1.0);
+      return energy(particle) * weight * std::pow(_Rcutoff,_jet_beta);
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
