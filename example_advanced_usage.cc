@@ -148,20 +148,31 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //
    ///////
 
+   //Define test parameters to use here -- TJW
+   double p = 0.5;
+   double delta = 10.0;
+   double R0 = 0.2;
+   int nExtra = 2;
+
    // A list of all of the available axes modes
    vector<AxesStruct> _testAxes;
    _testAxes.push_back(KT_Axes());
    _testAxes.push_back(CA_Axes());
-   _testAxes.push_back(AntiKT_Axes(0.2));
+   _testAxes.push_back(AntiKT_Axes(R0));
    _testAxes.push_back(WTA_KT_Axes());
    _testAxes.push_back(WTA_CA_Axes());
+   _testAxes.push_back(WTA_GenKT_Axes(p, R0)); // -- TJW
+   _testAxes.push_back(GenRecomb_GenKT_Axes(p, delta, R0)); // -- TJW
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
-   _testAxes.push_back(OnePass_AntiKT_Axes(0.2));
+   _testAxes.push_back(OnePass_AntiKT_Axes(R0));
    _testAxes.push_back(OnePass_WTA_KT_Axes());
    _testAxes.push_back(OnePass_WTA_CA_Axes());
+   _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0)); // -- TJW
+   _testAxes.push_back(OnePass_GenRecomb_GenKT_Axes(p, delta, R0)); // -- TJW
    _testAxes.push_back(MultiPass_Axes(100));
-   
+   _testAxes.push_back(Comb_WTA_GenKT_Axes(p, R0, nExtra)); // -- TJW
+
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
    // minimum, only a local minimum, and different choices of the random
@@ -252,7 +263,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
          
          cout << "-------------------------------------------------------------------------------------" << endl;
          cout << _testMeasures[iM].description() << ":" << endl;
-         cout << "       AxisMode"
+         cout << setw(25) << "AxisMode"
             << setw(14) << "tau1"
             << setw(14) << "tau2"
             << setw(14) << "tau3"
@@ -305,7 +316,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
             
             // Output results:
             cout << std::right
-               << setw(14)
+               << setw(24)
                << axesName
                << ":"
                << setw(14) << tau1

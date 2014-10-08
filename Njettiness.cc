@@ -63,7 +63,8 @@ void Njettiness::setAxesRefinerAndManualMode() {
    
 // setAxes for Manual mode
 void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-   if (_axes_def->needsManualAxes()) {
+   // if (_axes_def->needsManualAxes()) {
+   if (!_axes_def()) { // bug fix for manual axes -- TJW
       _currentAxes = myAxes;
    } else {
       throw Error("You can only use setAxes for manual AxesDefinitions");

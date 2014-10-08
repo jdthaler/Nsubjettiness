@@ -135,8 +135,8 @@ protected:
 
    // This constructor allows _has_denominator to be set by derived classes
    // MeasureDefinition(TauMode tau_mode) : _tau_mode(tau_mode) {}
-   MeasureDefinition() : _tau_mode(DEFAULT), _measure_type(pt_R) {}
-   MeasureDefinition(MeasureType measure_type) : _tau_mode(DEFAULT), _measure_type(measure_type) {}
+   MeasureDefinition() : _tau_mode(UNDEFINED_SHAPE), _measure_type(pt_R) {}
+   MeasureDefinition(MeasureType measure_type) : _tau_mode(UNDEFINED_SHAPE), _measure_type(measure_type) {}
 
    void setTauMode(TauMode tau_mode) {
       _tau_mode = tau_mode;
@@ -162,36 +162,30 @@ protected:
 // updated instances of perp() and jet_distance_squared() to account for more general metrics -- TJW
 
 //------------------------------------------------------------------------
-/// \class NormalizedMeasure
+/// \class NormalizedCutoffMeasure
 // This class is the default measure, based on the conical measure.
 // This measure is defined as the pT of the particle multiplied by deltaR
 // to the power of beta. This class includes the normalization factor determined by R0
-class NormalizedMeasure : public MeasureDefinition {
+class NormalizedCutoffMeasure : public MeasureDefinition {
    
 public:
    
-   NormalizedMeasure(double beta, double R0/*, TauMode tau_mode = NORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
-   : MeasureDefinition(measure_type), _beta(beta), _R0(R0), _Rcutoff(std::numeric_limits<double>::max()) {
-      setTauMode(NORMALIZED_JET_SHAPE);
+   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff/*, TauMode tau_mode = NORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   : MeasureDefinition(measure_type), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      setTauMode(NORMALIZED_EVENT_SHAPE);
    }
    
    virtual std::string description() const;
    
-   virtual NormalizedMeasure* create() const {return new NormalizedMeasure(*this);}
-
-   // added to set cutoff in inherited class -- TJW
-   virtual void setCutoff(double Rcutoff) {
-      _Rcutoff = Rcutoff;
-   }
+   virtual NormalizedCutoffMeasure* create() const {return new NormalizedCutoffMeasure(*this);}
 
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       return particle.squared_distance(axis);
    }
    
-   // changed so there is no squaring issue, but redefined in inherited class -- TJW
    virtual double beam_distance_squared(const fastjet::PseudoJet& /*particle*/) const {
       // return sq(_Rcutoff);
-      return std::numeric_limits<double>::max();
+      return _RcutoffSq;
    }
    
    // updated for new general definitions of energy and angle -- TJW
@@ -217,53 +211,27 @@ protected:
    double _beta;
    double _R0;
    double _Rcutoff;
-   
+   double _RcutoffSq;   
    
 };
    
 //------------------------------------------------------------------------
-/// \class NormalizedCutoffMeasure
-// This measure is the same as NormalizedMeasure, with a finite value of Rcutoff.
-class NormalizedCutoffMeasure : public NormalizedMeasure {
+/// \class NormalizedMeasure
+// This measure is the same as NormalizedCutoffMeasure, with Rcutoff taken to infinity.
+class NormalizedMeasure : public NormalizedCutoffMeasure {
 
 public:
 
-   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff/*, TauMode tau_mode = NORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
-   : NormalizedMeasure(beta, R0, measure_type) {
-      setCutoff(Rcutoff);
-      setTauMode(NORMALIZED_EVENT_SHAPE);
+   NormalizedMeasure(double beta, double R0/*, TauMode tau_mode = NORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
+   : NormalizedCutoffMeasure(beta, R0, std::numeric_limits<double>::max(), measure_type) {
+      _RcutoffSq = std::numeric_limits<double>::max();
+      setTauMode(NORMALIZED_JET_SHAPE);
    }
    
    virtual std::string description() const;
 
-   virtual NormalizedCutoffMeasure* create() const {return new NormalizedCutoffMeasure(*this);}
+   virtual NormalizedMeasure* create() const {return new NormalizedMeasure(*this);}
 
-   virtual double beam_distance_squared(const fastjet::PseudoJet& /*particle*/) const {
-      return sq(_Rcutoff);
-   }
-
-};
-   
-//------------------------------------------------------------------------
-/// \class UnnormalizedMeasure
-// This measure is the same as UnnormalizedCutoffMeasure, with Rcutoff taken
-// to infinity.
-// class UnnormalizedMeasure : public UnnormalizedCutoffMeasure {
-class UnnormalizedMeasure : public NormalizedMeasure {
-   
-public:
-   // Since all methods are identical, UnnormalizedMeasure inherits directly
-   // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
-   // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
-   UnnormalizedMeasure(double beta/*,TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
-   : NormalizedMeasure(beta, std::numeric_limits<double>::quiet_NaN(), measure_type) {
-      setTauMode(UNNORMALIZED_JET_SHAPE);
-   }
-
-   virtual std::string description() const;
-
-   virtual UnnormalizedMeasure* create() const {return new UnnormalizedMeasure(*this);}
-   
 };
    
 
@@ -274,7 +242,7 @@ public:
 class UnnormalizedCutoffMeasure : public NormalizedCutoffMeasure {
    
 public:
-   // Since all methods are identical, UnnormalizedCutoffMeasure inherits directly
+   // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
    UnnormalizedCutoffMeasure(double beta, double Rcutoff/*,TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
@@ -288,32 +256,50 @@ public:
 
 };
 
-// flipped inheritance of cutoff and no cutoff for same reason as above -- TJW
+   
+//------------------------------------------------------------------------
+/// \class UnnormalizedMeasure
+// This measure is the same as UnnormalizedCutoffMeasure, with Rcutoff taken
+// to infinity.
+class UnnormalizedMeasure : public UnnormalizedCutoffMeasure {
+   
+public:
+   // Since all methods are identical, UnnormalizedMeasure inherits directly
+   // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
+   // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
+   UnnormalizedMeasure(double beta/*,TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
+   : UnnormalizedCutoffMeasure(beta, std::numeric_limits<double>::max(), measure_type) {
+      setTauMode(UNNORMALIZED_JET_SHAPE);
+   }
+
+
+   virtual std::string description() const;
+
+   virtual UnnormalizedMeasure* create() const {return new UnnormalizedMeasure(*this);}
+   
+};
+      
 // haven't put in new definitions of e+e- variables for Geometric Measure because the naive redefinition didn't work -- TJW
 
 //------------------------------------------------------------------------
-/// \class GeometricMeasure
-// This class is the geometic measure.  This measure is defined by the Lorentz dot product between
+/// \class GeometricCutoffMeasure
+// This class is the geometric measure.  This measure is defined by the Lorentz dot product between
 // the particle and the axis.  This class does not include normalization of tau_N.
 // NOTE:  This class is in flux and should not be used for production purposes.
-class GeometricMeasure : public MeasureDefinition {
+class GeometricCutoffMeasure : public MeasureDefinition {
 
 public:
    // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
-   GeometricMeasure(double jet_beta/*,TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
+   GeometricCutoffMeasure(double jet_beta, double Rcutoff/*, TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
    :   MeasureDefinition(measure_type),
-      _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(std::numeric_limits<int>::max()) {
-         setTauMode(UNNORMALIZED_JET_SHAPE);
-   }
+      _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+         setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      }
 
    virtual std::string description() const;
    
-   virtual GeometricMeasure* create() const {return new GeometricMeasure(*this);}
+   virtual GeometricCutoffMeasure* create() const {return new GeometricCutoffMeasure(*this);}
    
-   virtual void setCutoff(double Rcutoff) {
-      _Rcutoff = Rcutoff;
-   }
-
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
       double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
@@ -321,7 +307,8 @@ public:
    }
 
    virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
-      return std::numeric_limits<int>::max();
+      // return sq(_Rcutoff);
+      return _RcutoffSq;
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
@@ -346,6 +333,7 @@ protected:
    double _jet_beta;
    double _beam_beta;
    double _Rcutoff;
+   double _RcutoffSq;
    
    // create light-like axis
    fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
@@ -355,30 +343,23 @@ protected:
 
 };
 
-
+   
 //------------------------------------------------------------------------
-/// \class GeometricCutoffMeasure
-// Same as GeometricMeasure, but with specified value of Rcutoff
-class GeometricCutoffMeasure : public GeometricMeasure {
+/// \class GeometricMeasure
+// Same as GeometricCutoffMeasure, but with Rcutoff taken to infinity.
+class GeometricMeasure : public GeometricCutoffMeasure {
    
 public:
-   
-   GeometricCutoffMeasure(double beta, double Rcutoff/*,TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
-   : GeometricMeasure(beta, measure_type) {
-      setCutoff(Rcutoff);
-      setTauMode(UNNORMALIZED_EVENT_SHAPE);
+   GeometricMeasure(double beta/*, TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
+   : GeometricCutoffMeasure(beta,std::numeric_limits<double>::max(),measure_type) {
+      _RcutoffSq = std::numeric_limits<double>::max();
+      setTauMode(UNNORMALIZED_JET_SHAPE);
    }
 
    virtual std::string description() const;
 
-   virtual GeometricCutoffMeasure* create() const {return new GeometricCutoffMeasure(*this);}
-
-   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
-      return sq(_Rcutoff);
-   }
-
+   virtual GeometricMeasure* create() const {return new GeometricMeasure(*this);}
 };
-   
    
 } //namespace contrib
 

@@ -83,12 +83,11 @@ std::string GeometricCutoffMeasure::description() const {
 };
    
    
-// changed from cutoff measure to normal measure due to inheritance switching -- TJW   
-AxesRefiner* NormalizedMeasure::createAxesRefiner(int nPass) const {
+AxesRefiner* NormalizedCutoffMeasure::createAxesRefiner(int nPass) const {
    return (new ConicalAxesRefiner(_beta, _Rcutoff, nPass));
 }
 
-AxesRefiner* GeometricMeasure::createAxesRefiner(int nPass) const {
+AxesRefiner* GeometricCutoffMeasure::createAxesRefiner(int nPass) const {
    return (new GeometricAxesRefiner(_jet_beta, _Rcutoff, nPass));
 }
    

@@ -207,7 +207,7 @@ std::vector<fastjet::PseudoJet> ConicalAxesRefiner::get_one_pass_axes(int n_jets
 // Repeatedly calls the one pass finder to try to find global minimum
 std::vector<fastjet::PseudoJet> AxesRefiner::get_multi_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
    
-   assert((unsigned int)n_jets == seedAxes.size()); //added unsigned int to get rid of compiler warning -- TJW
+   assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning -- TJW
    
    // first iteration
    std::vector<fastjet::PseudoJet> bestAxes = get_one_pass_axes(n_jets, inputJets, seedAxes);
@@ -253,7 +253,7 @@ PseudoJet AxesRefiner::jiggle(const PseudoJet& axis) const {
 // This is essentially the same as a stable cone finder.
 std::vector<fastjet::PseudoJet> GeometricAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
 
-   assert((unsigned int)n_jets == currentAxes.size()); //added unsigned int to get rid of compiler warning -- TJW
+   assert(n_jets == (int)currentAxes.size()); //added int casting to get rid of compiler warning -- TJW
    
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
    double seedTau = _associatedMeasure->result(particles, seedAxes);

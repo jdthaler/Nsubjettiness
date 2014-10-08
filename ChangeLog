@@ -1,3 +1,11 @@
+2014-10-07 <TJW>
+   Updated example_advanced_usage with new axes choices
+   Reversed inheritance of NormalizedMeasure and NormalizedCutoffMeasure (and Geometric) back to original
+   Storing _RcutoffSq as separate variable, and recalculating it in NormalizedMeasure 
+   Cleaning up ExclusiveCombinatorialJetAxes and added comments to explain the process
+   Fixed memory leaks using delete_recombiner_when_unused()
+   Fixed manual axes bug in Njettiness
+   Cleaned up enum definitions
 2014-10-01 <TJW>
    Added new parameterized recombination scheme to Winner-Take-All recombiner
    Created Winner-Take-All GenKT and general Recomb GenKT axes finders and onepass versions
