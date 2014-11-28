@@ -813,7 +813,7 @@ public:
 // default p value added due to compilation issues -- TJW
 class Comb_WTA_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
 public:
-   Comb_WTA_GenKT_Axes(int nExtra = 0, double p = 1.0, double R0 = fastjet::JetDefinition::max_allowable_R)
+   Comb_WTA_GenKT_Axes(int nExtra, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new WinnerTakeAllRecombiner())).getJetDef(), nExtra),
     _p(p), _R0(R0) {
         setNpass(NO_REFINING);
