@@ -82,7 +82,14 @@ std::string GeometricCutoffMeasure::description() const {
    << "Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
    return stream.str();
 };
-   
+
+// Added by TJW
+std::string ConicalGeometricCutoffMeasure::description() const {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2)
+   << "Conical Geometric Cutoff Measure (beta = " << _jet_beta << ", gamma = " << _jet_gamma << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
+   return stream.str();
+}; 
    
 AxesRefiner* NormalizedCutoffMeasure::createAxesRefiner(int nPass) const {
    return (new ConicalAxesRefiner(_beta, _Rcutoff, nPass));
@@ -91,7 +98,11 @@ AxesRefiner* NormalizedCutoffMeasure::createAxesRefiner(int nPass) const {
 AxesRefiner* GeometricCutoffMeasure::createAxesRefiner(int nPass) const {
    return (new GeometricAxesRefiner(_jet_beta, _Rcutoff, nPass));
 }
-   
+ 
+// Added by TJW
+AxesRefiner* ConicalGeometricCutoffMeasure::createAxesRefiner(int nPass) const {
+   return (new GeneralAxesRefiner(_jet_beta, _Rcutoff, nPass));
+}  
    
 // Return all of the necessary TauComponents for specific input particles and axes
 TauComponents MeasureDefinition::component_result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) const {

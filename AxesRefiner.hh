@@ -94,8 +94,8 @@ protected:
                                                        const std::vector<fastjet::PseudoJet>& seedAxes) const;
    
    PseudoJet jiggle(const PseudoJet& axis) const;
-};
 
+};
 
 //This is a helper class for the Minimum Axes Finders. It is defined later.
 class LightLikeAxis;                                          
@@ -168,6 +168,31 @@ private:
 
 };
 
+// added by TJW
+
+//------------------------------------------------------------------------
+/// \class GeneralAxesFinder
+// This class finds axes by minimizing the Lorentz dot product distance between axes and particles. Given a first set of starting axes,
+// it essentially does stable cone finxing.
+class GeneralAxesRefiner : public AxesRefiner {
+
+public:
+  GeneralAxesRefiner(double beta, double Rcutoff, int nPass) 
+  : AxesRefiner(nPass),
+    _nAttempts(1),
+    _accuracy(0.00000001)
+  {
+    _associatedMeasure.reset(new XConeCutoffMeasure(beta,Rcutoff));
+  }
+
+  virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets, const std::vector<fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& seedAxes) const;
+
+private:
+    double _nAttempts;
+    double _accuracy;
+
+};
+
 //------------------------------------------------------------------------
 /// \class LightLikeAxis
 // This is a helper class for the minimum Axes Finders classes above. It creates a convenient way of defining axes
@@ -223,8 +248,7 @@ private:
    double Distance(double rap2, double phi2) const {
       return std::sqrt(DistanceSq(rap2,phi2));
    }
-   
-   
+      
 };
 
 } //namespace contrib

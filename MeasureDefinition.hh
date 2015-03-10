@@ -38,7 +38,7 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-//shamelessly stolen from EnergyCorrelator for switching between pp and ee measure types -- TJW
+// for switching between pp and ee measure types -- TJW
 enum MeasureType {
    pt_R,       ///  use transverse momenta and boost-invariant angles,
    E_theta,    ///  use energies and angles,
@@ -54,6 +54,10 @@ class NormalizedCutoffMeasure;   // (beta,R0,Rcutoff)
 class UnnormalizedCutoffMeasure; // (beta,Rcutoff)
 class GeometricCutoffMeasure;    // (beta,Rcutoff)
 
+class ConicalGeometricCutoffMeasure; // TESTING -- TJW
+class ConicalGeometricMeasure; // TESTING -- TJW
+class XConeCutoffMeasure; // TESTING -- TJW
+class XConeMeasure; // TESTING -- TJW
 ///////
 //
 // MeasureDefinition
@@ -84,6 +88,9 @@ public:
    // Distanes to axes.  These are called many times, so need to be as fast as possible
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
    virtual double beam_distance_squared(const fastjet::PseudoJet& particle) const = 0;
+
+   // axes_numerator added for use in minimization in AxesRefiner -- TJW
+   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
    
    // The actual measures used in N-(sub)jettiness
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
@@ -196,6 +203,11 @@ public:
       return _RcutoffSq;
    }
    
+   // temporarily trivially defined -- TJW
+   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      return 1.0;
+   };
+
    // updated for new general definitions of energy and angle -- TJW
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const{
       // return particle.perp() * std::pow(jet_distance_squared(particle,axis),_beta/2.0);
@@ -277,6 +289,7 @@ public:
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
    UnnormalizedMeasure(double beta/*,TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
    : UnnormalizedCutoffMeasure(beta, std::numeric_limits<double>::max(), measure_type) {
+      _RcutoffSq = std::numeric_limits<double>::max();
       setTauMode(UNNORMALIZED_JET_SHAPE);
    }
 
@@ -318,6 +331,11 @@ public:
    virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
       // return sq(_Rcutoff);
       return _RcutoffSq;
+   }
+
+   // temporarily trivially defined -- TJW
+   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const  {
+      return 1.0;
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
@@ -373,6 +391,126 @@ public:
 
    virtual GeometricMeasure* create() const {return new GeometricMeasure(*this);}
 };
+
+// Classes below added by TJW
+
+// ------------------------------------------------------------------------
+// / \class ConicalGeometricCutoffMeasure
+// This class is the Conical geometric measure.  This measure is defined by the Lorentz dot product between
+// the particle and the axis normalized by the axis and particle pT, as well as a factor of cosh(y) to vary
+// the rapidity depepdence of the beam.
+// NOTE:  This class is in flux and should not be used for production purposes.
+class ConicalGeometricCutoffMeasure : public MeasureDefinition {
+
+public:
+   ConicalGeometricCutoffMeasure(double jet_beta, double jet_gamma, double Rcutoff/*, TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   :   MeasureDefinition(measure_type),
+      _jet_beta(jet_beta), _jet_gamma(jet_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+         setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      }
+
+   virtual std::string description() const;
+   
+   virtual ConicalGeometricCutoffMeasure* create() const {return new ConicalGeometricCutoffMeasure(*this);}
+   
+   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      fastjet::PseudoJet lightAxis = lightFrom(axis);
+      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+      // double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(energy(lightAxis)*energy(particle));
+      return pseudoRsquared;
+   }
+
+   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
+      // return sq(_Rcutoff);
+      return _RcutoffSq;
+   }
+
+   // defined according to G(n,p) in the paper -- TJW
+   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      fastjet::PseudoJet lightAxis = lightFrom(axis);
+      double jet_distance_param = (_jet_beta == 2.0) ? 1.0 : std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0 - 1.0);
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_jet_gamma - 1.0);
+      return (1/lightAxis.pt()) * weight * jet_distance_param;
+   }
+
+   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      fastjet::PseudoJet lightAxis = lightFrom(axis);
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_jet_gamma - 1.0);
+      return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+      // double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(energy(lightAxis),_jet_gamma - 1.0);
+      // return energy(particle) * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+   }
+
+   virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_jet_gamma - 1.0);
+      return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
+      // double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(energy(particle)/energy(particle),_jet_gamma - 1.0);
+      // return energy(particle) * weight * std::pow(_Rcutoff,_jet_beta);
+   }
+
+   virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
+      return std::numeric_limits<double>::quiet_NaN();
+   }
+   
+   // The minimization routine is GeometricAxesRefiner
+   virtual AxesRefiner* createAxesRefiner(int nPass) const;
+   
+protected:
+   double _jet_beta;
+   double _jet_gamma;
+   double _Rcutoff;
+   double _RcutoffSq;
+   
+   // create light-like axis
+   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
+      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
+      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
+   }
+
+};
+
+//------------------------------------------------------------------------
+/// \class GeometricMeasure
+// Same as GeometricCutoffMeasure, but with Rcutoff taken to infinity.
+class ConicalGeometricMeasure : public ConicalGeometricCutoffMeasure {
+   
+public:
+   ConicalGeometricMeasure(double jet_beta, double jet_gamma/*, TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
+   : ConicalGeometricCutoffMeasure(jet_beta, jet_gamma, std::numeric_limits<double>::max(),measure_type) {
+      _RcutoffSq = std::numeric_limits<double>::max();
+      setTauMode(UNNORMALIZED_JET_SHAPE);
+   }
+
+   virtual std::string description() const;
+
+   virtual ConicalGeometricMeasure* create() const {return new ConicalGeometricMeasure(*this);}
+};
+
+// ------------------------------------------------------------------------
+// / \class XConeCutoffMeasure
+// This class is the XCone Measure.  This is the default measure for use with the
+// XCone algorithm. It is identical to the conical geomtric measure but with gamma = 1.0.
+// NOTE:  This class is in flux and should not be used for production purposes.
+class XConeCutoffMeasure : public ConicalGeometricCutoffMeasure {
+
+public:
+   XConeCutoffMeasure(double jet_beta, double Rcutoff/*, TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   :   ConicalGeometricCutoffMeasure(jet_beta, 1.0, Rcutoff, measure_type) { }
+
+   virtual XConeCutoffMeasure* create() const {return new XConeCutoffMeasure(*this);}
+
+};
+
+class XConeMeasure : public ConicalGeometricMeasure {
+
+public:
+   XConeMeasure(double jet_beta/*, TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   :   ConicalGeometricMeasure(jet_beta, 1.0, measure_type) { }
+
+   virtual XConeMeasure* create() const {return new XConeMeasure(*this);}
+};
+
+
    
 } //namespace contrib
 

@@ -1,3 +1,8 @@
+2015-03-09 <TJW>
+   Added ConicalGeometric measures with jet_beta and jet_gamma definitions
+   Added XCone measures derived from ConicalGeometric with jet_gamma = 1.0
+   Added GeneralAxesRefiner for use with any measure (currently defined with XCone measure)
+   Added axes_numerator in MeasureDefinition to define the momentum scaling for minimization (currently only defined for Conical Geometric measure)
 2014-11-28 <TJW>
    Minor change to default parameters in axes definition
 2014-10-08 <TJW>
