@@ -7,7 +7,7 @@
 // Run this example with
 //     ./example_advanced_usage < ../data/single-event.dat
 //
-//  $Id$
+//  $Id: example_advanced_usage.cc 750 2014-10-08 15:32:14Z tjwilk $
 //----------------------------------------------------------------------
 // This file is part of FastJet contrib.
 //
@@ -193,20 +193,22 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // since cutoffs aren't typically helpful when applied to single jets)
    // Note that we are calling measures by their MeasureDefinition
    vector<MeasureStruct> _testMeasures;
-   _testMeasures.push_back(  NormalizedMeasure(1.0, 1.0, pt_R));
-   _testMeasures.push_back(UnnormalizedMeasure(1.0     , pt_R));
-   _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, pt_R));
-   _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
-   // _testMeasures.push_back(   GeometricMeasure(2.0     , pt_R));
-   _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0     , pt_R));
+   // e+e- versions of the measures -- TJW
+   _testMeasures.push_back(  NormalizedMeasure(1.0, 1.0, E_theta));
+   _testMeasures.push_back(UnnormalizedMeasure(1.0     , E_theta));
+   _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, E_theta));
+   _testMeasures.push_back(UnnormalizedMeasure(2.0     , E_theta));
+   // _testMeasures.push_back(   GeometricMeasure(2.0     , E_theta));
+   _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0     , E_theta));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, pt_R));
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, pt_R));
-   // _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, pt_R));
-   _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8, pt_R));   
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, E_theta));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, E_theta));
+   // _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, E_theta));
+   _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8, E_theta));
+   
    
    /////// N-subjettiness /////////////////////////////
 

@@ -41,69 +41,90 @@ namespace contrib {
 
 
 //descriptions updated to include measure type -- TJW   
+std::string DefaultMeasure::description() const {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2)
+   << "Default Measure (should not be used directly)";
+   return stream.str();
+};
+
 std::string NormalizedMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Normalized Measure (beta = " << _beta << ", R0 = " << _R0 << ") " << measure_type_name();
+   << "Normalized Measure (beta = " << _beta << ", R0 = " << _R0 << ")";
    return stream.str();
 };
 
 std::string UnnormalizedMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Unnormalized Measure (beta = " << _beta << ", in GeV) " << measure_type_name();
+   << "Unnormalized Measure (beta = " << _beta << ", in GeV)";
    return stream.str();
 };
 
-std::string GeometricMeasure::description() const {
+std::string DeprecatedGeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Geometric Measure (beta = " << _jet_beta << ", in GeV) " << measure_type_name();
+   << "Geometric Measure (beta = " << _jet_beta << ", in GeV)";
    return stream.str();
 };
 
 std::string NormalizedCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Normalized Cutoff Measure (beta = " << _beta << ", R0 = " << _R0 << ", Rcut = " << _Rcutoff << ") " << measure_type_name();
+   << "Normalized Cutoff Measure (beta = " << _beta << ", R0 = " << _R0 << ", Rcut = " << _Rcutoff << ")";
    return stream.str();
 };
 
 std::string UnnormalizedCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Unnormalized Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
+   << "Unnormalized Cutoff Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 };
 
-std::string GeometricCutoffMeasure::description() const {
+std::string DeprecatedGeometricCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
+   << "Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 };
 
 // Added by TJW
+
+std::string OriginalGeometricMeasure::description() const {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2)
+   << "Original Geometric Cutoff Measure (Rcut = " << _Rcutoff << ", in GeV)";
+   return stream.str();
+}; 
+
+std::string ModifiedGeometricMeasure::description() const {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2)
+   << "Modified Geometric Cutoff Measure (Rcut = " << _Rcutoff << ", in GeV)";
+   return stream.str();
+}; 
+
 std::string ConicalGeometricCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Conical Geometric Cutoff Measure (beta = " << _jet_beta << ", gamma = " << _jet_gamma << ", Rcut = " << _Rcutoff << ", in GeV) " << measure_type_name();
+   << "Conical Geometric Cutoff Measure (beta = " << _jet_beta << ", gamma = " << _jet_gamma << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 }; 
    
-AxesRefiner* NormalizedCutoffMeasure::createAxesRefiner(int nPass) const {
+AxesRefiner* MeasureDefinition::createAxesRefiner(int nPass) const {
+   return (new GeneralAxesRefiner(this->create(), nPass));
+}
+
+AxesRefiner* DefaultMeasure::createAxesRefiner(int nPass) const {
    return (new ConicalAxesRefiner(_beta, _Rcutoff, nPass));
 }
 
-AxesRefiner* GeometricCutoffMeasure::createAxesRefiner(int nPass) const {
+AxesRefiner* DeprecatedGeometricCutoffMeasure::createAxesRefiner(int nPass) const {
    return (new GeometricAxesRefiner(_jet_beta, _Rcutoff, nPass));
 }
- 
-// Added by TJW
-AxesRefiner* ConicalGeometricCutoffMeasure::createAxesRefiner(int nPass) const {
-   return (new GeneralAxesRefiner(_jet_beta, _Rcutoff, nPass));
-}  
-   
+    
 // Return all of the necessary TauComponents for specific input particles and axes
 TauComponents MeasureDefinition::component_result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) const {
    

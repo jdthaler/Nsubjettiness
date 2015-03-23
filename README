@@ -20,6 +20,12 @@ New in v2.0 is the winner-take-all axis, which is described in:
 
 as well as in unpublished work by Gavin Salam.
 
+New in v2.2 are the Geometric Measure, Modified Geometric Measure, and Conical Geometric Measure, described in:
+
+  XCone: N-jettiness as an Exclusive Cone Jet Algorithm
+  Jesse Thaler, Christopher Vermilion, and Thomas Wilkason.
+  arxiv:XXXX.XXXX
+
 --------------------------------------------------------------------------------
 Core Classes
 --------------------------------------------------------------------------------

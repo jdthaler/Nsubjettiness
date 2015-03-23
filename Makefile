@@ -17,6 +17,7 @@ check_script = ../utils/check.sh
 NAME=Nsubjettiness
 SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc MeasureDefinition.cc AxesRefiner.cc WinnerTakeAllRecombiner.cc AxesDefinition.cc TauComponents.cc
 EXAMPLES=example_basic_usage example_advanced_usage example_v1p0p3
+EXAMPLES2=example_advanced_usage_ee
 INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh MeasureDefinition.hh AxesRefiner.hh WinnerTakeAllRecombiner.hh AxesDefinition.hh TauComponents.hh
 #------------------------------------------------------------------------
 
@@ -43,17 +44,23 @@ lib$(NAME).a: $(OBJS)
 	ranlib lib$(NAME).a
 
 # building the examples
-examples: $(EXAMPLES)
+examples: $(EXAMPLES) $(EXAMPLES2)
 
 # the following construct alloews to build each of the examples listed
 # in $EXAMPLES automatically
 $(EXAMPLES): % : %.o all
 	$(CXX) -o $@ $< -L. -l$(NAME) $(LDFLAGS)
 
+$(EXAMPLES2): % : %.o all
+	$(CXX) -o $@ $< -L. -l$(NAME) $(LDFLAGS)
+
 # check that everything went fine
 check: examples
 	@for prog in $(EXAMPLES); do\
 	  $(check_script) $${prog} ../data/single-event.dat || exit 1; \
+	done
+	@for prog in $(EXAMPLES2); do\
+	  $(check_script) $${prog} single-ee-event.dat || exit 1; \
 	done
 	@echo "All tests successful"
 

@@ -147,12 +147,13 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
          }
          break;
       case geometric_measure:
-         beta = para1;
-         if (num_para == 1) {
-            return new GeometricMeasure(beta);
-         } else {
-            throw Error("geometric_measure needs 1 parameter (beta)");
-         }
+         throw Error("This class has been deprecated. Please use OriginalGeometricMeasure, ModifiedGeometricMeasure, or ConicalGeometricMeasure with the new Njettiness constructor.");
+         // beta = para1;
+         // if (num_para == 1) {
+         //    return new GeometricMeasure(beta);
+         // } else {
+         //    throw Error("geometric_measure needs 1 parameter (beta)");
+         // }
          break;
       case normalized_cutoff_measure:
          beta = para1;
@@ -174,14 +175,15 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
          }
          break;
       case geometric_cutoff_measure:
-         beta = para1;
-         Rcutoff = para2; //Rcutoff parameter is 2nd parameter in geometric_cutoff_measure
-         if(num_para == 2) {
-            return new GeometricCutoffMeasure(beta,Rcutoff);
-         } else {
-            throw Error("geometric_cutoff_measure has 2 parameters (beta, Rcutoff)");
-         }
-         break;
+         throw Error("This class has been deprecated. Please use OriginalGeometricMeasure, ModifiedGeometricMeasure, or ConicalGeometricMeasure with the new Njettiness constructor.");
+         // beta = para1;
+         // Rcutoff = para2; //Rcutoff parameter is 2nd parameter in geometric_cutoff_measure
+         // if(num_para == 2) {
+         //    return new GeometricCutoffMeasure(beta,Rcutoff);
+         // } else {
+         //    throw Error("geometric_cutoff_measure has 2 parameters (beta, Rcutoff)");
+         // }
+         // break;
       default:
          assert(false);
          break;

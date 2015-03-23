@@ -157,7 +157,7 @@ public:
       if (beta != 2.0) {
          throw Error("Geometric minimization is currently only defined for beta = 2.0.");
       }
-      _associatedMeasure.reset(new GeometricCutoffMeasure(beta,Rcutoff));
+      _associatedMeasure.reset(new OriginalGeometricMeasure(Rcutoff));
    }
 
    virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const;
@@ -177,12 +177,13 @@ private:
 class GeneralAxesRefiner : public AxesRefiner {
 
 public:
-  GeneralAxesRefiner(double beta, double Rcutoff, int nPass) 
+  // GeneralAxesRefiner(double beta, double Rcutoff, int nPass) 
+  GeneralAxesRefiner(MeasureDefinition* associatedMeasure, int nPass) 
   : AxesRefiner(nPass),
-    _nAttempts(1),
+    _nAttempts(100),
     _accuracy(0.00000001)
   {
-    _associatedMeasure.reset(new XConeCutoffMeasure(beta,Rcutoff));
+    _associatedMeasure.reset(associatedMeasure);
   }
 
   virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets, const std::vector<fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& seedAxes) const;

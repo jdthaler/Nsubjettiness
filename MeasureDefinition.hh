@@ -47,13 +47,16 @@ enum MeasureType {
  
 
 // The following Measures are available (and their relevant arguments):
+class DefaultMeasure;            // Default Conical measure from which all conical classes derive
 class NormalizedMeasure;         // (beta,R0)
 class UnnormalizedMeasure;       // (beta)
-class GeometricMeasure;          // (beta)
+class DeprecatedGeometricMeasure;          // (beta) -- gone TJW
 class NormalizedCutoffMeasure;   // (beta,R0,Rcutoff)
 class UnnormalizedCutoffMeasure; // (beta,Rcutoff)
-class GeometricCutoffMeasure;    // (beta,Rcutoff)
+class DeprecatedGeometricCutoffMeasure;    // (beta,Rcutoff) -- gone TJW
 
+class OriginalGeometricMeasure; // TESTING -- TJW
+class ModifiedGeometricMeasure; // TESTING -- TJW
 class ConicalGeometricCutoffMeasure; // TESTING -- TJW
 class ConicalGeometricMeasure; // TESTING -- TJW
 class XConeCutoffMeasure; // TESTING -- TJW
@@ -90,7 +93,9 @@ public:
    virtual double beam_distance_squared(const fastjet::PseudoJet& particle) const = 0;
 
    // axes_numerator added for use in minimization in AxesRefiner -- TJW
-   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
+   virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
+      return 1.0;
+   }
    
    // The actual measures used in N-(sub)jettiness
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
@@ -121,7 +126,8 @@ public:
    TauComponents component_result_from_partition(const TauPartition& partition, const std::vector<fastjet::PseudoJet>& axes) const;
 
    // Create associated axes refiner (i.e. minimization routine), if available.
-   virtual AxesRefiner* createAxesRefiner(int /*nPass*/) const {return NULL;}
+   // virtual AxesRefiner* createAxesRefiner(int /*nPass*/) const = 0;
+   virtual AxesRefiner* createAxesRefiner(int /*nPass*/) const;
    AxesRefiner* createAxesRefiner() const { return createAxesRefiner(1);} // no argument means one pass
    
    // shorthand for squaring
@@ -176,23 +182,22 @@ protected:
 // flipped inheritance of NormalizedCutoffMeasure and NormalizedMeasure to avoid issue of squaring a maximum value -- TJW
 // updated instances of perp() and jet_distance_squared() to account for more general metrics -- TJW
 
+// Added by TJW
 //------------------------------------------------------------------------
-/// \class NormalizedCutoffMeasure
+/// \class DefaultMeasure
 // This class is the default measure, based on the conical measure.
 // This measure is defined as the pT of the particle multiplied by deltaR
 // to the power of beta. This class includes the normalization factor determined by R0
-class NormalizedCutoffMeasure : public MeasureDefinition {
+class DefaultMeasure : public MeasureDefinition {
    
 public:
    
-   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff/*, TauMode tau_mode = NORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
-   : MeasureDefinition(measure_type), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
-      setTauMode(NORMALIZED_EVENT_SHAPE);
-   }
+   DefaultMeasure(double beta, double R0, double Rcutoff/*, TauMode tau_mode = NORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   : MeasureDefinition(measure_type), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {}
    
    virtual std::string description() const;
    
-   virtual NormalizedCutoffMeasure* create() const {return new NormalizedCutoffMeasure(*this);}
+   virtual DefaultMeasure* create() const {return new DefaultMeasure(*this);}
 
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       return particle.squared_distance(axis);
@@ -203,11 +208,6 @@ public:
       return _RcutoffSq;
    }
    
-   // temporarily trivially defined -- TJW
-   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return 1.0;
-   };
-
    // updated for new general definitions of energy and angle -- TJW
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const{
       // return particle.perp() * std::pow(jet_distance_squared(particle,axis),_beta/2.0);
@@ -225,7 +225,7 @@ public:
    }
 
    // The minimization routine is ConicalAxesRefiner
-   virtual AxesRefiner* createAxesRefiner(int nPass) const;
+   AxesRefiner* createAxesRefiner(int nPass) const;
    
 protected:
    double _beta;
@@ -235,6 +235,21 @@ protected:
    
 };
    
+class NormalizedCutoffMeasure : public DefaultMeasure {
+
+public:
+
+   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff, MeasureType measure_type = pt_R) 
+   : DefaultMeasure(beta, R0, Rcutoff, measure_type) {
+      setTauMode(NORMALIZED_JET_SHAPE);
+   }
+
+   virtual std::string description() const;
+
+   virtual NormalizedCutoffMeasure* create() const {return new NormalizedCutoffMeasure(*this);}
+
+};
+
 //------------------------------------------------------------------------
 /// \class NormalizedMeasure
 // This measure is the same as NormalizedCutoffMeasure, with Rcutoff taken to infinity.
@@ -259,14 +274,16 @@ public:
 /// \class UnnormalizedCutoffMeasure
 // This class is the unnormalized conical measure. The only difference from NormalizedCutoffMeasure
 // is that the denominator is defined to be 1.0 by setting _has_denominator to false.
-class UnnormalizedCutoffMeasure : public NormalizedCutoffMeasure {
+// class UnnormalizedCutoffMeasure : public NormalizedCutoffMeasure {
+class UnnormalizedCutoffMeasure : public DefaultMeasure {
    
 public:
    // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
    UnnormalizedCutoffMeasure(double beta, double Rcutoff/*,TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
-   : NormalizedCutoffMeasure(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, measure_type) {
+   // : NormalizedCutoffMeasure(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, measure_type) {
+   : DefaultMeasure(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, measure_type) {
       setTauMode(UNNORMALIZED_EVENT_SHAPE);
    }
 
@@ -299,19 +316,17 @@ public:
    virtual UnnormalizedMeasure* create() const {return new UnnormalizedMeasure(*this);}
    
 };
-      
-// haven't put in new definitions of e+e- variables for Geometric Measure because the naive redefinition didn't work -- TJW
 
 //------------------------------------------------------------------------
 /// \class GeometricCutoffMeasure
 // This class is the geometric measure.  This measure is defined by the Lorentz dot product between
 // the particle and the axis.  This class does not include normalization of tau_N.
-// NOTE:  This class is in flux and should not be used for production purposes.
-class GeometricCutoffMeasure : public MeasureDefinition {
+// NOTE:  This class should not be used for production purposes.
+class DeprecatedGeometricCutoffMeasure : public MeasureDefinition {
 
 public:
    // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
-   GeometricCutoffMeasure(double jet_beta, double Rcutoff/*, TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   DeprecatedGeometricCutoffMeasure(double jet_beta, double Rcutoff, MeasureType measure_type = pt_R)
    :   MeasureDefinition(measure_type),
       _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
@@ -319,12 +334,11 @@ public:
 
    virtual std::string description() const;
    
-   virtual GeometricCutoffMeasure* create() const {return new GeometricCutoffMeasure(*this);}
+   virtual DeprecatedGeometricCutoffMeasure* create() const {return new DeprecatedGeometricCutoffMeasure(*this);}
    
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
-      // double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
-      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(energy(lightAxis)*energy(particle));
+      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
       return pseudoRsquared;
    }
 
@@ -333,24 +347,15 @@ public:
       return _RcutoffSq;
    }
 
-   // temporarily trivially defined -- TJW
-   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const  {
-      return 1.0;
-   }
-
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
-      // double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
-      // return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
-      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(energy(lightAxis),_beam_beta - 1.0);
-      return energy(particle) * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
+      return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
-      // double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
-      // return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
-      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(energy(particle)/energy(particle),_beam_beta - 1.0);
-      return energy(particle) * weight * std::pow(_Rcutoff,_jet_beta);
+      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
+      return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -358,7 +363,7 @@ public:
    }
    
    // The minimization routine is GeometricAxesRefiner
-   virtual AxesRefiner* createAxesRefiner(int nPass) const;
+   AxesRefiner* createAxesRefiner(int nPass) const;
    
 protected:
    double _jet_beta;
@@ -375,24 +380,136 @@ protected:
 };
 
    
-//------------------------------------------------------------------------
-/// \class GeometricMeasure
+// ------------------------------------------------------------------------
+// / \class GeometricMeasure
 // Same as GeometricCutoffMeasure, but with Rcutoff taken to infinity.
-class GeometricMeasure : public GeometricCutoffMeasure {
+// NOTE:  This class should not be used for production purposes.
+class DeprecatedGeometricMeasure : public DeprecatedGeometricCutoffMeasure {
    
 public:
-   GeometricMeasure(double beta/*, TauMode tau_mode = UNNORMALIZED_JET_SHAPE*/, MeasureType measure_type = pt_R)
-   : GeometricCutoffMeasure(beta,std::numeric_limits<double>::max(),measure_type) {
+   DeprecatedGeometricMeasure(double beta, MeasureType measure_type = pt_R)
+   : DeprecatedGeometricCutoffMeasure(beta,std::numeric_limits<double>::max(),measure_type) {
       _RcutoffSq = std::numeric_limits<double>::max();
       setTauMode(UNNORMALIZED_JET_SHAPE);
    }
 
    virtual std::string description() const;
 
-   virtual GeometricMeasure* create() const {return new GeometricMeasure(*this);}
+   virtual DeprecatedGeometricMeasure* create() const {return new DeprecatedGeometricMeasure(*this);}
 };
 
 // Classes below added by TJW
+
+//------------------------------------------------------------------------
+/// \class GeometricCutoffMeasure
+// This class is the geometric measure.  This measure is defined by the Lorentz dot product between
+// the particle and the axis.  This class does not include normalization of tau_N.
+// NOTE:  This class is in flux and should not be used for production purposes.
+class OriginalGeometricMeasure : public MeasureDefinition {
+
+public:
+   OriginalGeometricMeasure(double Rcutoff, MeasureType measure_type = pt_R)
+   :   MeasureDefinition(measure_type),
+     _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+         setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      }
+
+   virtual std::string description() const;
+   
+   virtual OriginalGeometricMeasure* create() const {return new OriginalGeometricMeasure(*this);}
+   
+   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      fastjet::PseudoJet lightAxis = lightFrom(axis);
+      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+      return pseudoRsquared;
+   }
+
+   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
+      // return sq(_Rcutoff);
+      return _RcutoffSq;
+   }
+
+   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      return 2*dot_product(lightFrom(axis), particle);
+   }
+
+   virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
+      fastjet::PseudoJet beam_a(1,0,0,1);
+      fastjet::PseudoJet beam_b(1,0,0,-1);
+      double min_perp = std::min(2*dot_product(beam_a, particle),2*dot_product(beam_b, particle));
+      return _RcutoffSq*min_perp;
+   }
+
+   virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
+      return std::numeric_limits<double>::quiet_NaN();
+   }
+      
+protected:
+   double _Rcutoff;
+   double _RcutoffSq;
+   
+   // create light-like axis
+   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
+      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
+      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
+   }
+
+};
+
+
+//------------------------------------------------------------------------
+/// \class ModifiedGeometricMeasure
+// This class is the geometric measure.  This measure is defined by the Lorentz dot product between
+// the particle and the axis.  This class does not include normalization of tau_N.
+// NOTE:  This class is in flux and should not be used for production purposes.
+class ModifiedGeometricMeasure : public MeasureDefinition {
+
+public:
+   ModifiedGeometricMeasure(double Rcutoff, MeasureType measure_type = pt_R)
+   :   MeasureDefinition(measure_type),
+     _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+         setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      }
+
+   virtual std::string description() const;
+   
+   virtual ModifiedGeometricMeasure* create() const {return new ModifiedGeometricMeasure(*this);}
+   
+   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      fastjet::PseudoJet lightAxis = lightFrom(axis);
+      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+      return pseudoRsquared;
+   }
+
+   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
+      // return sq(_Rcutoff);
+      return _RcutoffSq;
+   }
+
+   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      return 2*dot_product(lightFrom(axis), particle);
+   }
+
+   virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
+      fastjet::PseudoJet lightParticle = lightFrom(particle);
+      return particle.mperp()*_RcutoffSq*lightParticle.pt();
+   }
+
+   virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
+      return std::numeric_limits<double>::quiet_NaN();
+   }
+      
+protected:
+   double _Rcutoff;
+   double _RcutoffSq;
+   
+   // create light-like axis
+   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
+      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
+      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
+   }
+
+};
 
 // ------------------------------------------------------------------------
 // / \class ConicalGeometricCutoffMeasure
@@ -403,7 +520,7 @@ public:
 class ConicalGeometricCutoffMeasure : public MeasureDefinition {
 
 public:
-   ConicalGeometricCutoffMeasure(double jet_beta, double jet_gamma, double Rcutoff/*, TauMode tau_mode = UNNORMALIZED_EVENT_SHAPE*/, MeasureType measure_type = pt_R)
+   ConicalGeometricCutoffMeasure(double jet_beta, double jet_gamma, double Rcutoff, MeasureType measure_type = pt_R)
    :   MeasureDefinition(measure_type),
       _jet_beta(jet_beta), _jet_gamma(jet_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
@@ -434,18 +551,15 @@ public:
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_jet_gamma - 1.0);
+      fastjet::PseudoJet lightParticle = lightFrom(particle);
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightParticle.pt(),_jet_gamma - 1.0);
       return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
-      // double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(energy(lightAxis),_jet_gamma - 1.0);
-      // return energy(particle) * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
-      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_jet_gamma - 1.0);
+      fastjet::PseudoJet lightParticle = lightFrom(particle);
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightParticle.pt(),_jet_gamma - 1.0);
       return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
-      // double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(energy(particle)/energy(particle),_jet_gamma - 1.0);
-      // return energy(particle) * weight * std::pow(_Rcutoff,_jet_beta);
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -453,7 +567,7 @@ public:
    }
    
    // The minimization routine is GeometricAxesRefiner
-   virtual AxesRefiner* createAxesRefiner(int nPass) const;
+   // AxesRefiner* createAxesRefiner(int nPass) const;
    
 protected:
    double _jet_beta;

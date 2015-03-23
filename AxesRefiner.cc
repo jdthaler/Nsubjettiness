@@ -339,7 +339,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
 
       //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
       std::vector< LightLikeAxis > newAxes_light(n_jets, LightLikeAxis(0,0,0,0));
-      for (unsigned int k = 0; k < n_jets; k++) {
+      for (int k = 0; k < n_jets; k++) {
          newAxes_light[k].set_rap(newAxes[k].rap());
          newAxes_light[k].set_phi(newAxes[k].phi());
          newAxes[k] = newAxes_light[k].ConvertToPseudoJet();
