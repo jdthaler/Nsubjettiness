@@ -198,16 +198,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(1.0     , E_theta));
    _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, E_theta));
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , E_theta));
-   // _testMeasures.push_back(   GeometricMeasure(2.0     , E_theta));
-   _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0     , E_theta));
+   // No geometric measure since it is not defined for E_theta usage -- TJW
+   // _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0     , E_theta));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, E_theta));
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, E_theta));
-   // _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, E_theta));
-   _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8, E_theta));
+   // _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8, E_theta));
    
    
    /////// N-subjettiness /////////////////////////////

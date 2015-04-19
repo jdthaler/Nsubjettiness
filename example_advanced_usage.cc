@@ -197,8 +197,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(1.0     , pt_R));
    _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, pt_R));
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
-   // _testMeasures.push_back(   GeometricMeasure(2.0     , pt_R));
-   _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0     , pt_R));
+   // No pt_R flag in geometric measure since there is no pp/e+e- distinction -- TJW
+   _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
@@ -206,7 +206,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, pt_R));
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, pt_R));
    // _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, pt_R));
-   _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8, pt_R));   
+   _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8));   
    
    /////// N-subjettiness /////////////////////////////
 

@@ -207,7 +207,7 @@ TauComponents MeasureDefinition::component_result_from_partition(const TauPartit
 }
 
 // new methods added to generalize energy and angle squared for different measure types -- TJW
-double MeasureDefinition::energy(const PseudoJet& jet) const {
+double DefaultMeasure::energy(const PseudoJet& jet) const {
    if (_measure_type == pt_R) {
       return jet.perp();
    }  else if (_measure_type == E_theta || _measure_type == lorentz_dot) {
@@ -218,7 +218,7 @@ double MeasureDefinition::energy(const PseudoJet& jet) const {
    }
 }
    
-double MeasureDefinition::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2) const {
+double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2) const {
    if (_measure_type == pt_R) {
       return jet1.squared_distance(jet2);
    } else if (_measure_type == E_theta) {

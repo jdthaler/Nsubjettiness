@@ -298,12 +298,11 @@ std::vector<fastjet::PseudoJet> GeometricAxesRefiner::get_one_pass_axes(int n_je
 
 // uses minimization of N-jettiness to continually update axes until convergence.
 // The function returns the axes found at the (local) minimum
-std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& seedAxes) const {
+std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
 
-   assert(n_jets == (int)seedAxes.size());
+   assert(n_jets == (int)currentAxes.size());
    
-   std::vector<fastjet::PseudoJet> onepassAxes = seedAxes;
-   double originalTau = _associatedMeasure->result(particles, seedAxes);
+   std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
    double seedTau = _associatedMeasure->result(particles, seedAxes);
    
    for (int i_att = 0; i_att < _nAttempts; i_att++) {
@@ -318,7 +317,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
          
          // which axis am I closest to?
          for (unsigned int j = 0; j < seedAxes.size(); j++) {
-            double tempDist = _associatedMeasure->jet_distance_squared(particles[i],onepassAxes[j]);
+            double tempDist = _associatedMeasure->jet_distance_squared(particles[i],seedAxes[j]);
             if (tempDist < minDist) {
                minDist = tempDist;
                minJ = j;
@@ -327,7 +326,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
          
          // if not unclustered, then cluster
          if (minJ != -1) {
-            double axes_function = _associatedMeasure->axes_numerator(particles[i], onepassAxes[minJ]);
+            double axes_function = _associatedMeasure->axes_numerator(particles[i], seedAxes[minJ]);
             PseudoJet scaled_perp;
             // check to see if the scaling is finite, otherwise don't do any scaling
             if (std::isfinite(axes_function)) scaled_perp = particles[i]*axes_function;
@@ -337,16 +336,16 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
          }
       }
 
-      //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
-      std::vector< LightLikeAxis > newAxes_light(n_jets, LightLikeAxis(0,0,0,0));
-      for (int k = 0; k < n_jets; k++) {
-         newAxes_light[k].set_rap(newAxes[k].rap());
-         newAxes_light[k].set_phi(newAxes[k].phi());
-         newAxes[k] = newAxes_light[k].ConvertToPseudoJet();
-      }
+      // //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
+      // std::vector< LightLikeAxis > newAxes_light(n_jets, LightLikeAxis(0,0,0,0));
+      // for (int k = 0; k < n_jets; k++) {
+      //    newAxes_light[k].set_rap(newAxes[k].rap());
+      //    newAxes_light[k].set_phi(newAxes[k].phi());
+      //    newAxes[k] = newAxes_light[k].ConvertToPseudoJet();
+      // }
       
       // calculate tau on new axes
-      onepassAxes = newAxes;
+      seedAxes = newAxes;
       double tempTau = _associatedMeasure->result(particles, newAxes);
       
       // close enough to stop?
@@ -354,10 +353,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
       seedTau = tempTau;
    }
 
-   double finalTau = _associatedMeasure->result(particles, onepassAxes);
-   if ((finalTau - originalTau) > 0) onepassAxes = seedAxes;
-
-   return onepassAxes;
+   return seedAxes;
 }
 
 // Go from internal LightLikeAxis to PseudoJet

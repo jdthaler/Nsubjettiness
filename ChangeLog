@@ -1,3 +1,6 @@
+2015-04-19 <TJ>
+   Fixed bug in minimization scheme for GeneralAxesRefiner
+   Moved measure_type to DefaultMeasure, removed geometric measure from e+e- example file
 2015-03-22 <TJW>
    Added OriginalGeometricMeasure and ModifiedGeometricMeasure definitions
    Changed all instances of GeometricMeasure to DeprecatedGeometricMeasure, and added error statements

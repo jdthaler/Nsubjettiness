@@ -186,7 +186,7 @@ public:
     _associatedMeasure.reset(associatedMeasure);
   }
 
-  virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets, const std::vector<fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& seedAxes) const;
+  virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets, const std::vector<fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const;
 
 private:
     double _nAttempts;
