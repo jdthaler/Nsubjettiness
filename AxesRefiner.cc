@@ -174,6 +174,7 @@ std::vector<fastjet::PseudoJet> ConicalAxesRefiner::get_one_pass_axes(int n_jets
    std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0));
    double cmp = std::numeric_limits<double>::max();  //large number
    int h = 0;
+
    while (cmp > _precision && h < _halt) { // Keep updating axes until near-convergence or too many update steps
       cmp = 0.0;
       h++;
@@ -303,7 +304,12 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
    assert(n_jets == (int)currentAxes.size());
    
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
+
+   // for (int k = 0; k < seedAxes.size(); k++) {
+   //    seedAxes[k] = lightFrom(seedAxes[k]);
+   // }
    double seedTau = _associatedMeasure->result(particles, seedAxes);
+   double originalTau = _associatedMeasure->result(particles, currentAxes);
    
    for (int i_att = 0; i_att < _nAttempts; i_att++) {
       
@@ -327,23 +333,20 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
          // if not unclustered, then cluster
          if (minJ != -1) {
             double axes_function = _associatedMeasure->axes_numerator(particles[i], seedAxes[minJ]);
-            PseudoJet scaled_perp;
+            // PseudoJet scaled_perp = axes_function*particles[i];
             // check to see if the scaling is finite, otherwise don't do any scaling
+            PseudoJet scaled_perp;
             if (std::isfinite(axes_function)) scaled_perp = particles[i]*axes_function;
             else scaled_perp = particles[i];
-
             newAxes[minJ] += scaled_perp;
          }
       }
 
       // //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
-      // std::vector< LightLikeAxis > newAxes_light(n_jets, LightLikeAxis(0,0,0,0));
-      // for (int k = 0; k < n_jets; k++) {
-      //    newAxes_light[k].set_rap(newAxes[k].rap());
-      //    newAxes_light[k].set_phi(newAxes[k].phi());
-      //    newAxes[k] = newAxes_light[k].ConvertToPseudoJet();
+      // for (unsigned int k = 0; k < newAxes.size(); k++) {
+      //    newAxes[k] = lightFrom(newAxes[k]);
       // }
-      
+
       // calculate tau on new axes
       seedAxes = newAxes;
       double tempTau = _associatedMeasure->result(particles, newAxes);
@@ -352,6 +355,8 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
       if (fabs(tempTau - seedTau) < _accuracy) break;
       seedTau = tempTau;
    }
+
+   if ((originalTau - seedTau) < 0) seedAxes = currentAxes; 
 
    return seedAxes;
 }

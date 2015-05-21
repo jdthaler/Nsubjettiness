@@ -1,4 +1,7 @@
-2015-04-19 <TJ>
+2015-05-21 <TJW>
+   Updated minimization scheme to avoid divide-by-zero errors
+   Fixed various factors of 2 in the definition of the measures
+2015-04-19 <TJW>
    Fixed bug in minimization scheme for GeneralAxesRefiner
    Moved measure_type to DefaultMeasure, removed geometric measure from e+e- example file
 2015-03-22 <TJW>

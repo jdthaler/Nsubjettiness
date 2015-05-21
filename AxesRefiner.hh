@@ -181,7 +181,7 @@ public:
   GeneralAxesRefiner(MeasureDefinition* associatedMeasure, int nPass) 
   : AxesRefiner(nPass),
     _nAttempts(100),
-    _accuracy(0.00000001)
+    _accuracy(0.00001) 
   {
     _associatedMeasure.reset(associatedMeasure);
   }
@@ -192,6 +192,11 @@ private:
     double _nAttempts;
     double _accuracy;
 
+   // create light-like axis -- added to easily make light-like axes, may not be necessary
+   // fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
+   //    double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
+   //    return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
+   // }
 };
 
 //------------------------------------------------------------------------

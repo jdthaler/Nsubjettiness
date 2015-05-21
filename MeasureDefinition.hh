@@ -379,7 +379,6 @@ protected:
 
 };
 
-   
 // ------------------------------------------------------------------------
 // / \class GeometricMeasure
 // Same as GeometricCutoffMeasure, but with Rcutoff taken to infinity.
@@ -404,6 +403,9 @@ public:
 /// \class GeometricCutoffMeasure
 // This class is the geometric measure.  This measure is defined by the Lorentz dot product between
 // the particle and the axis.  This class does not include normalization of tau_N.
+// New in Nsubjettiness version (latest)
+// NOTE: This is defined differently from the DeprecatedGeometricMeasure above. This is the correct 
+// Geometric measure and should be used for all production purposes.
 // NOTE:  This class is in flux and should not be used for production purposes.
 class OriginalGeometricMeasure : public MeasureDefinition {
 
@@ -430,13 +432,13 @@ public:
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return 2*dot_product(lightFrom(axis), particle);
+      return dot_product(lightFrom(axis), particle);
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet beam_a(1,0,0,1);
       fastjet::PseudoJet beam_b(-1,0,0,1);
-      double min_perp = std::min(2*dot_product(beam_a, particle),2*dot_product(beam_b, particle));
+      double min_perp = std::min(dot_product(beam_a, particle),dot_product(beam_b, particle));
       return _RcutoffSq*min_perp;
    }
 
@@ -459,8 +461,9 @@ protected:
 
 //------------------------------------------------------------------------
 /// \class ModifiedGeometricMeasure
-// This class is the geometric measure.  This measure is defined by the Lorentz dot product between
-// the particle and the axis.  This class does not include normalization of tau_N.
+// This class is the Modified geometric measure.  This jet measure is defined by the Lorentz dot product between
+// the particle and the axis, as in the Original Geometric Measure. The beam measure is defined differently from 
+// the above OriginalGeometric to allow for more conical jets. New in Nsubjettiness version (latest)
 // NOTE:  This class is in flux and should not be used for production purposes.
 class ModifiedGeometricMeasure : public MeasureDefinition {
 
@@ -487,12 +490,12 @@ public:
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return 2*dot_product(lightFrom(axis), particle);
+      return dot_product(lightFrom(axis), particle);
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet lightParticle = lightFrom(particle);
-      return particle.mperp()*_RcutoffSq*lightParticle.pt();
+      return 0.5*particle.mperp()*_RcutoffSq*lightParticle.pt();
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -515,7 +518,7 @@ protected:
 // / \class ConicalGeometricCutoffMeasure
 // This class is the Conical geometric measure.  This measure is defined by the Lorentz dot product between
 // the particle and the axis normalized by the axis and particle pT, as well as a factor of cosh(y) to vary
-// the rapidity depepdence of the beam.
+// the rapidity depepdence of the beam. New in Nsubjettiness version (latest)
 // NOTE:  This class is in flux and should not be used for production purposes.
 class ConicalGeometricCutoffMeasure : public MeasureDefinition {
 
@@ -542,25 +545,20 @@ public:
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightParticle = lightFrom(particle);
-      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightParticle.pt(),_jet_gamma - 1.0);
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_jet_gamma - 1.0);
       return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet lightParticle = lightFrom(particle);
-      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightParticle.pt(),_jet_gamma - 1.0);
+      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_jet_gamma - 1.0);
       return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
    }
 
    // defined according to G(n,p) in the paper -- TJW
    virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      double pseudoMomentum = 2.0*dot_product(lightFrom(axis),particle);
+      double pseudoMomentum = dot_product(lightFrom(axis),particle) + 0.0000001*particle.E(); 
       return (double)jet_numerator(particle, axis)/pseudoMomentum;
-      // fastjet::PseudoJet lightParticle = lightFrom(particle);
-      // double jet_distance_param = (_jet_beta == 2.0) ? 1.0 : std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0 - 1.0);
-      // std::cout << _jet_beta/2.0 - 1.0 << std::endl;
-      // double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(lightParticle.pt(),_jet_gamma - 1.0);
-      // return (1/lightParticle.pt()) * weight * jet_distance_param;
    }
 
 
