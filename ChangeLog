@@ -1,3 +1,9 @@
+2015-05-22 <TJW>
+   Added XConePlugin as a specific implementation of NjettinessPlugin
+   Added usage of XCone beta = 1.0 and beta = 2.0 to both basic and advanced example files
+   Added OriginalGeometric, ModifiedGeometric, ConicalGeometric, and XCone measures to list of test measures
+   Added OnePass_GenRecomb_GenKT_Axes to list of test axes
+   Added description to XCone measure in MeasureDefinition
 2015-05-21 <TJW>
    Updated minimization scheme to avoid divide-by-zero errors
    Fixed various factors of 2 in the definition of the measures

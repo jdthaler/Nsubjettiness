@@ -42,7 +42,7 @@
 #include "Nsubjettiness.hh" // In external code, this should be fastjet/contrib/Nsubjettiness.hh
 #include "Njettiness.hh"
 #include "NjettinessPlugin.hh"
-
+#include "XConePlugin.hh"
 
 using namespace std;
 using namespace fastjet;
@@ -89,6 +89,7 @@ void read_event(vector<PseudoJet> &event){
 
 // Helper Function for Printing out Jet Information
 void PrintJets(const vector <PseudoJet>& jets, const TauComponents & components, bool showTotal = true);
+void PrintXConeJets(const vector <PseudoJet>& jets, bool commentOut = false);
 
 ////////
 //
@@ -241,6 +242,122 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
    }
 
+
+   // BELOW ADDED BY TJW -- 5/22
+
+   ////////// the XCone Jet Algorithm ///////////////////////////
+
+   ////////
+   //
+   //  We define a specific implementation of N-jettiness as a jet algorithm, which we call "XCone".
+   //  This is the recommended version for all users.  
+   //
+   //  Recommended usage of XConePlugin is with beta = 2.0
+   //  Beta = 1.0 is also useful as a recoil-free variant in the face of pile-up.
+   //  
+   ///////
+   
+   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "Using the XCone Jet Algorithm" << endl;
+   cout << "-------------------------------------------------------------------------------------" << endl;
+
+   //create list of various values of beta
+   vector<double> betalist;
+   betalist.push_back(1.0);
+   betalist.push_back(2.0);
+   unsigned int n_betas = betalist.size();   
+
+   for (unsigned iB = 0; iB < n_betas; iB++) {
+   
+      double beta = betalist[iB];
+
+      // define the plugins
+      XConePlugin xcone_plugin2(2, 0.8, beta);
+      XConePlugin xcone_plugin3(3, 0.8, beta);
+      XConePlugin xcone_plugin4(4, 0.8, beta);
+
+      // and the jet definitions
+      JetDefinition xcone_jetDef2(&xcone_plugin2);
+      JetDefinition xcone_jetDef3(&xcone_plugin3);
+      JetDefinition xcone_jetDef4(&xcone_plugin4);
+
+      // and the cluster sequences
+      ClusterSequence xcone_seq2(input_particles, xcone_jetDef2);
+      ClusterSequence xcone_seq3(input_particles, xcone_jetDef3);
+      ClusterSequence xcone_seq4(input_particles, xcone_jetDef4);
+
+      // and associated extras for more information
+      const NjettinessExtras * extras2 = njettiness_extras(xcone_seq2);
+      const NjettinessExtras * extras3 = njettiness_extras(xcone_seq3);
+      const NjettinessExtras * extras4 = njettiness_extras(xcone_seq4);
+
+      // and find the jets
+      vector<PseudoJet> xcone_jets2 = xcone_seq2.inclusive_jets();
+      vector<PseudoJet> xcone_jets3 = xcone_seq3.inclusive_jets();
+      vector<PseudoJet> xcone_jets4 = xcone_seq4.inclusive_jets();
+
+      // (alternative way to find the jets)
+      //vector<PseudoJet> xcone_jets2 = extras2->jets();
+      //vector<PseudoJet> xcone_jets3 = extras3->jets();
+      //vector<PseudoJet> xcone_jets4 = extras4->jets();
+
+      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "Using beta = " << beta << endl;
+      cout << "-------------------------------------------------------------------------------------" << endl;
+      // cout << measure_def.description() << ":" << endl;
+      // cout << axes_def.description() << ":" << endl;
+      
+      PrintXConeJets(xcone_jets2);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintXConeJets(xcone_jets3);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintXConeJets(xcone_jets4);
+
+      // The axes might point in a different direction than the jets
+      // Using the NjettinessExtras pointer (ClusterSequence::Extras) to access that information         
+      vector<PseudoJet> xcone_axes2 = extras2->axes();
+      vector<PseudoJet> xcone_axes3 = extras3->axes();
+      vector<PseudoJet> xcone_axes4 = extras4->axes();
+      
+      cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+      cout << "Axes Used for Above Jets" << endl;
+      
+      PrintXConeJets(xcone_axes2);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintXConeJets(xcone_axes3);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintXConeJets(xcone_axes4);
+      
+      bool calculateArea = false;
+      if (calculateArea) {
+         cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+         cout << "Adding Area Information (quite slow)" << endl;
+         
+         double ghost_maxrap = 5.0; // e.g. if particles go up to y=5
+         AreaDefinition area_def(active_area_explicit_ghosts, GhostedAreaSpec(ghost_maxrap));
+         
+         // Defining cluster sequences with area
+         ClusterSequenceArea xcone_seq_area2(input_particles, xcone_jetDef2, area_def);
+         ClusterSequenceArea xcone_seq_area3(input_particles, xcone_jetDef3, area_def);
+         ClusterSequenceArea xcone_seq_area4(input_particles, xcone_jetDef4, area_def);
+         
+         vector<PseudoJet> xcone_jets_area2 = xcone_seq_area2.inclusive_jets();
+         vector<PseudoJet> xcone_jets_area3 = xcone_seq_area3.inclusive_jets();
+         vector<PseudoJet> xcone_jets_area4 = xcone_seq_area4.inclusive_jets();
+         
+         PrintXConeJets(xcone_jets_area2);
+         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+         PrintXConeJets(xcone_jets_area3);
+         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+         PrintXConeJets(xcone_jets_area4);
+      }
+   }
+   
+   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "Done Using the XCone Jet Algorithm" << endl;
+   cout << "-------------------------------------------------------------------------------------" << endl;
+
+
 }
 
 void PrintJets(const vector <PseudoJet>& jets, const TauComponents & components, bool showTotal) {
@@ -305,3 +422,75 @@ void PrintJets(const vector <PseudoJet>& jets, const TauComponents & components,
    }
 }
 
+
+void PrintXConeJets(const vector <PseudoJet>& jets, bool commentOut) {
+   
+   string commentStr = "";
+   if (commentOut) commentStr = "#";
+   
+   // gets extras information
+   if (jets.size() == 0) return;
+   const NjettinessExtras * extras = njettiness_extras(jets[0]);
+   
+   bool useExtras = (extras != NULL);
+   bool useArea = jets[0].has_area();
+   
+   // define nice tauN header
+   int N = jets.size();
+   stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
+   
+   cout << fixed << right;
+   
+   cout << commentStr << setw(5) << "jet #" << "   "
+   <<  setw(10) << "rap"
+   <<  setw(10) << "phi"
+   <<  setw(11) << "pt"
+   <<  setw(11) << "m"
+   <<  setw(11) << "e";
+   if (useExtras) cout << setw(14) << tauName;
+   if (useArea) cout << setw(10) << "area";
+   cout << endl;
+   
+   fastjet::PseudoJet total(0,0,0,0);
+   
+   // print out individual jet information
+   for (unsigned i = 0; i < jets.size(); i++) {
+      cout << commentStr << setw(5) << i+1  << "   "
+      << setprecision(4) <<  setw(10) << jets[i].rap()
+      << setprecision(4) <<  setw(10) << jets[i].phi()
+      << setprecision(4) <<  setw(11) << jets[i].perp()
+      << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
+      << setprecision(4) <<  setw(11) << jets[i].e();
+      if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
+      if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
+      cout << endl;
+      total += jets[i];
+   }
+   
+   // print out total jet
+   if (useExtras) {
+      double beamTau = extras->beamTau();
+      
+      if (beamTau > 0.0) {
+         cout << commentStr << setw(5) << " beam" << "   "
+         <<  setw(10) << ""
+         <<  setw(10) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(14) << setprecision(6) << beamTau
+         << endl;
+      }
+      
+      cout << commentStr << setw(5) << "total" << "   "
+      <<  setprecision(4) << setw(10) << total.rap()
+      <<  setprecision(4) << setw(10) << total.phi()
+      <<  setprecision(4) << setw(11) << total.perp()
+      <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
+      <<  setprecision(4) <<  setw(11) << total.e()
+      <<  setprecision(6) << setw(14) << extras->totalTau();
+      if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
+      cout << endl;
+   }
+   
+}

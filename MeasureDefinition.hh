@@ -592,7 +592,7 @@ public:
       setTauMode(UNNORMALIZED_JET_SHAPE);
    }
 
-   virtual std::string description() const;
+   // virtual std::string description() const;
 
    virtual ConicalGeometricMeasure* create() const {return new ConicalGeometricMeasure(*this);}
 };
@@ -607,6 +607,8 @@ class XConeCutoffMeasure : public ConicalGeometricCutoffMeasure {
 public:
    XConeCutoffMeasure(double jet_beta, double Rcutoff)
    :   ConicalGeometricCutoffMeasure(jet_beta, 1.0, Rcutoff) { }
+
+   virtual std::string description() const;
 
    virtual XConeCutoffMeasure* create() const {return new XConeCutoffMeasure(*this);}
 

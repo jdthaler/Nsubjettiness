@@ -113,6 +113,14 @@ std::string ConicalGeometricCutoffMeasure::description() const {
    return stream.str();
 }; 
    
+
+std::string XConeCutoffMeasure::description() const {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2)
+   << "XCone Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+   return stream.str();
+}; 
+
 AxesRefiner* MeasureDefinition::createAxesRefiner(int nPass) const {
    return (new GeneralAxesRefiner(this->create(), nPass));
 }
