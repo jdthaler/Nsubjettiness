@@ -56,7 +56,8 @@ void analyze(const vector<PseudoJet> & input_particles);
 //----------------------------------------------------------------------
 //
 //  Note: This example file is here to test the previous v1.0.3 interface
-//  to make sure it is backwards compatable
+//  to make sure it is backwards compatable.  Please do not use this old
+//  interface unless you know what you are doing.
 //
 //----------------------------------------------------------------------
 

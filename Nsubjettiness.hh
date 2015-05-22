@@ -41,7 +41,6 @@ namespace contrib {
 class Nsubjettiness;
 class NsubjettinessRatio;
    
-   
 //------------------------------------------------------------------------
 /// \class Nsubjettiness
 /// Nsubjettiness extends the concept of Njettiness to a jet shape, but other
@@ -64,7 +63,7 @@ public:
    //   OnePass_KT_Axes     : one-pass minimization from kt starting point
    //   OnePass_WTA_KT_Axes : one-pass min. from wta_kt starting point
    //
-   // The recommended measure definitions are (with the corresponding parameters)
+   // The recommended measure definition are (with the corresponding parameters)
    //   NormalizedMeasure(beta,R0)
    //      :  This was the original N-subjettiness measure (dimensionless)
    //   UnnormalizedMeasure(beta)
@@ -74,6 +73,7 @@ public:
    //      :  Same as normalized_measure, but cuts off at Rcutoff
    //   UnnormalizedCutoffMeasure(beta,Rcutoff)
    //      :  Same as unnormalized_measure, but cuts off at Rcutoff
+   
    Nsubjettiness(int N,
                  const AxesDefinition& axes_def,
                  const MeasureDefinition& measure_def)

@@ -40,9 +40,9 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-//Added General Recomber to allow user to choose different values of delta in recombination scheme (name will be changing) -- TJW
+//Added General Et Scheme Recomber to allow user to choose different values of delta in recombination scheme
 //------------------------------------------------------------------------
-/// \class GeneralERecombiner
+/// \class GeneralEtSchemeRecombiner
 // GeneralERecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
 // This scheme compares the pT of two input particles, and then combines them into a particle with
 // a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) weighted by the respective momenta of the 

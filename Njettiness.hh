@@ -131,11 +131,6 @@ public:
       min_axes,            // axes that minimize N-subjettiness (100 passes by default)
       manual_axes,         // set your own axes with setAxes()
       onepass_manual_axes  // one-pass minimization from manual starting point
-      //  These options are commented out because they have not been fully tested
-      //      wta2_kt_axes,        // Winner Take All (alpha = 2) with kt
-      //      wta2_ca_axes,         // Winner Take All (alpha = 2) with CA
-      //      onepass_wta2_kt_axes, //one-pass minimization of WTA (alpha = 2) axes with kt
-      //      onepass_wta2_ca_axes, //one-pass minimization of WTA (alpha = 2) axes with ca
    };
    
    // The measures available to the user.
@@ -155,7 +150,7 @@ public:
    Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def);
    
    // Alternative constructor which takes axes/measure information as enums with measure parameters
-   // This version is not recommended
+   // This version absolutely is not recommended
    Njettiness(AxesMode axes_mode,
               MeasureMode measure_mode,
               int num_para,

@@ -87,7 +87,7 @@ public:
    virtual double R() const {return -1.0;} // TODO: make this not stupid
    virtual void run_clustering(ClusterSequence&) const;
 
-   // added to use manual axes with Njettiness Plugin -- TJW
+   // Using manual axes with Njettiness Plugin
    void setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
       // Cross check that manual axes are being used is in Njettiness
       _njettinessFinder.setAxes(myAxes);

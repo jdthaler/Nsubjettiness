@@ -16,23 +16,28 @@ The key new features are:
 
   * NsubjettinessRatio:  Direct access to tau_N / tau_M (the most requested
     feature)
-  * MeasureDefinition to allow access to both normalized and unnormalized measures
+  * MeasureDefinition to allow access to normalized and unnormalized measures
   * AxesDefinition to allow for access to more general axes modes
-  * Winner-Take-All recombination axes:  a faster way to find axes than beta = 1
+  * Winner-Take-All recombination axes:  a faster way to find axes than beta=1
     minimization, but with comparable performance.
   * TauComponents to get access to the pieces of the N-(sub)jettiness
     calculation.
   * TauExtras to get complete access to get partitioning and axes information.
   * For clarity, split the example file into an example_basic_usage and
-    example_advanced_usage
+    example_advanced_usage.
   * In Nsubjettiness, access to seedAxes() and currentAxes() to figure out the
     axes used before and after minimization.
   * In Nsubjettiness, access to currentSubjets() to get the subjet fourvectors.
+  * As of v2.2, new ConicalGeometric measure which is the basis for the XCone
+    jet algorithm (improving upon the previous NjettinessPlugin)
 
 
--- 2.2.0:  (XXX)  Improvement of the MeasureDefinition/AxesDefinition interface
-           to allow for direct use in calculations.
--- 2.1.0:  (July 9, 2014) Inclusion of MeasureDefinition/AxesDefinition interface.
+-- 2.2.0:  (June xx, 2015)  Inclusion of the XCone jet algorithm, as well as a
+           few new measures, including the "conical geometric" measure and
+           options for e+e- colliders.  Improvement of the
+           Measure/AxesDefinition interface to allow for direct
+           use in calculations.  
+-- 2.1.0:  (July 9, 2014) Inclusion of Measure/AxesDefinition interface.
            This was the first publicly available version of Nsubjettiness v2.
 -- 2.0.0:  Initial release of v2.0.  This was never officially made public.
 

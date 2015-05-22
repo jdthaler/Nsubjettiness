@@ -35,12 +35,15 @@ namespace contrib {
 //
 ///////
 
+   
 Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def)
 : _axes_def(axes_def.create()), _measure_def(measure_def.create()) {
    setAxesRefinerAndManualMode();
 }
 
 void Njettiness::setAxesRefinerAndManualMode() {
+   
+   // TODO:  Put AxesRefiner into MeasureDefinition since now we have a generic way to do minimization for arbitrary measures.
    
    int nPass = _axes_def->nPass();
    
@@ -63,8 +66,7 @@ void Njettiness::setAxesRefinerAndManualMode() {
    
 // setAxes for Manual mode
 void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-   // if (_axes_def->needsManualAxes()) {
-   if (!_axes_def()) { // bug fix for manual axes -- TJW
+   if (!_axes_def()) {
       _currentAxes = myAxes;
    } else {
       throw Error("You can only use setAxes for manual AxesDefinitions");
