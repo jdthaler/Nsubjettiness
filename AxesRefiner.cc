@@ -305,15 +305,16 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
    
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
 
-   // for (int k = 0; k < seedAxes.size(); k++) {
-   //    seedAxes[k] = lightFrom(seedAxes[k]);
-   // }
+   for (unsigned int k = 0; k < seedAxes.size(); k++) {
+      seedAxes[k] = lightFrom(seedAxes[k]);
+   }
    double seedTau = _associatedMeasure->result(particles, seedAxes);
    double originalTau = _associatedMeasure->result(particles, currentAxes);
    
    for (int i_att = 0; i_att < _nAttempts; i_att++) {
       
       std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
+      std::vector<fastjet::PseudoJet> summed_jets(seedAxes.size(), fastjet::PseudoJet(0,0,0,0));
       // find closest axis and assign to that
       for (unsigned int i = 0; i < particles.size(); i++) {
          
@@ -333,19 +334,21 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
          // if not unclustered, then cluster
          if (minJ != -1) {
             double axes_function = _associatedMeasure->axes_numerator(particles[i], seedAxes[minJ]);
-            // PseudoJet scaled_perp = axes_function*particles[i];
+            PseudoJet unscaled_jet = particles[i];
             // check to see if the scaling is finite, otherwise don't do any scaling
-            PseudoJet scaled_perp;
-            if (std::isfinite(axes_function)) scaled_perp = particles[i]*axes_function;
-            else scaled_perp = particles[i];
-            newAxes[minJ] += scaled_perp;
+            PseudoJet scaled_jet;
+            if (std::isfinite(axes_function)) scaled_jet = particles[i]*axes_function;
+            else scaled_jet = particles[i];
+            newAxes[minJ] += scaled_jet;
+            summed_jets[minJ] += unscaled_jet;
          }
       }
 
       // //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
-      // for (unsigned int k = 0; k < newAxes.size(); k++) {
-      //    newAxes[k] = lightFrom(newAxes[k]);
-      // }
+      for (unsigned int k = 0; k < newAxes.size(); k++) {
+         newAxes[k] = lightFrom(newAxes[k]);
+         newAxes[k] *= summed_jets[k].E();
+      }
 
       // calculate tau on new axes
       seedAxes = newAxes;
