@@ -44,22 +44,28 @@ namespace contrib {
 // The following AxesDefinitions are currently available (and the relevant arguments, if needed)
 class KT_Axes;
 class CA_Axes;
-class AntiKT_Axes;   // (R0)
+class AntiKT_Axes;         // (R0)
 class WTA_KT_Axes;
 class WTA_CA_Axes;
-class WTA_GenKT_Axes; // (p, R0) 
-class GenET_GenKT_Axes; // (delta, p, R0) 
+class WTA_GenKT_Axes;      // (p, R0)
+class GenET_GenKT_Axes;    // (delta, p, R0)
 class Manual_Axes;
+   
 class OnePass_KT_Axes;
 class OnePass_CA_Axes;
-class OnePass_AntiKT_Axes;   // (R0)
+class OnePass_AntiKT_Axes;       // (R0)
 class OnePass_WTA_KT_Axes;
 class OnePass_WTA_CA_Axes;
-class OnePass_WTA_GenKT_Axes; // (p, R0)
-class OnePass_GenET_GenKT_Axes; // (delta, p, R0) 
+class OnePass_WTA_GenKT_Axes;    // (p, R0)
+class OnePass_GenET_GenKT_Axes;  // (delta, p, R0)
 class OnePass_Manual_Axes;
-class Comb_WTA_GenKT_Axes; // (p, R0, nExtra)
-class MultiPass_Axes;  // (NPass)
+   
+//TODO: class Comb_GenET_GenKT_Axes;       // (delta, p, R0, nExtra)
+class Comb_WTA_GenKT_Axes;       // (p, R0, nExtra)
+   
+class MultiPass_Axes;            // (NPass)
+// TODO: class MultiPass_Manual_Axes;
+
 
 ///////
 //
@@ -120,7 +126,7 @@ public:
    
    // define the cases of zero pass and one pass for convenience
    enum AxesRefiningEnum {
-      UNDEFINED_REFINE = -1, // added to create a default value -- TJW
+      UNDEFINED_REFINE = -1, // added to create a default value
       NO_REFINING = 0,
       ONE_PASS = 1,
       MULTI_PASS = 100,
@@ -142,7 +148,9 @@ public:
    
 protected:
    
-  // Got rid of old constructor so users would not be able to adjust number of passes. Instead, this should only be done through the setNPass method, which is protected -- TJW
+   // Got rid of old constructor so users would not be able to adjust number of passes.
+   // Instead, this should only be done through the setNPass method, which is protected
+   // TODO:  Allow user to change NPass, also change amout of jiggling.
 
    // Constructor that requires knowing the number of passes
    // AxesDefinition(int nPass) : _Npass(nPass), _needsManualAxes(false) {
@@ -150,7 +158,7 @@ protected:
    // }
    AxesDefinition() : _Npass(UNDEFINED_REFINE), _needsManualAxes(false) {}
 
-   //Added method to set number of passes in each derived class -- TJW
+   //Added method to set number of passes in each derived class
    void setNpass(int nPass) {
       _Npass = nPass;
       if (nPass < 0) throw Error("AxesDefinition requires a nPass >= 0");
@@ -160,8 +168,6 @@ protected:
    bool _needsManualAxes; // special case of manual axes
 };
   
-// All classes updated so that NPass is no longer in the constructor -- TJW   
-
 //------------------------------------------------------------------------
 /// \class ExclusiveJetAxes
 // This class finds axes by clustering particles with an exclusive jet definition.
@@ -169,7 +175,7 @@ protected:
 class ExclusiveJetAxes : public AxesDefinition {
    
 public:
-   ExclusiveJetAxes(fastjet::JetDefinition def/*, int nPass = NO_REFINING*/)  // default to no minimization
+   ExclusiveJetAxes(fastjet::JetDefinition def)  // default to no minimization
    : AxesDefinition(), _def(def) {
       setNpass(NO_REFINING);
    }
@@ -191,7 +197,7 @@ private:
    
 };
 
-// new class added to allow for N Choose M minimization -- TJW
+// new class added to allow for N Choose M minimization
 
 //------------------------------------------------------------------------
 /// \class ExclusiveCombinatorialJetAxes
@@ -267,7 +273,7 @@ private:
 // This can be implemented with different jet algorithms, and can be called by the user
 class HardestJetAxes : public AxesDefinition {
 public:
-   HardestJetAxes(fastjet::JetDefinition def/*, int nPass = NO_REFINING*/)  // default to no minimization
+   HardestJetAxes(fastjet::JetDefinition def)  // default to no minimization
    : AxesDefinition(), _def(def) {
       setNpass(NO_REFINING);
    }
@@ -299,7 +305,8 @@ public:
    : ExclusiveJetAxes(fastjet::JetDefinition(fastjet::kt_algorithm,
                                              fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
                                              fastjet::E_scheme,
-                                             fastjet::Best)/*, nPass*/) {
+                                             fastjet::Best)
+                      ) {
       setNpass(NO_REFINING);
    }
 
@@ -327,7 +334,8 @@ public:
    : ExclusiveJetAxes(fastjet::JetDefinition(fastjet::cambridge_algorithm,
                                              fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
                                              fastjet::E_scheme,
-                                             fastjet::Best)/*, nPass*/) {
+                                             fastjet::Best)
+                      ) {
       setNpass(NO_REFINING);
    }
 
@@ -358,7 +366,8 @@ public:
    : HardestJetAxes(fastjet::JetDefinition(fastjet::antikt_algorithm,
                                            R0,
                                            fastjet::E_scheme,
-                                           fastjet::Best)/*, nPass*/), _R0(R0) {
+                                           fastjet::Best)
+                    ), _R0(R0) {
       setNpass(NO_REFINING);
    }
 
@@ -383,8 +392,8 @@ protected:
 
 };
 
-// Added Jet Definition wrapper class to avoid issue of genKT FastJet bug -- TJW
-// Now using this for all AxesDefinition with a manual recombiner to use the delete_recombiner_when_unused function -- TJW
+// Added Jet Definition wrapper class to avoid issue of genKT FastJet bug
+// Now using this for all AxesDefinition with a manual recombiner to use the delete_recombiner_when_unused function
 class JetDefinitionWrapper {
 
 public: 
@@ -392,11 +401,10 @@ public:
    JetDefinitionWrapper(JetAlgorithm jet_algorithm_in, double R_in, double xtra_param_in, const JetDefinition::Recombiner *recombiner) {
       jet_def = fastjet::JetDefinition(jet_algorithm_in, R_in, xtra_param_in);
       jet_def.set_recombiner(recombiner);
-      // added to prevent memory leaks -- TJW
-      jet_def.delete_recombiner_when_unused();
+      jet_def.delete_recombiner_when_unused();        // added to prevent memory leaks
    }
 
-   //additional constructor so that normal jet algorithms can also be called -- TJW
+   //additional constructor so that normal jet algorithms can also be called
    JetDefinitionWrapper(JetAlgorithm jet_algorithm_in, double R_in, const JetDefinition::Recombiner *recombiner, fastjet::Strategy strategy_in) {
       jet_def = fastjet::JetDefinition(jet_algorithm_in, R_in, recombiner, strategy_in);
       jet_def.delete_recombiner_when_unused();
@@ -419,7 +427,7 @@ public:
    : ExclusiveJetAxes(JetDefinitionWrapper(fastjet::kt_algorithm,
                                              fastjet::JetDefinition::max_allowable_R, //maximum jet radius constant
                                              // &_recomb,
-                                             _recomb = new WinnerTakeAllRecombiner(), // Needs to be explicitly declared -- TJW
+                                             _recomb = new WinnerTakeAllRecombiner(), // Needs to be explicitly declared
                                              fastjet::Best).getJetDef()/*, nPass*/) {
       setNpass(NO_REFINING);
     }
@@ -471,14 +479,13 @@ public:
    virtual WTA_CA_Axes* create() const {return new WTA_CA_Axes(*this);}
    
 private:
-   // const WinnerTakeAllRecombiner _recomb;
-   const WinnerTakeAllRecombiner *_recomb; 
+   const WinnerTakeAllRecombiner *_recomb;
 
 };
 
 
 //------------------------------------------------------------------------
-/// \class WTA_GenKT_Axes -- TJW
+/// \class WTA_GenKT_Axes
 // Axes from a general KT algorithm with a Winner Take All Recombiner 
 // Requires the power of the KT algorithm to be used and the radius parameter
 class WTA_GenKT_Axes : public ExclusiveJetAxes {
@@ -512,14 +519,14 @@ protected:
 };
    
 //------------------------------------------------------------------------
-/// \class GenET_GenKT_Axes -- TJW
+/// \class GenET_GenKT_Axes
 // Class using general KT algorithm with a more general recombination scheme
 // Requires power of KT algorithm, power of recombination weights, and radius parameter
 class GenET_GenKT_Axes : public ExclusiveJetAxes {
 
 public:
    GenET_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
-   : ExclusiveJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralERecombiner(delta))).getJetDef() /*, nPass*/), 
+   : ExclusiveJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralEtSchemeRecombiner(delta))).getJetDef() ),
     _delta(delta), _p(p), _R0(R0) {
         setNpass(NO_REFINING);
     }
@@ -544,7 +551,7 @@ protected:
    double _delta;
    double _p;
    double _R0;
-   const GeneralERecombiner *_recomb;
+   const GeneralEtSchemeRecombiner *_recomb;
 };
 
 //------------------------------------------------------------------------
@@ -676,7 +683,7 @@ public:
 };
 
 // ------------------------------------------------------------------------
-/// \class OnePass_WTA_GenKT_Axes -- TJW
+/// \class OnePass_WTA_GenKT_Axes
 // Onepass minimization from winner-take-all, General KT Axes 
 class OnePass_WTA_GenKT_Axes : public WTA_GenKT_Axes {
    
@@ -700,7 +707,7 @@ public:
 };
 
 // ------------------------------------------------------------------------
-/// \class OnePass_GenET_GenKT_Axes -- TJW
+/// \class OnePass_GenET_GenKT_Axes
 // Onepass minimization from General Recomb, General KT axes
 class OnePass_GenET_GenKT_Axes : public GenET_GenKT_Axes {
    
@@ -806,12 +813,12 @@ public:
 };
 
 //------------------------------------------------------------------------
-/// \class Comb_WTA_KT_Axes -- TJW
+/// \class Comb_WTA_KT_Axes
 // Axes from kT algorithm and winner-take-all recombination
 // Requires nExtra parameter and returns set of N that minimizes N-jettiness
+// default p value added due to compilation issues
 
-// default p value added due to compilation issues -- TJW
-class Comb_WTA_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
+   class Comb_WTA_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
 public:
    Comb_WTA_GenKT_Axes(int nExtra, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new WinnerTakeAllRecombiner())).getJetDef(), nExtra),

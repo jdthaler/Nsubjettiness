@@ -208,7 +208,7 @@ std::vector<fastjet::PseudoJet> ConicalAxesRefiner::get_one_pass_axes(int n_jets
 // Repeatedly calls the one pass finder to try to find global minimum
 std::vector<fastjet::PseudoJet> AxesRefiner::get_multi_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
    
-   assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning -- TJW
+   assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning
    
    // first iteration
    std::vector<fastjet::PseudoJet> bestAxes = get_one_pass_axes(n_jets, inputJets, seedAxes);
@@ -254,7 +254,7 @@ PseudoJet AxesRefiner::jiggle(const PseudoJet& axis) const {
 // This is essentially the same as a stable cone finder.
 std::vector<fastjet::PseudoJet> GeometricAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
 
-   assert(n_jets == (int)currentAxes.size()); //added int casting to get rid of compiler warning -- TJW
+   assert(n_jets == (int)currentAxes.size()); //added int casting to get rid of compiler warning
    
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
    double seedTau = _associatedMeasure->result(particles, seedAxes);
@@ -295,8 +295,7 @@ std::vector<fastjet::PseudoJet> GeometricAxesRefiner::get_one_pass_axes(int n_je
    return seedAxes;
 }
 
-// Added by TJW for GeneralAxesRefiner
-
+// GeneralAxesRefiner
 // uses minimization of N-jettiness to continually update axes until convergence.
 // The function returns the axes found at the (local) minimum
 std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
@@ -315,6 +314,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
       
       std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
       std::vector<fastjet::PseudoJet> summed_jets(seedAxes.size(), fastjet::PseudoJet(0,0,0,0));
+      
       // find closest axis and assign to that
       for (unsigned int i = 0; i < particles.size(); i++) {
          
@@ -360,7 +360,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
       seedTau = tempTau;
    }
 
-   // if ((originalTau - seedTau) < 0) seedAxes = currentAxes; 
+   if ((originalTau - seedTau) < 0) seedAxes = currentAxes;
 
    return seedAxes;
 }

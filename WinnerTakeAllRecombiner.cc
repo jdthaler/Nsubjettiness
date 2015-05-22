@@ -28,18 +28,18 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
   
-std::string GeneralERecombiner::description() const {
-   return "General E-scheme recombination";
+std::string GeneralEtSchemeRecombiner::description() const {
+   return "General Et-scheme recombination";
 }
   
-void GeneralERecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
+void GeneralEtSchemeRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
 
-  // definition of ratio done so that we do not encounter issues about numbers being too large for huge values of delta -- TJW
+  // definition of ratio done so that we do not encounter issues about numbers being too large for huge values of delta
   double ratio;
   if (abs(_delta - 1.0) < std::numeric_limits<double>::epsilon()) ratio = pb.perp()/pa.perp();
   else ratio = pow(pb.perp()/pa.perp(), _delta);
-  double weighta = 1/(1 + ratio);
-  double weightb = 1/(1 + 1/ratio);
+  double weighta = 1.0/(1.0 + ratio);
+  double weightb = 1.0/(1.0 + 1.0/ratio);
 
   double perp_ab = pa.perp() + pb.perp();
   if (perp_ab != 0.0) { // weights also non-zero...

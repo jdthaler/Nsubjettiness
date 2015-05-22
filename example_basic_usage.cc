@@ -243,9 +243,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    }
 
 
-   // BELOW ADDED BY TJW -- 5/22
-
-   ////////// the XCone Jet Algorithm ///////////////////////////
+   ////////// The XCone Jet Algorithm ///////////////////////////
 
    ////////
    //

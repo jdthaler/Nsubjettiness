@@ -22,16 +22,11 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-#ifndef __FASTJET_CONTRIB_XConePlugin_HH__
-#define __FASTJET_CONTRIB_XConePlugin_HH__
+#ifndef __FASTJET_CONTRIB_XCONEPLUGIN_HH__
+#define __FASTJET_CONTRIB_XCONEPLUGIN_HH__
 
 #include <fastjet/config.h>
 
-// #include "Njettiness.hh"
-// #include "MeasureDefinition.hh"
-// #include "AxesDefinition.hh"
-// #include "AxesRefiner.hh"
-// #include "TauComponents.hh"
 #include "NjettinessPlugin.hh"
 
 #include "fastjet/ClusterSequence.hh"
@@ -45,7 +40,7 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-//TJW-- UPDATE THIS DOCUMENTATION
+//TODO-- UPDATE THIS DOCUMENTATION
 /// The XCone jet algorithm
 /**
  * An exclusive jet finder that identifies N jets; first N axes are found, then
@@ -73,82 +68,50 @@ namespace contrib {
  *
  */
 
-// class XConePlugin : public JetDefinition::Plugin {
+// class XConePlugin
 class XConePlugin : public NjettinessPlugin {
 public:
 
-   // Constructor with N, R, and beta as the options
-   XConePlugin(int N, double R0, double beta)
-   : NjettinessPlugin(N, OnePass_GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), XConeMeasure(beta, R0))
-    , _N(N), _R0(R0), _beta(beta) {}
+   // Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
+   // All this does is use the NjettinessPlugin with OnePass_GenET_GenKT_Axes and the XConeMeasure.
+   // For more advanced usage, call NjettinessPlugin directly
+   XConePlugin(int N, double R0, double beta = 2.0)
+   : NjettinessPlugin(N,
+                      OnePass_GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), // use recommended axes method only
+                      XConeMeasure(beta, R0)  // use recommended XCone measure.
+                      ),
+  // _N(N),
+   _R0(R0)
+   //,_beta(beta)
+   {}
    
    // The things that are required by base class.
    virtual std::string description () const;
-   virtual double R() const {return _R0;} // TODO: make this not stupid
-   // virtual void run_clustering(ClusterSequence&) const;
+   virtual double R() const {return _R0;}
+   // virtual void run_clustering(ClusterSequence&) const;  // run_clustering is done by NjettinessPlugin
 
    virtual ~XConePlugin() {}
 
 private:
 
-   double calc_delta(double beta) {
-    double delta;
-    if (beta > 1) delta = 1/(beta - 1);
-    else delta = std::numeric_limits<int>::max(); 
-    return delta;
+   // static calls to use with in the constructor, set the recommended delta value
+   static double calc_delta(double beta) {
+      double delta;
+      if (beta > 1) delta = 1/(beta - 1);
+      else delta = std::numeric_limits<int>::max(); // use winner take all
+      return delta;
    }
 
-   double calc_power(double beta) {
-    return (double)1.0/beta;
+   // static calls to use with in the constructor, set the recommended p value
+   static double calc_power(double beta) {
+      return (double) 1.0/beta;
    }
 
-   int _N;
+//   int _N;
    double _R0;
-   double _beta;
+//   double _beta;
 
 public:
-   
-   // // Alternative constructors that define the measure via enums and parameters
-   // // These constructors are likely be deprecated in a future version.
-   // XConePlugin(int N,
-   //                  Njettiness::AxesMode axes_mode,
-   //                  Njettiness::MeasureMode measure_mode)
-   // : _njettinessFinder(axes_mode, measure_mode, 0), _N(N) {}
-   
-   
-   // XConePlugin(int N,
-   //                  Njettiness::AxesMode axes_mode,
-   //                  Njettiness::MeasureMode measure_mode,
-   //                  double para1)
-   // : _njettinessFinder(axes_mode, measure_mode, 1, para1), _N(N) {}
-   
-   
-   // XConePlugin(int N,
-   //                  Njettiness::AxesMode axes_mode,
-   //                  Njettiness::MeasureMode measure_mode,
-   //                  double para1,
-   //                  double para2)
-   // : _njettinessFinder(axes_mode, measure_mode, 2, para1, para2), _N(N) {}
-   
-   
-   // XConePlugin(int N,
-   //                  Njettiness::AxesMode axes_mode,
-   //                  Njettiness::MeasureMode measure_mode,
-   //                  double para1,
-   //                  double para2,
-   //                  double para3)
-   // : _njettinessFinder(axes_mode, measure_mode, 3, para1, para2, para3), _N(N) {}
-   
-   
-   // // Old constructor for backwards compatibility with v1.0,
-   // // where NormalizedCutoffMeasure was the only option
-   // XConePlugin(int N,
-   //                  Njettiness::AxesMode mode,
-   //                  double beta,
-   //                  double R0,
-   //                  double Rcutoff=std::numeric_limits<double>::max())
-   // : _njettinessFinder(mode, NormalizedCutoffMeasure(beta, R0, Rcutoff)), _N(N) {}
-
 
 };
 

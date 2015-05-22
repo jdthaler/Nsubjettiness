@@ -41,6 +41,7 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
+// BIG TODO:  Arrange things so this class is not needed.  (Put NPass in AxesDefinition, associate refining with measure)
 
 ///////
 //

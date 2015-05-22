@@ -47,9 +47,9 @@ namespace contrib {
 // This scheme compares the pT of two input particles, and then combines them into a particle with
 // a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) weighted by the respective momenta of the 
 // particle. The weighting is dependent on the power delta. For delta = infinity, this should return the same result as WTA
-class GeneralERecombiner : public fastjet::JetDefinition::Recombiner {
+class GeneralEtSchemeRecombiner : public fastjet::JetDefinition::Recombiner {
 public:
-  GeneralERecombiner(double delta) : _delta(delta) {}
+  GeneralEtSchemeRecombiner(double delta) : _delta(delta) {}
   
   virtual std::string description() const;
   

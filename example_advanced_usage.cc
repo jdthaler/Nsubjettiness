@@ -149,9 +149,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //
    ///////
 
-   //Define characteristic test parameters to use here -- TJW
+   //Define characteristic test parameters to use here
    double p = 0.5;
-   double delta = 10.0;
+   double delta = 10.0; // close to winner-take-all.  TODO:  Think about right value here.
    double R0 = 0.2;
    int nExtra = 2;
 
@@ -162,17 +162,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(AntiKT_Axes(R0));
    _testAxes.push_back(WTA_KT_Axes());
    _testAxes.push_back(WTA_CA_Axes());
-   _testAxes.push_back(WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0)); // -- TJW
+   _testAxes.push_back(WTA_GenKT_Axes(p, R0));
+   _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0));
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
    _testAxes.push_back(OnePass_WTA_KT_Axes());
    _testAxes.push_back(OnePass_WTA_CA_Axes());
-   _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0)); // -- TJW
+   _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0));
+   _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0));
    _testAxes.push_back(MultiPass_Axes(100));
-   _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0)); // -- TJW
+   _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0));
 
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -188,9 +188,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testRecommendedAxes.push_back(WTA_KT_Axes());
    _testRecommendedAxes.push_back(OnePass_KT_Axes());
    _testRecommendedAxes.push_back(OnePass_WTA_KT_Axes());
-   // new axes options added in most recent version of Nsubjettiness -- TJW
+   // new axes options added in most recent version of Nsubjettiness
 
-   // these are separate from above since they should only be defined with a cutoff value for sensible results -- TJW
+   // these are separate from above since they should only be defined with a cutoff value for sensible results
+   // TODO:  Change RCutoff to variable, and set to 0.5.
    vector<AxesStruct> _testAlgorithmRecommendedAxes;
    _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 1.0, 0.8));
    _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
@@ -208,7 +209,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(1.0     , pt_R));
    _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, pt_R));
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
-   // No pt_R flag in geometric measure since there is no pp/e+e- distinction -- TJW
+   // No pt_R flag in geometric measure since there is no pp/e+e- distinction
    _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
@@ -218,7 +219,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, pt_R));
    // _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, pt_R));
    _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8));   
-   // new measures added in the most recent version of NSubjettiness -- TJW
+   // new measures added in the most recent version of NSubjettiness
    _testCutoffMeasures.push_back(OriginalGeometricMeasure(0.8));
    _testCutoffMeasures.push_back(ModifiedGeometricMeasure(0.8));
    _testCutoffMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, 0.8));
@@ -430,8 +431,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
    }
    
-
-   // BELOW ADDED BY TJW -- 5/22
 
    ////////// the XCone Jet Algorithm ///////////////////////////
 

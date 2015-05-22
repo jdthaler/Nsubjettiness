@@ -40,7 +40,7 @@ namespace contrib {
 ///////
 
 
-//descriptions updated to include measure type -- TJW   
+//descriptions updated to include measure type
 std::string DefaultMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
@@ -89,8 +89,6 @@ std::string DeprecatedGeometricCutoffMeasure::description() const {
    << "Deprecated Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 };
-
-// Added by TJW
 
 std::string OriginalGeometricMeasure::description() const {
    std::stringstream stream;
@@ -214,8 +212,9 @@ TauComponents MeasureDefinition::component_result_from_partition(const TauPartit
    return TauComponents(_tau_mode, jetPieces, beamPiece, tauDen, jets, axes);
 }
 
-// new methods added to generalize energy and angle squared for different measure types -- TJW
+// new methods added to generalize energy and angle squared for different measure types
 double DefaultMeasure::energy(const PseudoJet& jet) const {
+   // TODO: should this be switch statement?
    if (_measure_type == pt_R) {
       return jet.perp();
    }  else if (_measure_type == E_theta || _measure_type == lorentz_dot) {

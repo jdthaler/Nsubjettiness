@@ -1,3 +1,5 @@
+2015-05-22 <jthaler>
+   Cleaning out commented text.  Renaming classes to be consistent with recommended usage.
 2015-05-22 <TJW>
    Added XConePlugin as a specific implementation of NjettinessPlugin
    Added usage of XCone beta = 1.0 and beta = 2.0 to both basic and advanced example files
