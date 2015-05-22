@@ -79,7 +79,7 @@ public:
 
    // Constructor with N, R, and beta as the options
    XConePlugin(int N, double R0, double beta)
-   : NjettinessPlugin(N, OnePass_GenRecomb_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), XConeCutoffMeasure(beta, R0))
+   : NjettinessPlugin(N, OnePass_GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), XConeMeasure(beta, R0))
     , _N(N), _R0(R0), _beta(beta) {}
    
    // The things that are required by base class.

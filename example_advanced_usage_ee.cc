@@ -162,14 +162,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(WTA_KT_Axes());
    _testAxes.push_back(WTA_CA_Axes());
    _testAxes.push_back(WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(GenRecomb_GenKT_Axes(delta, p, R0)); // -- TJW
+   _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0)); // -- TJW
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
    _testAxes.push_back(OnePass_WTA_KT_Axes());
    _testAxes.push_back(OnePass_WTA_CA_Axes());
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(OnePass_GenRecomb_GenKT_Axes(delta, p, R0)); // -- TJW
+   _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0)); // -- TJW
    _testAxes.push_back(MultiPass_Axes(100));
    _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0)); // -- TJW
 

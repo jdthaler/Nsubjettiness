@@ -282,7 +282,7 @@ std::vector<fastjet::PseudoJet> GeometricAxesRefiner::get_one_pass_axes(int n_je
          // if not unclustered, then cluster
          if (minJ != -1) newAxes[minJ] += particles[i];
       }
-      
+
       // calculate tau on new axes
       seedAxes = newAxes;
       double tempTau = _associatedMeasure->result(particles, newAxes);
@@ -336,6 +336,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
             double axes_function = _associatedMeasure->axes_numerator(particles[i], seedAxes[minJ]);
             PseudoJet unscaled_jet = particles[i];
             // check to see if the scaling is finite, otherwise don't do any scaling
+            // PseudoJet scaled_jet = particles[i]*axes_function;
             PseudoJet scaled_jet;
             if (std::isfinite(axes_function)) scaled_jet = particles[i]*axes_function;
             else scaled_jet = particles[i];
@@ -359,7 +360,7 @@ std::vector<fastjet::PseudoJet> GeneralAxesRefiner::get_one_pass_axes(int n_jets
       seedTau = tempTau;
    }
 
-   if ((originalTau - seedTau) < 0) seedAxes = currentAxes; 
+   // if ((originalTau - seedTau) < 0) seedAxes = currentAxes; 
 
    return seedAxes;
 }

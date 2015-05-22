@@ -47,18 +47,18 @@ class CA_Axes;
 class AntiKT_Axes;   // (R0)
 class WTA_KT_Axes;
 class WTA_CA_Axes;
-class WTA_GenKT_Axes; // (p, R0) -- TJW
-class GenRecomb_GenKT_Axes; // (p, delta, R0) -- TJW
+class WTA_GenKT_Axes; // (p, R0) 
+class GenET_GenKT_Axes; // (delta, p, R0) 
 class Manual_Axes;
 class OnePass_KT_Axes;
 class OnePass_CA_Axes;
 class OnePass_AntiKT_Axes;   // (R0)
 class OnePass_WTA_KT_Axes;
 class OnePass_WTA_CA_Axes;
-class OnePass_WTA_GenKT_Axes; // (p, R0) -- TJW
-class OnePass_GenRecomb_GenKT_Axes; // (p, delta, R0) -- TJW
+class OnePass_WTA_GenKT_Axes; // (p, R0)
+class OnePass_GenET_GenKT_Axes; // (delta, p, R0) 
 class OnePass_Manual_Axes;
-class Comb_WTA_GenKT_Axes; // (p, R0, nExtra) -- TJW
+class Comb_WTA_GenKT_Axes; // (p, R0, nExtra)
 class MultiPass_Axes;  // (NPass)
 
 ///////
@@ -512,13 +512,13 @@ protected:
 };
    
 //------------------------------------------------------------------------
-/// \class GenRecomb_GenKT_Axes -- TJW
+/// \class GenET_GenKT_Axes -- TJW
 // Class using general KT algorithm with a more general recombination scheme
 // Requires power of KT algorithm, power of recombination weights, and radius parameter
-class GenRecomb_GenKT_Axes : public ExclusiveJetAxes {
+class GenET_GenKT_Axes : public ExclusiveJetAxes {
 
 public:
-   GenRecomb_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
+   GenET_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralERecombiner(delta))).getJetDef() /*, nPass*/), 
     _delta(delta), _p(p), _R0(R0) {
         setNpass(NO_REFINING);
@@ -527,7 +527,7 @@ public:
    virtual std::string short_description() const {
       std::stringstream stream;
       stream << std::fixed << std::setprecision(2)
-      << "GenRecomb, GenKT Axes" ;
+      << "GenET, GenKT Axes" ;
       return stream.str();
    };
    
@@ -538,7 +538,7 @@ public:
       return stream.str();
    };
    
-   virtual GenRecomb_GenKT_Axes* create() const {return new GenRecomb_GenKT_Axes(*this);}
+   virtual GenET_GenKT_Axes* create() const {return new GenET_GenKT_Axes(*this);}
    
 protected:
    double _delta;
@@ -700,17 +700,17 @@ public:
 };
 
 // ------------------------------------------------------------------------
-/// \class OnePass_GenRecomb_GenKT_Axes -- TJW
+/// \class OnePass_GenET_GenKT_Axes -- TJW
 // Onepass minimization from General Recomb, General KT axes
-class OnePass_GenRecomb_GenKT_Axes : public GenRecomb_GenKT_Axes {
+class OnePass_GenET_GenKT_Axes : public GenET_GenKT_Axes {
    
 public:
-   OnePass_GenRecomb_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R) : GenRecomb_GenKT_Axes(delta, p, R0) {
+   OnePass_GenET_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R) : GenET_GenKT_Axes(delta, p, R0) {
       setNpass(ONE_PASS);
    }
 
    virtual std::string short_description() const {
-      return "OnePass GenRecomb, GenKT";
+      return "OnePass GenET, GenKT";
    };
    
    virtual std::string description() const {
@@ -720,7 +720,7 @@ public:
       return stream.str();
    };
    
-   virtual OnePass_GenRecomb_GenKT_Axes* create() const {return new OnePass_GenRecomb_GenKT_Axes(*this);}
+   virtual OnePass_GenET_GenKT_Axes* create() const {return new OnePass_GenET_GenKT_Axes(*this);}
 };
 
 

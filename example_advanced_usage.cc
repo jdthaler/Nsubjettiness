@@ -163,14 +163,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(WTA_KT_Axes());
    _testAxes.push_back(WTA_CA_Axes());
    _testAxes.push_back(WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(GenRecomb_GenKT_Axes(delta, p, R0)); // -- TJW
+   _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0)); // -- TJW
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
    _testAxes.push_back(OnePass_WTA_KT_Axes());
    _testAxes.push_back(OnePass_WTA_CA_Axes());
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0)); // -- TJW
-   _testAxes.push_back(OnePass_GenRecomb_GenKT_Axes(delta, p, R0)); // -- TJW
+   _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0)); // -- TJW
    _testAxes.push_back(MultiPass_Axes(100));
    _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0)); // -- TJW
 
@@ -189,8 +189,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testRecommendedAxes.push_back(OnePass_KT_Axes());
    _testRecommendedAxes.push_back(OnePass_WTA_KT_Axes());
    // new axes options added in most recent version of Nsubjettiness -- TJW
-   _testRecommendedAxes.push_back(OnePass_GenRecomb_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
-   _testRecommendedAxes.push_back(OnePass_GenRecomb_GenKT_Axes(1.0, 0.5, 0.8));
+   _testRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
+   _testRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 0.5, 0.8));
 
    // Getting some of the measure modes to test
    // (When applied to a single jet we won't test the cutoff measures,
@@ -214,10 +214,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // new measures added in the most recent version of NSubjettiness -- TJW
    _testCutoffMeasures.push_back(OriginalGeometricMeasure(0.8));
    _testCutoffMeasures.push_back(ModifiedGeometricMeasure(0.8));
-   _testCutoffMeasures.push_back(ConicalGeometricCutoffMeasure(1.0, 1.0, 0.8));
-   _testCutoffMeasures.push_back(ConicalGeometricCutoffMeasure(2.0, 1.0, 0.8));
-   _testCutoffMeasures.push_back(XConeCutoffMeasure(1.0, 0.8));
-   _testCutoffMeasures.push_back(XConeCutoffMeasure(2.0, 0.8));
+   _testCutoffMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, 0.8));
+   _testCutoffMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, 0.8));
+   _testCutoffMeasures.push_back(XConeMeasure(1.0, 0.8));
+   _testCutoffMeasures.push_back(XConeMeasure(2.0, 0.8));
 
 
    /////// N-subjettiness /////////////////////////////
@@ -235,6 +235,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    ClusterSequence clust_seq(input_particles,jetDef);
    vector<PseudoJet> antikt_jets  = sorted_by_pt(clust_seq.inclusive_jets());
    
+   // clust_seq.delete_self_when_unused();
    // small number to show equivalence of doubles
    double epsilon = 0.0001;
    
@@ -315,7 +316,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
             double tau3alt = measure_def(particles,axes_def(3,particles,&measure_def));
             assert(tau1alt == tau1);
             assert(tau2alt == tau2);
-            cout << tau3alt - tau3 << endl;
             assert(tau3alt == tau3);
             
             // Make sure calculations are consistent
@@ -477,6 +477,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
       vector<PseudoJet> xcone_jets3 = xcone_seq3.inclusive_jets();
       vector<PseudoJet> xcone_jets4 = xcone_seq4.inclusive_jets();
 
+      // xcone_seq2.delete_self_when_unused();
+      // xcone_seq3.delete_self_when_unused();
+      // xcone_seq4.delete_self_when_unused();
+
       // (alternative way to find the jets)
       //vector<PseudoJet> xcone_jets2 = extras2->jets();
       //vector<PseudoJet> xcone_jets3 = extras3->jets();
@@ -525,6 +529,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> xcone_jets_area2 = xcone_seq_area2.inclusive_jets();
          vector<PseudoJet> xcone_jets_area3 = xcone_seq_area3.inclusive_jets();
          vector<PseudoJet> xcone_jets_area4 = xcone_seq_area4.inclusive_jets();
+         
+         // xcone_seq_area2.delete_self_when_unused();
+         // xcone_seq_area3.delete_self_when_unused();
+         // xcone_seq_area4.delete_self_when_unused();
          
          PrintJets(xcone_jets_area2);
          cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
@@ -597,6 +605,10 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> njet_jets3 = njet_seq3.inclusive_jets();
          vector<PseudoJet> njet_jets4 = njet_seq4.inclusive_jets();
 
+         // njet_seq2.delete_self_when_unused();
+         // njet_seq3.delete_self_when_unused();
+         // njet_seq4.delete_self_when_unused();
+
          // (alternative way to find the jets)
          //vector<PseudoJet> njet_jets2 = extras2->jets();
          //vector<PseudoJet> njet_jets3 = extras3->jets();
@@ -639,11 +651,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
             ClusterSequenceArea njet_seq_area2(input_particles, njet_jetDef2, area_def);
             ClusterSequenceArea njet_seq_area3(input_particles, njet_jetDef3, area_def);
             ClusterSequenceArea njet_seq_area4(input_particles, njet_jetDef4, area_def);
-            
+
             vector<PseudoJet> njet_jets_area2 = njet_seq_area2.inclusive_jets();
             vector<PseudoJet> njet_jets_area3 = njet_seq_area3.inclusive_jets();
             vector<PseudoJet> njet_jets_area4 = njet_seq_area4.inclusive_jets();
             
+            // njet_seq_area2.delete_self_when_unused();
+            // njet_seq_area3.delete_self_when_unused();
+            // njet_seq_area4.delete_self_when_unused();
+
             PrintJets(njet_jets_area2);
             cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
             PrintJets(njet_jets_area3);
@@ -670,6 +686,7 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    if (jets.size() == 0) return;
    const NjettinessExtras * extras = njettiness_extras(jets[0]);
    
+   // bool useExtras = true;
    bool useExtras = (extras != NULL);
    bool useArea = jets[0].has_area();
    
@@ -685,6 +702,7 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    <<  setw(11) << "pt"
    <<  setw(11) << "m"
    <<  setw(11) << "e";
+   // if (jets[0].has_constituents()) cout <<  setw(11) << "constit";
    if (useExtras) cout << setw(14) << tauName;
    if (useArea) cout << setw(10) << "area";
    cout << endl;
@@ -699,6 +717,7 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
       << setprecision(4) <<  setw(11) << jets[i].perp()
       << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
       << setprecision(4) <<  setw(11) << jets[i].e();
+      // if (jets[i].has_constituents()) cout << setprecision(4) <<  setw(11) << jets[i].constituents().size();
       if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
       if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
       cout << endl;
@@ -727,6 +746,7 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
       <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
       <<  setprecision(4) <<  setw(11) << total.e()
       <<  setprecision(6) << setw(14) << extras->totalTau();
+      // if (jets[0].has_constituents()) cout << setprecision(4)  <<  setw(11) << total.constituents().size();
       if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
       cout << endl;
    }

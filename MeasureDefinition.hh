@@ -520,10 +520,10 @@ protected:
 // the particle and the axis normalized by the axis and particle pT, as well as a factor of cosh(y) to vary
 // the rapidity depepdence of the beam. New in Nsubjettiness version (latest)
 // NOTE:  This class is in flux and should not be used for production purposes.
-class ConicalGeometricCutoffMeasure : public MeasureDefinition {
+class ConicalGeometricMeasure : public MeasureDefinition {
 
 public:
-   ConicalGeometricCutoffMeasure(double jet_beta, double jet_gamma, double Rcutoff)
+   ConicalGeometricMeasure(double jet_beta, double jet_gamma, double Rcutoff)
    :   MeasureDefinition(),
       _jet_beta(jet_beta), _jet_gamma(jet_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
@@ -531,7 +531,7 @@ public:
 
    virtual std::string description() const;
    
-   virtual ConicalGeometricCutoffMeasure* create() const {return new ConicalGeometricCutoffMeasure(*this);}
+   virtual ConicalGeometricMeasure* create() const {return new ConicalGeometricMeasure(*this);}
    
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       fastjet::PseudoJet lightAxis = lightFrom(axis);
@@ -580,49 +580,23 @@ protected:
 
 };
 
-//------------------------------------------------------------------------
-/// \class GeometricMeasure
-// Same as GeometricCutoffMeasure, but with Rcutoff taken to infinity.
-class ConicalGeometricMeasure : public ConicalGeometricCutoffMeasure {
-   
-public:
-   ConicalGeometricMeasure(double jet_beta, double jet_gamma)
-   : ConicalGeometricCutoffMeasure(jet_beta, jet_gamma, std::numeric_limits<double>::max()) {
-      _RcutoffSq = std::numeric_limits<double>::max();
-      setTauMode(UNNORMALIZED_JET_SHAPE);
-   }
-
-   // virtual std::string description() const;
-
-   virtual ConicalGeometricMeasure* create() const {return new ConicalGeometricMeasure(*this);}
-};
-
 // ------------------------------------------------------------------------
 // / \class XConeCutoffMeasure
 // This class is the XCone Measure.  This is the default measure for use with the
 // XCone algorithm. It is identical to the conical geomtric measure but with gamma = 1.0.
 // NOTE:  This class is in flux and should not be used for production purposes.
-class XConeCutoffMeasure : public ConicalGeometricCutoffMeasure {
-
-public:
-   XConeCutoffMeasure(double jet_beta, double Rcutoff)
-   :   ConicalGeometricCutoffMeasure(jet_beta, 1.0, Rcutoff) { }
-
-   virtual std::string description() const;
-
-   virtual XConeCutoffMeasure* create() const {return new XConeCutoffMeasure(*this);}
-
-};
-
 class XConeMeasure : public ConicalGeometricMeasure {
 
 public:
-   XConeMeasure(double jet_beta)
-   :   ConicalGeometricMeasure(jet_beta, 1.0) {}
+   XConeMeasure(double jet_beta, double Rcutoff)
+   :   ConicalGeometricMeasure(jet_beta, 1.0, Rcutoff) { }
+
+   virtual std::string description() const;
 
    virtual XConeMeasure* create() const {return new XConeMeasure(*this);}
+
 };
-   
+
 } //namespace contrib
 
 FASTJET_END_NAMESPACE

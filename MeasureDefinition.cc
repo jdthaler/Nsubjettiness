@@ -65,7 +65,7 @@ std::string UnnormalizedMeasure::description() const {
 std::string DeprecatedGeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Geometric Measure (beta = " << _jet_beta << ", in GeV)";
+   << "Deprecated Geometric Measure (beta = " << _jet_beta << ", in GeV)";
    return stream.str();
 };
 
@@ -86,7 +86,7 @@ std::string UnnormalizedCutoffMeasure::description() const {
 std::string DeprecatedGeometricCutoffMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+   << "Deprecated Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 };
 
@@ -95,26 +95,26 @@ std::string DeprecatedGeometricCutoffMeasure::description() const {
 std::string OriginalGeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Original Geometric Cutoff Measure (Rcut = " << _Rcutoff << ", in GeV)";
+   << "Original Geometric Measure (Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 }; 
 
 std::string ModifiedGeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Modified Geometric Cutoff Measure (Rcut = " << _Rcutoff << ", in GeV)";
+   << "Modified Geometric Measure (Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 }; 
 
-std::string ConicalGeometricCutoffMeasure::description() const {
+std::string ConicalGeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Conical Geometric Cutoff Measure (beta = " << _jet_beta << ", gamma = " << _jet_gamma << ", Rcut = " << _Rcutoff << ", in GeV)";
+   << "Conical Geometric Measure (beta = " << _jet_beta << ", gamma = " << _jet_gamma << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 }; 
    
 
-std::string XConeCutoffMeasure::description() const {
+std::string XConeMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
    << "XCone Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
