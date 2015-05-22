@@ -189,8 +189,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testRecommendedAxes.push_back(OnePass_KT_Axes());
    _testRecommendedAxes.push_back(OnePass_WTA_KT_Axes());
    // new axes options added in most recent version of Nsubjettiness -- TJW
-   _testRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
-   _testRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 0.5, 0.8));
+
+   // these are separate from above since they should only be defined with a cutoff value for sensible results -- TJW
+   vector<AxesStruct> _testAlgorithmRecommendedAxes;
+   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 1.0, 0.8));
+   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
+   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 0.5, 0.8));
+   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 1.0, 0.8));
+   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
+   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 0.5, 0.8));
 
    // Getting some of the measure modes to test
    // (When applied to a single jet we won't test the cutoff measures,
@@ -575,9 +582,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
    
    for (unsigned iM = 0; iM < _testCutoffMeasures.size(); iM++) {
       
-      for (unsigned iA = 0; iA < _testRecommendedAxes.size(); iA++) {
+      for (unsigned iA = 0; iA < _testAlgorithmRecommendedAxes.size(); iA++) {
          
-         const AxesDefinition    & axes_def    = _testRecommendedAxes[iA].def();
+         const AxesDefinition    & axes_def    = _testAlgorithmRecommendedAxes[iA].def();
          const MeasureDefinition & measure_def = _testCutoffMeasures[iM].def();
          
          // define the plugins
