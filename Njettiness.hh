@@ -101,9 +101,6 @@ private:
    // The AxesRefiner depends on the Npass settings of _axes_def, but the minimization routines specified by _measure_def,
    // hense the need for a helper function to set this.
 
-   void setAxesRefinerAndManualMode();
-   // No longer necessary -- TJW
-   // SharedPtr<const AxesRefiner> _axes_refiner;
    
    // Information about the current information
    // Defined as mutables, so user should be aware that these change when getTau is called.
@@ -160,7 +157,6 @@ public:
               double para2 = std::numeric_limits<double>::quiet_NaN(),
               double para3 = std::numeric_limits<double>::quiet_NaN())
    : _axes_def(createAxesDef(axes_mode)), _measure_def(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
-      setAxesRefinerAndManualMode();
    }
   
    // Convert old style enums into new style MeasureDefinition

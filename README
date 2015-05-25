@@ -130,13 +130,14 @@ a (local) minimum of N-(sub)jettiness:
 
 In general, it is difficult to find the global minimum, but this mode attempts
 to do so:
-    MultiPass_Axes(Npass)    // axes that (attempt to) minimize N-subjettiness
-                             // (NPass = 100 is typical)
+    MultiPass_Axes(NPass,noise)  // axes that (attempt to) minimize
+                                 // N-subjettiness (NPass = 100 is typical,
+                                 // with a noise range in phi/rap of 1.0)
 
 Finally, one can set manual axes:
     Manual_Axes              // set your own axes with setAxes()
     OnePass_Manual_Axes      // one-pass minimization from manual starting point
-    MultiPass_Manual_Axes(Npass)   // multi-pass min. from manual starting point
+    MultiPass_Manual_Axes(Npass,noise)// multi-pass min. from manual
 
 If one wants to change the number of passes used by any of the axes finders, one
 can call the function

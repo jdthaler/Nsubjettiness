@@ -107,7 +107,7 @@ std::string ModifiedGeometricMeasure::description() const {
 std::string ConicalGeometricMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "Conical Geometric Measure (beta = " << _jet_beta << ", gamma = " << _jet_gamma << ", Rcut = " << _Rcutoff << ", in GeV)";
+   << "Conical Geometric Measure (beta = " << _jet_beta << ", gamma = " << _beam_gamma << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 }; 
    
@@ -120,7 +120,8 @@ std::string XConeMeasure::description() const {
 }; 
     
 // Return all of the necessary TauComponents for specific input particles and axes
-TauComponents MeasureDefinition::component_result(const std::vector<fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) const {
+TauComponents MeasureDefinition::component_result(const std::vector<fastjet::PseudoJet>& particles,
+                                                  const std::vector<fastjet::PseudoJet>& axes) const {
    
    // first find partition
    TauPartition partition = get_partition(particles,axes);
@@ -144,9 +145,11 @@ TauPartition MeasureDefinition::get_partition(const std::vector<fastjet::PseudoJ
       if (has_beam()) minRsq = beam_distance_squared(particles[i]);
       else minRsq = std::numeric_limits<double>::max(); // make it large value
       
+      
       // check to see which axis the particle is closest to
       for (unsigned j = 0; j < axes.size(); j++) {
          double tempRsq = jet_distance_squared(particles[i],axes[j]); // delta R distance
+         
          if (tempRsq < minRsq) {
             minRsq = tempRsq;
             j_min = j;
@@ -238,7 +241,7 @@ double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2
 
 ///////
 //
-// Axes Refining -- all below added by TJW 5/25
+// Axes Refining
 //
 ///////
 
@@ -246,7 +249,11 @@ double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2
 // The function returns the axes found at the (local) minimum
 // This is the general axes refiner that can be used for a generic measure (but is
 // overwritten in the case of the conical measure and the deprecated geometric measure)
-std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
+std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
+                                                                     const std::vector <fastjet::PseudoJet> & particles,
+                                                                     const std::vector<fastjet::PseudoJet>& currentAxes,
+                                                                     int nAttempts,
+                                                                     double accuracy) const {
 
    assert(n_jets == (int)currentAxes.size());
    
@@ -258,7 +265,7 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
    double seedTau = result(particles, seedAxes);
    double originalTau = result(particles, currentAxes);
    
-   for (int i_att = 0; i_att < _nAttempts; i_att++) {
+   for (int i_att = 0; i_att < nAttempts; i_att++) {
       
       std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
       std::vector<fastjet::PseudoJet> summed_jets(seedAxes.size(), fastjet::PseudoJet(0,0,0,0));
@@ -304,7 +311,7 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
       double tempTau = result(particles, newAxes);
       
       // close enough to stop?
-      if (fabs(tempTau - seedTau) < _accuracy) break;
+      if (fabs(tempTau - seedTau) < accuracy) break;
       seedTau = tempTau;
    }
 
@@ -314,12 +321,14 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
 }
 
 
-// CONICAL MEASURE
-
+// One pass minimization for the DefaultMeasure
+   
 // Given starting axes, update to find better axes by using Kmeans clustering around the old axes
 template <int N>
 std::vector<LightLikeAxis> DefaultMeasure::UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes,
-                                  const std::vector <fastjet::PseudoJet> & inputJets) const {
+                                                          const std::vector <fastjet::PseudoJet> & inputJets,
+                                                          double accuracy
+                                                          ) const {
    assert(old_axes.size() == N);
    
    // some storage, declared static to save allocation/re-allocation costs
@@ -330,7 +339,7 @@ std::vector<LightLikeAxis> DefaultMeasure::UpdateAxesFast(const std::vector <Lig
       new_jets[n].reset_momentum(0.0,0.0,0.0,0.0);
    }
 
-   double precision = _precision;
+   double precision = accuracy;  //TODO: actually cascade this in
    
    /////////////// Assignment Step //////////////////////////////////////////////////////////
    std::vector<int> assignment_index(inputJets.size()); 
@@ -411,30 +420,32 @@ std::vector<LightLikeAxis> DefaultMeasure::UpdateAxesFast(const std::vector <Lig
 
 // Given N starting axes, this function updates all axes to find N better axes. 
 // (This is just a wrapper for the templated version above.)
+//  TODO:  Consider removing this in a future version
 std::vector<LightLikeAxis> DefaultMeasure::UpdateAxes(const std::vector <LightLikeAxis> & old_axes,
-                                      const std::vector <fastjet::PseudoJet> & inputJets) const {
+                                                      const std::vector <fastjet::PseudoJet> & inputJets,
+                                                      double accuracy) const {
    int N = old_axes.size();
    switch (N) {
-      case 1: return UpdateAxesFast<1>(old_axes, inputJets);
-      case 2: return UpdateAxesFast<2>(old_axes, inputJets);
-      case 3: return UpdateAxesFast<3>(old_axes, inputJets);
-      case 4: return UpdateAxesFast<4>(old_axes, inputJets);
-      case 5: return UpdateAxesFast<5>(old_axes, inputJets);
-      case 6: return UpdateAxesFast<6>(old_axes, inputJets);
-      case 7: return UpdateAxesFast<7>(old_axes, inputJets);
-      case 8: return UpdateAxesFast<8>(old_axes, inputJets);
-      case 9: return UpdateAxesFast<9>(old_axes, inputJets);
-      case 10: return UpdateAxesFast<10>(old_axes, inputJets);
-      case 11: return UpdateAxesFast<11>(old_axes, inputJets);
-      case 12: return UpdateAxesFast<12>(old_axes, inputJets);
-      case 13: return UpdateAxesFast<13>(old_axes, inputJets);
-      case 14: return UpdateAxesFast<14>(old_axes, inputJets);
-      case 15: return UpdateAxesFast<15>(old_axes, inputJets);
-      case 16: return UpdateAxesFast<16>(old_axes, inputJets);
-      case 17: return UpdateAxesFast<17>(old_axes, inputJets);
-      case 18: return UpdateAxesFast<18>(old_axes, inputJets);
-      case 19: return UpdateAxesFast<19>(old_axes, inputJets);
-      case 20: return UpdateAxesFast<20>(old_axes, inputJets);
+      case 1: return UpdateAxesFast<1>(old_axes, inputJets, accuracy);
+      case 2: return UpdateAxesFast<2>(old_axes, inputJets, accuracy);
+      case 3: return UpdateAxesFast<3>(old_axes, inputJets, accuracy);
+      case 4: return UpdateAxesFast<4>(old_axes, inputJets, accuracy);
+      case 5: return UpdateAxesFast<5>(old_axes, inputJets, accuracy);
+      case 6: return UpdateAxesFast<6>(old_axes, inputJets, accuracy);
+      case 7: return UpdateAxesFast<7>(old_axes, inputJets, accuracy);
+      case 8: return UpdateAxesFast<8>(old_axes, inputJets, accuracy);
+      case 9: return UpdateAxesFast<9>(old_axes, inputJets, accuracy);
+      case 10: return UpdateAxesFast<10>(old_axes, inputJets, accuracy);
+      case 11: return UpdateAxesFast<11>(old_axes, inputJets, accuracy);
+      case 12: return UpdateAxesFast<12>(old_axes, inputJets, accuracy);
+      case 13: return UpdateAxesFast<13>(old_axes, inputJets, accuracy);
+      case 14: return UpdateAxesFast<14>(old_axes, inputJets, accuracy);
+      case 15: return UpdateAxesFast<15>(old_axes, inputJets, accuracy);
+      case 16: return UpdateAxesFast<16>(old_axes, inputJets, accuracy);
+      case 17: return UpdateAxesFast<17>(old_axes, inputJets, accuracy);
+      case 18: return UpdateAxesFast<18>(old_axes, inputJets, accuracy);
+      case 19: return UpdateAxesFast<19>(old_axes, inputJets, accuracy);
+      case 20: return UpdateAxesFast<20>(old_axes, inputJets, accuracy);
       default: std::cout << "N-jettiness is hard-coded to only allow up to 20 jets!" << std::endl;
          return std::vector<LightLikeAxis>();
    }
@@ -443,8 +454,13 @@ std::vector<LightLikeAxis> DefaultMeasure::UpdateAxes(const std::vector <LightLi
 
 // uses minimization of N-jettiness to continually update axes until convergence.
 // The function returns the axes found at the (local) minimum
-std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
-     
+std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets,
+                                                                  const std::vector <fastjet::PseudoJet> & inputJets,
+                                                                  const std::vector<fastjet::PseudoJet>& seedAxes,
+                                                                  int nAttempts,
+                                                                  double accuracy
+                                                                  ) const {
+   
    // convert from PseudoJets to LightLikeAxes
    std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
    for (int k = 0; k < n_jets; k++) {
@@ -457,10 +473,10 @@ std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets, co
    double cmp = std::numeric_limits<double>::max();  //large number
    int h = 0;
 
-   while (cmp > _precision && h < _halt) { // Keep updating axes until near-convergence or too many update steps
+   while (cmp > accuracy && h < nAttempts) { // Keep updating axes until near-convergence or too many update steps
       cmp = 0.0;
       h++;
-      new_axes = UpdateAxes(old_axes, inputJets); // Update axes
+      new_axes = UpdateAxes(old_axes, inputJets,accuracy); // Update axes
       for (int k = 0; k < n_jets; k++) {
          cmp += old_axes[k].Distance(new_axes[k]);
       }
@@ -487,19 +503,22 @@ std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets, co
    return outputAxes;
 }
    
-// DEPRECATED GEOMETRIC MEASURE
-
+// One-pass minimization for the Deprecated Geometric Measure
 // Uses minimization of the geometric distance in order to find the minimum axes.
 // It continually updates until it reaches convergence or it reaches the maximum number of attempts.
 // This is essentially the same as a stable cone finder.
-std::vector<fastjet::PseudoJet> DeprecatedGeometricCutoffMeasure::get_one_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) const {
+std::vector<fastjet::PseudoJet> DeprecatedGeometricCutoffMeasure::get_one_pass_axes(int n_jets,
+                                                                                    const std::vector <fastjet::PseudoJet> & particles,
+                                                                                    const std::vector<fastjet::PseudoJet>& currentAxes,
+                                                                                    int nAttempts,
+                                                                                    double accuracy) const {
 
    assert(n_jets == (int)currentAxes.size()); //added int casting to get rid of compiler warning
    
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
    double seedTau = result(particles, seedAxes);
    
-   for (int i = 0; i < _nAttempts; i++) {
+   for (int i = 0; i < nAttempts; i++) {
       
       std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
       
@@ -528,7 +547,7 @@ std::vector<fastjet::PseudoJet> DeprecatedGeometricCutoffMeasure::get_one_pass_a
       double tempTau = result(particles, newAxes);
       
       // close enough to stop?
-      if (fabs(tempTau - seedTau) < _accuracy) break;
+      if (fabs(tempTau - seedTau) < accuracy) break;
       seedTau = tempTau;
    }
    

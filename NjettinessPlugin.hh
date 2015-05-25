@@ -30,7 +30,6 @@
 #include "Njettiness.hh"
 #include "MeasureDefinition.hh"
 #include "AxesDefinition.hh"
-#include "AxesRefiner.hh"
 #include "TauComponents.hh"
 
 #include "fastjet/ClusterSequence.hh"

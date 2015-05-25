@@ -37,16 +37,10 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-// for switching between pp and ee measure types
-enum MeasureType {
-   pt_R,       ///  use transverse momenta and boost-invariant angles,
-   E_theta,    ///  use energies and angles,
-   lorentz_dot ///  use dot product inspired measure
-   // TODO:  add perp_lorentz_dot
-};
+
 
 // The following Measures are available (and their relevant arguments):
-class DefaultMeasure;               // Default measure from which next classes derive
+class DefaultMeasure;               // Default measure from which next classes derive (should not be called directly)
 class NormalizedMeasure;            // (beta,R0)
 class UnnormalizedMeasure;          // (beta)
 class NormalizedCutoffMeasure;      // (beta,R0,Rcutoff)
@@ -57,7 +51,7 @@ class DeprecatedGeometricMeasure;         // (beta)
 class DeprecatedGeometricCutoffMeasure;   // (beta,Rcutoff)
 
 // New measures as of v2.2
-// class ConicalMeasure // (beta,Rcutoff)
+// class ConicalMeasure // (beta,Rcutoff)  TODO: add this in to use default one_pass_minimization scheme
 class OriginalGeometricMeasure;     // (Rcutoff)
 class ModifiedGeometricMeasure;     // (Rcutoff)
 class ConicalGeometricMeasure;      // (beta, gamma, Rcutoff)
@@ -75,7 +69,7 @@ class LightLikeAxis;
    
 //------------------------------------------------------------------------
 /// \class MeasureDefinition
-// This is the base class for measure definitions.  Derived classes will calculates
+// This is the base class for measure definitions.  Derived classes will calculate
 // the tau_N of a jet given a specific measure and a set of axes.  The measure is
 // determined by various jet and beam distances (and possible normalization factors).
 class MeasureDefinition {
@@ -88,17 +82,12 @@ public:
    // In derived classes, this should return a copy of the corresponding derived class
    virtual MeasureDefinition* create() const = 0;
 
-   //The follwoing five functions define the measure by which tau_N is calculated,
+   //The following five functions define the measure by which tau_N is calculated,
    //and are overloaded by the various measures below
    
    // Distanes to axes.  These are called many times, so need to be as fast as possible
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
    virtual double beam_distance_squared(const fastjet::PseudoJet& particle) const = 0;
-
-   // axes_numerator added for use in minimization in Axes refining
-   virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
-      return 1.0;
-   }
    
    // The actual measures used in N-(sub)jettiness
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
@@ -106,6 +95,19 @@ public:
    
    // a possible normalization factor
    virtual double denominator(const fastjet::PseudoJet& particle) const = 0;
+   
+   
+   
+   
+   // for generic one_pass minimization, axes_numerator can be used for refining
+   // Here, defined according to g(n,p) in XCone paper, but can be overriden if computationally easier
+   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      double pseudoMomentum = dot_product(lightFrom(axis),particle)
+                              + 0.0000001*particle.E(); // need small offset to avoid potential divide by zero issues
+      return (double)jet_numerator(particle, axis)/pseudoMomentum;
+   }
+
+   
    
 public:
    
@@ -128,35 +130,27 @@ public:
    // calculates the tau result using an existing partition
    TauComponents component_result_from_partition(const TauPartition& partition, const std::vector<fastjet::PseudoJet>& axes) const;
 
-   // Create associated axes refiner (i.e. minimization routine), if available, otherwise use default
    
-   // added this to retrieve one-pass axes based on measure-specific minimization scheme -- TJW
+   // Create associated axes refiner (i.e. one-pass minimization routine), if available, otherwise use default
+   
+   // added this to retrieve one-pass axes based on measure-specific minimization scheme
    virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
                                                              const std::vector<fastjet::PseudoJet>& inputs,
-                                                             const std::vector<fastjet::PseudoJet>& seedAxes) const;
-
-   // shorthand for squaring
-   // TODO:  This should be moved to special function file?
-   static inline double sq(double x) {return x*x;}
+                                                             const std::vector<fastjet::PseudoJet>& seedAxes,
+                                                             int nAttempts = 1000,         // cap number of iterations
+                                                             double accuracy = 0.0001      // cap distance of closest approach
+                                                             ) const;
 
    //virtual destructor
    virtual ~MeasureDefinition(){}
    
 protected:
+   
    //flag set by derived classes to choose whether or not to use beam/denominator
    TauMode _tau_mode;
-   // added for axes refining -- TJW
-   double _nAttempts;
-   double _accuracy;
 
-   // removed old constructor so that users cannot change the value of TauMode
-   // added constructor with MeasureType argument so user will be able to set measure type when they need to
-
-   // This constructor allows _has_denominator to be set by derived classes
-   // MeasureDefinition(TauMode tau_mode) : _tau_mode(tau_mode) {}
-   MeasureDefinition() : _tau_mode(UNDEFINED_SHAPE),
-                         _nAttempts(100), //-- TJW
-                         _accuracy(0.00001) {} 
+   // This constructor allows _tau_mode to be set by derived classes
+   MeasureDefinition() : _tau_mode(UNDEFINED_SHAPE) {}
 
    void setTauMode(TauMode tau_mode) {
       _tau_mode = tau_mode;
@@ -166,28 +160,42 @@ protected:
    bool has_denominator() const { return (_tau_mode == NORMALIZED_JET_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
    bool has_beam() const {return (_tau_mode == UNNORMALIZED_EVENT_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
 
-   // create light-like axis -- added to easily make light-like axes -- TJW
+   // create light-like axis (used in default one pass minimization
    fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
       double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
       return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
    }
+   
+   // shorthand for squaring
+   static inline double sq(double x) {return x*x;}
 
+};
+   
+
+///////
+//
+// Default Measures
+//
+///////
+   
+   
+// For switching between pp and ee measure types in Default Measure
+enum DefaultMeasureType {
+   pt_R,       ///  use transverse momenta and boost-invariant angles,
+   E_theta,    ///  use energies and angles,
+   lorentz_dot ///  use dot product inspired measure
+   // TODO:  add perp_lorentz_dot?
 };
 
 //------------------------------------------------------------------------
 /// \class DefaultMeasure
-// This class is the default measure, based on the conical measure, but with a normalization factor
+// This class is the default measure as defined in the original N-subjettiness papers.
+// Based on the conical measure, but with a normalization factor
 // This measure is defined as the pT of the particle multiplied by deltaR
 // to the power of beta. This class includes the normalization factor determined by R0
 class DefaultMeasure : public MeasureDefinition {
    
 public:
-   
-   DefaultMeasure(double beta, double R0, double Rcutoff, MeasureType measure_type = pt_R)
-   : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type),        
-      _precision(0.0001), //hard coded for now -- TJW
-      _halt(1000) //hard coded for now
-      {}
 
    virtual std::string description() const;
    
@@ -214,23 +222,29 @@ public:
       return energy(particle) * std::pow(_R0,_beta);
    }
 
-   // added -- TJW
    virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
                                                              const std::vector<fastjet::PseudoJet>& inputs,
-                                                             const std::vector<fastjet::PseudoJet>& seedAxes) const;
+                                                             const std::vector<fastjet::PseudoJet>& seedAxes,
+                                                             int nAttempts,   // cap number of iterations
+                                                             double accuracy  // cap distance of closest approach
+                                                             ) const;
    
 protected:
    double _beta;
    double _R0;
    double _Rcutoff;
    double _RcutoffSq;   
-   MeasureType _measure_type;
-   // added for axes refining -- TJW
-   double _precision;  // Desired precision in axes alignment
-   int _halt;  // maximum number of steps per iteration
+   DefaultMeasureType _measure_type;
+   
+   
+   // Constructor is protected so that no one tries to call this directly.
+   DefaultMeasure(double beta, double R0, double Rcutoff, DefaultMeasureType measure_type = pt_R)
+   : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type)
+   {}
+   
    
    // added set measure method in case it becomes useful later
-   void setMeasureType(MeasureType measure_type) {
+   void setDefaultMeasureType(DefaultMeasureType measure_type) {
       _measure_type = measure_type;
    }
 
@@ -246,17 +260,23 @@ protected:
    }      
 
    template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes,
-                                                              const std::vector <fastjet::PseudoJet> & inputJets) const;
+                                                              const std::vector <fastjet::PseudoJet> & inputJets,
+                                                              double accuracy) const;
    
    std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes,
-                                         const std::vector <fastjet::PseudoJet> & inputJets) const;   
+                                         const std::vector <fastjet::PseudoJet> & inputJets,
+                                         double accuracy) const;
 };
    
+
+//------------------------------------------------------------------------
+/// \class NormalizedCutoffMeasure
+// This measure is just a wrapper for DefaultMeasure
 class NormalizedCutoffMeasure : public DefaultMeasure {
 
 public:
 
-   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff, MeasureType measure_type = pt_R) 
+   NormalizedCutoffMeasure(double beta, double R0, double Rcutoff, DefaultMeasureType measure_type = pt_R) 
    : DefaultMeasure(beta, R0, Rcutoff, measure_type) {
       setTauMode(NORMALIZED_JET_SHAPE);
    }
@@ -274,7 +294,7 @@ class NormalizedMeasure : public NormalizedCutoffMeasure {
 
 public:
 
-   NormalizedMeasure(double beta, double R0, MeasureType measure_type = pt_R)
+   NormalizedMeasure(double beta, double R0, DefaultMeasureType measure_type = pt_R)
    : NormalizedCutoffMeasure(beta, R0, std::numeric_limits<double>::max(), measure_type) {
       _RcutoffSq = std::numeric_limits<double>::max();
       setTauMode(NORMALIZED_JET_SHAPE);
@@ -298,7 +318,7 @@ public:
    // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
-   UnnormalizedCutoffMeasure(double beta, double Rcutoff, MeasureType measure_type = pt_R)
+   UnnormalizedCutoffMeasure(double beta, double Rcutoff, DefaultMeasureType measure_type = pt_R)
    : DefaultMeasure(beta, std::numeric_limits<double>::quiet_NaN(), Rcutoff, measure_type) {
       setTauMode(UNNORMALIZED_EVENT_SHAPE);
    }
@@ -312,15 +332,14 @@ public:
    
 //------------------------------------------------------------------------
 /// \class UnnormalizedMeasure
-// This measure is the same as UnnormalizedCutoffMeasure, with Rcutoff taken
-// to infinity.
+// This measure is the same as UnnormalizedCutoffMeasure, with Rcutoff taken to infinity.
 class UnnormalizedMeasure : public UnnormalizedCutoffMeasure {
    
 public:
    // Since all methods are identical, UnnormalizedMeasure inherits directly
    // from NormalizedMeasure. R0 is a dummy value since the value of R0 is unecessary for this class,
    // and the "false" flag sets _has_denominator in MeasureDefinition to false so no denominator is used.
-   UnnormalizedMeasure(double beta, MeasureType measure_type = pt_R)
+   UnnormalizedMeasure(double beta, DefaultMeasureType measure_type = pt_R)
    : UnnormalizedCutoffMeasure(beta, std::numeric_limits<double>::max(), measure_type) {
       _RcutoffSq = std::numeric_limits<double>::max();
       setTauMode(UNNORMALIZED_JET_SHAPE);
@@ -334,17 +353,20 @@ public:
 };
 
 //------------------------------------------------------------------------
-/// \class GeometricCutoffMeasure
-// This class is the geometric measure.  This measure is defined by the Lorentz dot product between
-// the particle and the axis.  This class does not include normalization of tau_N.
-// NOTE:  This class should not be used for production purposes.
+/// \class DeprecatedGeometricCutoffMeasure
+// This class is the old, incorrectly coded geometric measure.
+// It is kept in case anyone wants to check old code, but should not be used for production purposes.
 class DeprecatedGeometricCutoffMeasure : public MeasureDefinition {
 
 public:
-   // Right now, we are hard coded for beam_beta = 1.0, but that will need to change
+
+   // Please, please don't use this.
    DeprecatedGeometricCutoffMeasure(double jet_beta, double Rcutoff)
    :   MeasureDefinition(),
-      _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      _jet_beta(jet_beta),
+      _beam_beta(1.0), // This is hard coded, since alternative beta_beam values were never checked.
+      _Rcutoff(Rcutoff),
+      _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
          if (jet_beta != 2.0) {
          throw Error("Geometric minimization is currently only defined for beta = 2.0.");
@@ -380,10 +402,12 @@ public:
       return std::numeric_limits<double>::quiet_NaN();
    }
 
-   // added -- TJW   
    virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
                                                              const std::vector<fastjet::PseudoJet>& inputs,
-                                                             const std::vector<fastjet::PseudoJet>& seedAxes) const;
+                                                             const std::vector<fastjet::PseudoJet>& seedAxes,
+                                                             int nAttempts,    // cap number of iterations
+                                                             double accuracy   // cap distance of closest approach
+                                                            ) const;
    
 protected:
    double _jet_beta;
@@ -414,11 +438,11 @@ public:
 
 //------------------------------------------------------------------------
 /// \class OriginalGeometricMeasure
-// This class is the geometric measure.  This measure is defined by the Lorentz dot product between
+// This class is the original (and hopefully now correctly coded) geometric measure.
+// This measure is defined by the Lorentz dot product between
 // the particle and the axis.  This class does not include normalization of tau_N.
-// New in Nsubjettiness version (latest)
-// NOTE: This is defined differently from the DeprecatedGeometricMeasure above. This is the correct 
-// Geometric measure and should be used for all production purposes.
+// New in Nsubjettiness v2.2
+// NOTE: This is defined differently from the DeprecatedGeometricMeasure above.
 class OriginalGeometricMeasure : public MeasureDefinition {
 
 public:
@@ -456,7 +480,12 @@ public:
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
       return std::numeric_limits<double>::quiet_NaN();
    }
-      
+   
+   // Simplified formula in this case
+   virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
+      return 1.0;
+   }
+   
 protected:
    double _Rcutoff;
    double _RcutoffSq;
@@ -468,8 +497,7 @@ protected:
 /// \class ModifiedGeometricMeasure
 // This class is the Modified geometric measure.  This jet measure is defined by the Lorentz dot product between
 // the particle and the axis, as in the Original Geometric Measure. The beam measure is defined differently from 
-// the above OriginalGeometric to allow for more conical jets. New in Nsubjettiness version (latest)
-// NOTE:  This class is in flux and should not be used for production purposes.
+// the above OriginalGeometric to allow for more conical jets. New in Nsubjettiness v2.2
 class ModifiedGeometricMeasure : public MeasureDefinition {
 
 public:
@@ -505,7 +533,12 @@ public:
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
       return std::numeric_limits<double>::quiet_NaN();
    }
-      
+   
+   // Simplified formula in this case
+   virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
+      return 1.0;
+   }
+   
 protected:
    double _Rcutoff;
    double _RcutoffSq;
@@ -514,15 +547,15 @@ protected:
 
 // ------------------------------------------------------------------------
 // / \class ConicalGeometricCutoffMeasure
-// This class is the Conical geometric measure.  This measure is defined by the Lorentz dot product between
+// This class is the Conical Geometric measure.  This measure is defined by the Lorentz dot product between
 // the particle and the axis normalized by the axis and particle pT, as well as a factor of cosh(y) to vary
-// the rapidity depepdence of the beam. New in Nsubjettiness version (latest)
+// the rapidity depepdence of the beam. New in Nsubjettiness v2.2, and the basis for the XCone jet algorithm
 class ConicalGeometricMeasure : public MeasureDefinition {
 
 public:
-   ConicalGeometricMeasure(double jet_beta, double jet_gamma, double Rcutoff)
+   ConicalGeometricMeasure(double jet_beta, double beam_gamma, double Rcutoff)
    :   MeasureDefinition(),
-      _jet_beta(jet_beta), _jet_gamma(jet_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      _jet_beta(jet_beta), _beam_gamma(beam_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
       }
 
@@ -541,21 +574,20 @@ public:
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      fastjet::PseudoJet lightParticle = lightFrom(particle);
-      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_jet_gamma - 1.0);
-      return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+      double jet_dist = jet_distance_squared(particle,axis);
+      if (jet_dist > 0.0) {
+         fastjet::PseudoJet lightParticle = lightFrom(particle);
+         double weight = (_beam_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_beam_gamma - 1.0);
+         return particle.pt() * weight * std::pow(jet_dist,_jet_beta/2.0);
+      } else {
+         return 0.0;
+      }
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet lightParticle = lightFrom(particle);
-      double weight = (_jet_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_jet_gamma - 1.0);
+      double weight = (_beam_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_beam_gamma - 1.0);
       return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
-   }
-
-   // defined according to G(n,p) in the paper
-   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      double pseudoMomentum = dot_product(lightFrom(axis),particle) + 0.0000001*particle.E(); 
-      return (double)jet_numerator(particle, axis)/pseudoMomentum;
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -564,7 +596,7 @@ public:
       
 protected:
    double _jet_beta;
-   double _jet_gamma;
+   double _beam_gamma;
    double _Rcutoff;
    double _RcutoffSq;
    
@@ -573,13 +605,13 @@ protected:
 // ------------------------------------------------------------------------
 // / \class XConeCutoffMeasure
 // This class is the XCone Measure.  This is the default measure for use with the
-// XCone algorithm. It is identical to the conical geomtric measure but with gamma = 1.0.
+// XCone algorithm. It is identical to the conical geometric measure but with gamma = 1.0.
 class XConeMeasure : public ConicalGeometricMeasure {
 
 public:
    XConeMeasure(double jet_beta, double Rcutoff)
    :   ConicalGeometricMeasure(jet_beta,
-                               1.0, // jet_gamma
+                               1.0, // beam_gamma, hard coded
                                Rcutoff
                                ) { }
 

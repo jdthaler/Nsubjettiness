@@ -28,18 +28,16 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
   
-// Added these two functions to AxesDefinition to allow for multipass minimization -- TJW
-
 // Repeatedly calls the one pass finder to try to find global minimum
-// std::vector<fastjet::PseudoJet> AxesDefinition::get_multi_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const std::vector<fastjet::PseudoJet>& seedAxes) const {
-std::vector<fastjet::PseudoJet> AxesDefinition::get_multi_pass_axes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets, const MeasureDefinition* measure) const {
-
-   std::vector<fastjet::PseudoJet> seedAxes = get_starting_axes(n_jets, inputJets, measure);	
+std::vector<fastjet::PseudoJet> AxesDefinition::get_multi_pass_axes(int n_jets,
+                                                                    const std::vector <fastjet::PseudoJet> & inputJets,
+                                                                    const std::vector <fastjet::PseudoJet> & seedAxes,
+                                                                    const MeasureDefinition* measure) const {
    
    assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning
    
-   // first iteration (THIS IS WHAT I WILL WANT THE MEASURE TO LOOK LKE ONCE FINISHED)
-   std::vector<fastjet::PseudoJet> bestAxes = measure->get_one_pass_axes(n_jets, inputJets, seedAxes);
+   // first iteration
+   std::vector<fastjet::PseudoJet> bestAxes = measure->get_one_pass_axes(n_jets, inputJets, seedAxes,_nAttempts,_accuracy);
    
    double bestTau = measure->result(inputJets,bestAxes);
    
@@ -51,7 +49,7 @@ std::vector<fastjet::PseudoJet> AxesDefinition::get_multi_pass_axes(int n_jets, 
          noiseAxes[k] = jiggle(bestAxes[k]);
       }
       
-      std::vector<fastjet::PseudoJet> testAxes = measure->get_one_pass_axes(n_jets, inputJets, noiseAxes);
+      std::vector<fastjet::PseudoJet> testAxes = measure->get_one_pass_axes(n_jets, inputJets, noiseAxes,_nAttempts,_accuracy);
       double testTau = measure->result(inputJets,testAxes);
       
       if (testTau < bestTau) {
@@ -64,6 +62,7 @@ std::vector<fastjet::PseudoJet> AxesDefinition::get_multi_pass_axes(int n_jets, 
 }
 
    
+// Used by multi-pass minimization to jiggle axes with noise range.
 PseudoJet AxesDefinition::jiggle(const PseudoJet& axis) const {
    double phi_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;
    double rap_noise = ((double)rand()/(double)RAND_MAX) * _noise_range * 2.0 - _noise_range;

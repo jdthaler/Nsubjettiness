@@ -1,3 +1,9 @@
+2015-06-25 <jthaler>
+   Clean up of AxesDefinition
+   Splitting get_axes into get_starting_axes and get_refined axes
+   Putting in proper noise ranges (hopefully) for MultiPass
+   Clean up of MeasureDefinition, rename jet_gamma to beam_gamma
+   Put in zero checking for jet_distance in ConicalGeometricMeasure
 2015-05-25 <TJW>
    Added Combinatorial GenET_GenKT_Axes and MultiPass_Manual_Axes
    Moved Axes refining information into MeasureDefinition, associated each measure with corresponding axes refiner
