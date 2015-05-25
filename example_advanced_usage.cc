@@ -371,12 +371,17 @@ void analyze(const vector<PseudoJet> & input_particles) {
             }
 
             string axesName = _testAxes[iA].short_description();
+            string left_hashtag;
+
             // comment out with # because MultiPass uses random number seed
-            if (_testAxes[iA].def().givesRandomizedResults()) axesName = "#    " + axesName;
-            
+            // if (_testAxes[iA].def().givesRandomizedResults()) axesName = "#    " + axesName;
+            if (_testAxes[iA].def().givesRandomizedResults()) left_hashtag = "#";
+            else left_hashtag = " ";
+
             // Output results:
             cout << std::right
-               << setw(24)
+               << left_hashtag
+               << setw(23)
                << axesName
                << ":"
                << setw(14) << tau1
