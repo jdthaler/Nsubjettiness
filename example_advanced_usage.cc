@@ -156,6 +156,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    double Rcutoff = 0.5;
    double infinity = std::numeric_limits<int>::max();
    int nExtra = 2;
+   int NPass = 10;
 
    // A list of all of the available axes modes
    vector<AxesStruct> _testAxes;
@@ -175,7 +176,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0));
    _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0));
 
-   _testAxes.push_back(MultiPass_Axes(100));
+   _testAxes.push_back(MultiPass_Axes(NPass));
 
    _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0));
    _testAxes.push_back(Comb_GenET_GenKT_Axes(nExtra, delta, p, R0));
@@ -183,7 +184,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // now for manual axes (should be identical to kt axes)
    _testAxes.push_back(Manual_Axes());
    _testAxes.push_back(OnePass_Manual_Axes());
-   _testAxes.push_back(MultiPass_Manual_Axes(100));
+   _testAxes.push_back(MultiPass_Manual_Axes(NPass));
 
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -221,6 +222,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
    // _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0)); //No pt_R flag in geometric measure since there is no pp/e+e- distinction
    // new measures added in the most recent version of NSubjettiness
+   _testMeasures.push_back(ConicalMeasure(1.0, JetDefinition::max_allowable_R));
+   _testMeasures.push_back(ConicalMeasure(2.0, JetDefinition::max_allowable_R));
    _testMeasures.push_back(OriginalGeometricMeasure(JetDefinition::max_allowable_R));
    _testMeasures.push_back(ModifiedGeometricMeasure(JetDefinition::max_allowable_R));
    _testMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, JetDefinition::max_allowable_R));
@@ -235,6 +238,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, Rcutoff, pt_R));
    // _testCutoffMeasures.push_back(DeprecatedGeometricCutoffMeasure(2.0, Rcutoff));   
    // new measures added in the most recent version of NSubjettiness
+   _testMeasures.push_back(ConicalMeasure(1.0, Rcutoff));
+   _testMeasures.push_back(ConicalMeasure(2.0, Rcutoff));
    _testCutoffMeasures.push_back(OriginalGeometricMeasure(Rcutoff));
    _testCutoffMeasures.push_back(ModifiedGeometricMeasure(Rcutoff));
    _testCutoffMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, Rcutoff));

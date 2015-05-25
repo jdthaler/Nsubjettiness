@@ -51,7 +51,7 @@ class DeprecatedGeometricMeasure;         // (beta)
 class DeprecatedGeometricCutoffMeasure;   // (beta,Rcutoff)
 
 // New measures as of v2.2
-// class ConicalMeasure // (beta,Rcutoff)  TODO: add this in to use default one_pass_minimization scheme
+class ConicalMeasure;               // (beta,Rcutoff)
 class OriginalGeometricMeasure;     // (Rcutoff)
 class ModifiedGeometricMeasure;     // (Rcutoff)
 class ConicalGeometricMeasure;      // (beta, gamma, Rcutoff)
@@ -99,9 +99,9 @@ public:
    
    
    
-   // for generic one_pass minimization, axes_numerator can be used for refining
+   // for generic one_pass minimization, axis_scale_factor can be used for refining
    // Here, defined according to g(n,p) in XCone paper, but can be overriden if computationally easier
-   virtual double axes_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+   virtual double axis_scale_factor(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       double pseudoMomentum = dot_product(lightFrom(axis),particle)
                               + 0.0000001*particle.E(); // need small offset to avoid potential divide by zero issues
       return (double)jet_numerator(particle, axis)/pseudoMomentum;
@@ -202,7 +202,7 @@ public:
    virtual DefaultMeasure* create() const {return new DefaultMeasure(*this);}
 
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return particle.squared_distance(axis);
+      return angleSquared(particle, axis);
    }
    
    virtual double beam_distance_squared(const fastjet::PseudoJet& /*particle*/) const {
@@ -437,6 +437,63 @@ public:
 
 
 //------------------------------------------------------------------------
+/// \class ConicalMeasure
+// Same as UnnormalizedCutoffMeasure, but using the new default one-pass minimization algorithm.
+// Intended to be used as an event shape.
+class ConicalMeasure : public MeasureDefinition {
+   
+public:
+   ConicalMeasure(double beta, double Rcutoff)
+   :   MeasureDefinition(), _beta(beta), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      setTauMode(UNNORMALIZED_EVENT_SHAPE);
+   }
+   
+   virtual std::string description() const;
+   
+   virtual ConicalMeasure* create() const {return new ConicalMeasure(*this);}
+   
+   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      return particle.squared_distance(axis);
+   }
+   
+   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
+      return _RcutoffSq;
+   }
+   
+   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      double jet_dist = particle.squared_distance(axis);
+      double jet_perp = particle.perp();
+      
+      if (_beta == 2.0) {
+         return jet_perp * jet_dist;
+      } else {
+         return jet_perp * pow(jet_dist,_beta/2.0);
+      }
+   }
+   
+   virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
+      double jet_perp = particle.perp();
+      
+      if (_beta == 2.0) {
+         return jet_perp * _RcutoffSq;
+      } else {
+         return jet_perp * pow(_Rcutoff,_beta);
+      }
+   }
+   
+   virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
+      return std::numeric_limits<double>::quiet_NaN();
+   }
+   
+protected:
+   double _beta;
+   double _Rcutoff;
+   double _RcutoffSq;
+};
+   
+
+
+//------------------------------------------------------------------------
 /// \class OriginalGeometricMeasure
 // This class is the original (and hopefully now correctly coded) geometric measure.
 // This measure is defined by the Lorentz dot product between
@@ -482,7 +539,7 @@ public:
    }
    
    // Simplified formula in this case
-   virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
+   virtual double axis_scale_factor(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
       return 1.0;
    }
    
@@ -535,7 +592,7 @@ public:
    }
    
    // Simplified formula in this case
-   virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
+   virtual double axis_scale_factor(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
       return 1.0;
    }
    

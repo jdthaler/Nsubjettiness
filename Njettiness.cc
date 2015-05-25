@@ -35,7 +35,8 @@ namespace contrib {
 //
 ///////
 
-   
+
+// Constructor
 Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def)
 : _axes_def(axes_def.create()), _measure_def(measure_def.create()) {}
    
@@ -58,7 +59,7 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _seedAxes = _currentAxes;
       _currentPartition = TauPartition(n_jets); // empty partition
    } else {
-      assert(_axes_def());
+      assert(_axes_def()); // this should never fail.
       
       if (_axes_def()->needsManualAxes()) { // if manual mode
          // take current axes as seeds
@@ -91,6 +92,7 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
 ///////
 //
 // Below is code for backward compatibility to use the old interface.
+// May be deleted in a future version
 //
 ///////
    

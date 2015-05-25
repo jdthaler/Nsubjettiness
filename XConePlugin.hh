@@ -40,31 +40,26 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-//TODO-- UPDATE THIS DOCUMENTATION
 /// The XCone jet algorithm
 /**
  * An exclusive jet finder that identifies N jets; first N axes are found, then
  * particles are assigned to the nearest (DeltaR) axis and for each axis the
  * corresponding jet is simply the four-momentum sum of these particles.
  *
- * Axes can be found in several ways, specified by the AxesMode argument.  The
- * recommended choices are
+ * The XConePlugin is based on NjettinessPlugin, but with sensible default
+ * values for the AxesDefinition and MeasureDefinition.  There are three arguments
  *
- * KT_Axes              : exclusive kT
- * WTA_KT_axes          : exclusive kT with winner-take-all-recombination
- * OnePass_KT_Axes      : one-pass minimization seeded by kt (pretty good)
- * OnePass_WTA_KT_Axes  : one-pass minimization seeded by wta_kt
+ *   int N:       number of exclusive jets to be found
+ *   double R0:   approximate jet radius
+ *   double beta: determines style of jet finding with the recommended values being:
+ *                beta = 2:  standard "mean" jets where jet momentum/axis align approximately.
+ *                beta = 1:  recoil-free "median" variant where jet axis points at hardest cluster.
  *
- * For the UnnormalizedMeasure(beta), N-jettiness is defined as:
+ * The AxesDefinition is OnePass_GenET_GenKT_Axes, which uses a generalized kT
+ * clustering algorithm matched to the beta value.
  *
- * tau_N = Sum_{all particles i} p_T^i min((DR_i1)^beta, (DR_i2)^beta, ...)
- *
- *   DR_ij is the distance sqrt(Delta_phi^2 + Delta_rap^2) between particle i
- *   and jet j.
- * 
- * The NormalizedMeausure include an extra parameter R0, and the various cutoff
- * measures include an Rcutoff, which effectively defines an angular cutoff
- * similar in effect to a cone-jet radius.
+ * The MeasureDefinition is the XConeMeasure, which is based on the
+ * ConicalGeometric measure.
  *
  */
 
@@ -75,26 +70,27 @@ public:
    // Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
    // All this does is use the NjettinessPlugin with OnePass_GenET_GenKT_Axes and the XConeMeasure.
    // For more advanced usage, call NjettinessPlugin directly
+   // Note that the order of the R0 and beta values is reversed from the XConeMeasure to
+   // standard usage for Plugins.
    XConePlugin(int N, double R0, double beta = 2.0)
    : NjettinessPlugin(N,
                       OnePass_GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), // use recommended axes method only
                       XConeMeasure(beta, R0)  // use recommended XCone measure.
                       ),
-  // _N(N),
    _R0(R0)
-   //,_beta(beta)
    {}
    
    // The things that are required by base class.
    virtual std::string description () const;
    virtual double R() const {return _R0;}
-   // virtual void run_clustering(ClusterSequence&) const;  // run_clustering is done by NjettinessPlugin
+   
+   // run_clustering is done by NjettinessPlugin
 
    virtual ~XConePlugin() {}
 
 private:
 
-   // static calls to use with in the constructor, set the recommended delta value
+   // static calls to use with in the constructor, sets the recommended delta value
    static double calc_delta(double beta) {
       double delta;
       if (beta > 1) delta = 1/(beta - 1);
@@ -102,14 +98,12 @@ private:
       return delta;
    }
 
-   // static calls to use with in the constructor, set the recommended p value
+   // static calls to use with in the constructor, sets the recommended p value
    static double calc_power(double beta) {
       return (double) 1.0/beta;
    }
 
-//   int _N;
    double _R0;
-//   double _beta;
 
 public:
 

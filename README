@@ -119,7 +119,8 @@ one that gives the smallest N-(sub)jettiness value:
 These modes are not recommended for reasons of speed.
 
 Starting from any set of seed axes, one can run a minimization routine to find
-a (local) minimum of N-(sub)jettiness:
+a (local) minimum of N-(sub)jettiness.  Note that the one-pass minimization
+routine is tied to the choice of MeasureDefinition.
 (*) OnePass_KT_Axes          // one-pass minimization from kt starting point
     OnePass_CA_Axes          // one-pass min. from ca starting point
     OnePass_AntiKT(R0)       // one-pass min. from antikt starting point,R0=rad
@@ -130,20 +131,21 @@ a (local) minimum of N-(sub)jettiness:
 
 In general, it is difficult to find the global minimum, but this mode attempts
 to do so:
-    MultiPass_Axes(NPass,noise)  // axes that (attempt to) minimize
-                                 // N-subjettiness (NPass = 100 is typical,
-                                 // with a noise range in phi/rap of 1.0)
+    MultiPass_Axes(NPass) // axes that (attempt to) minimize N-subjettiness
+                          // (NPass = 100 is typical)
 
 Finally, one can set manual axes:
     Manual_Axes              // set your own axes with setAxes()
     OnePass_Manual_Axes      // one-pass minimization from manual starting point
-    MultiPass_Manual_Axes(Npass,noise)// multi-pass min. from manual
+    MultiPass_Manual_Axes(Npass) // multi-pass min. from manual
 
 If one wants to change the number of passes used by any of the axes finders, one
 can call the function
-    setNPass(NPass)
+    setNPass(NPass,nAttempts,accuracy,noise_range)
 where NPass = 0 only uses the seed axes, NPass = 1 is one-pass minimization, and
-NPass = 100 is the default multi-pass.
+NPass = 100 is the default multi-pass.  nAttempts is the number of iterations to
+use in each pass, accuracy is how close to the minimum one tries to get, and
+noise_range is how much in rapidity/azimuth the random axes are jiggled.
 
 For most cases, running with OnePass_KT_Axes or OnePass_WTA_KT_Axes gives
 reasonable results (and the results are IRC safe).  Because it uses random
@@ -182,6 +184,7 @@ New for v2.2 is a set of measures defined in arXiv:1506.xxxxx.  First, there is
 the "conical measure":
 
     ConicalMeasure(beta,Rcutoff) // same as UnnormalizedCutoffMeasure
+                                 // (differs in choice of one-pass minimization)
 
 Next, there is the geometric measure (as well as a modified version to yield
 more conical jet regions):
@@ -332,7 +335,9 @@ produce N-(sub)jettiness. The default measure for this calculation is
 pT*dR^beta, where dR is the rapidity-azimuth distance between the particle
 and its axis, and beta is the angular exponent.  Again, in the future the user
 will be able to write their own measures, but for the time being, only the
-predefined MeasureDefinition values should be used.
+predefined MeasureDefinition values should be used.  Note that the one-pass
+minimization algorithms are defined within MeasureDefinition, since they are
+measure specific,
 
 --------------------------------------------------------------------------------
 Known Issues

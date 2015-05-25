@@ -89,6 +89,13 @@ std::string DeprecatedGeometricCutoffMeasure::description() const {
    << "Deprecated Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 };
+   
+std::string ConicalMeasure::description() const {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2)
+   << "Conical Measure (beta = " << _beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+   return stream.str();
+};
 
 std::string OriginalGeometricMeasure::description() const {
    std::stringstream stream;
@@ -260,15 +267,23 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
 
    for (unsigned int k = 0; k < seedAxes.size(); k++) {
-      seedAxes[k] = lightFrom(seedAxes[k]);
+      seedAxes[k] = lightFrom(seedAxes[k]) * seedAxes[k].E(); // making light-like, but keeping energy
    }
+   
    double seedTau = result(particles, seedAxes);
-   double originalTau = result(particles, currentAxes);
+   
+   std::vector<fastjet::PseudoJet> bestAxesSoFar = seedAxes;
+   double bestTauSoFar = seedTau;
    
    for (int i_att = 0; i_att < nAttempts; i_att++) {
       
       std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
       std::vector<fastjet::PseudoJet> summed_jets(seedAxes.size(), fastjet::PseudoJet(0,0,0,0));
+      
+      
+      std::vector<int> constit_count(seedAxes.size(),0);
+      int unclus = 0;
+      
       
       // find closest axis and assign to that
       for (unsigned int i = 0; i < particles.size(); i++) {
@@ -288,38 +303,53 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
          
          // if not unclustered, then cluster
          if (minJ != -1) {
-            double axes_function = axes_numerator(particles[i], seedAxes[minJ]);
+            double axes_function = axis_scale_factor(particles[i], seedAxes[minJ]);
+            
             PseudoJet unscaled_jet = particles[i];
-            // check to see if the scaling is finite, otherwise don't do any scaling
-            // PseudoJet scaled_jet = particles[i]*axes_function;
-            PseudoJet scaled_jet;
-            if (std::isfinite(axes_function)) scaled_jet = particles[i]*axes_function;
-            else scaled_jet = particles[i];
+            PseudoJet scaled_jet = particles[i]*axes_function;
             newAxes[minJ] += scaled_jet;
-            summed_jets[minJ] += unscaled_jet;
+            summed_jets[minJ] += unscaled_jet; // keep track of energy to use later.
+            
+            constit_count[minJ]++;
+         } else {
+            unclus++;
          }
       }
 
-      // //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
+      // convert the axes to LightLike and then back to PseudoJet
       for (unsigned int k = 0; k < newAxes.size(); k++) {
-         if (newAxes[k].perp()) {
+         if (newAxes[k].perp() > 0) {
             newAxes[k] = lightFrom(newAxes[k]);
-            newAxes[k] *= summed_jets[k].E();
+            newAxes[k] *= summed_jets[k].E(); // scale by energy to get sensible result
          }
       }
 
       // calculate tau on new axes
-      seedAxes = newAxes;
-      double tempTau = result(particles, newAxes);
+      double newTau = result(particles, newAxes);
       
-      // close enough to stop?
-      if (fabs(tempTau - seedTau) < accuracy) break;
-      seedTau = tempTau;
+      if (newTau > seedTau) { // whoops, went up hill
+         // store best so far, if its the best
+         if (seedTau < bestTauSoFar) {
+            bestAxesSoFar = seedAxes;
+            bestTauSoFar = seedTau;
+         }
+         
+         // but keep on going
+         seedAxes = newAxes;
+         seedTau = newTau;
+         
+      } else if (fabs(newTau - seedTau) < accuracy) {// close enough for jazz
+         seedAxes = newAxes;
+         seedTau = newTau;
+         break;
+      } else {
+         seedAxes = newAxes;
+         seedTau = newTau;
+      }
    }
 
-   if ((originalTau - seedTau) < 0) seedAxes = currentAxes;
-
-   return seedAxes;
+   if (bestTauSoFar < seedTau) return bestAxesSoFar;
+   else return seedAxes;
 }
 
 

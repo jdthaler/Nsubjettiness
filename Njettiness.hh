@@ -28,7 +28,6 @@
 
 #include "MeasureDefinition.hh"
 #include "AxesDefinition.hh"
-// #include "AxesRefiner.hh"
 #include "TauComponents.hh"
 
 #include "fastjet/PseudoJet.hh"
@@ -97,9 +96,6 @@ private:
    // Implemented as SharedPtrs to avoid memory management headaches
    SharedPtr<const AxesDefinition> _axes_def;
    SharedPtr<const MeasureDefinition> _measure_def;
-   
-   // The AxesRefiner depends on the Npass settings of _axes_def, but the minimization routines specified by _measure_def,
-   // hense the need for a helper function to set this.
 
    
    // Information about the current information

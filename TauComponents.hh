@@ -88,7 +88,7 @@ public:
    
    // return values
    double tau() const { return _tau; }
-   std::vector<double> jet_pieces() const { return _jet_pieces; }
+   const std::vector<double>& jet_pieces() const { return _jet_pieces; }
    double beam_piece() const { return _beam_piece; }
    
    std::vector<double> jet_pieces_numerator() const { return _jet_pieces_numerator; }
@@ -98,8 +98,8 @@ public:
 
    // information on jets and axes
    PseudoJet total_jet() const { return _total_jet;}
-   std::vector<PseudoJet> jets() const { return _jets;}
-   std::vector<PseudoJet> axes() const { return _axes;}
+   const std::vector<PseudoJet>& jets() const { return _jets;}
+   const std::vector<PseudoJet>& axes() const { return _axes;}
 
    class StructureType;
    

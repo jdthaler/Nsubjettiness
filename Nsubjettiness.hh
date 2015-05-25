@@ -46,12 +46,11 @@ class NsubjettinessRatio;
 /// Nsubjettiness extends the concept of Njettiness to a jet shape, but other
 /// than the set of particles considered, they are identical.  This class
 /// wraps the core Njettiness code to provide the fastjet::FunctionOfPseudoJet
-/// interface for convenience in larger analyses.  See NjettinessPlugin.hh for
-/// definitions of tau_N and the constructor options.
+/// interface for convenience in larger analyses.
+   
 class Nsubjettiness : public FunctionOfPseudoJet<double> {
 
 public:
-
    
    // Main constructor, which takes N, the AxesDefiniation, and the MeasureDefinition.
    // The Definitions are given in NjettinessDefinition.hh
@@ -87,7 +86,7 @@ public:
    
    // To set axes for manual use
    void setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-      // Cross check that manual axes are being used is in Njettiness
+      // Note that cross check that manual mode has been set is in Njettiness
     	_njettinessFinder.setAxes(myAxes);
    }
    
@@ -125,7 +124,7 @@ private:
 public:
    
    // The following interfaces are included for backwards compatibility, but no longer recommended.
-   // They may be deprecated at some point.
+   // They may be deleted in a future release
    
    // Alternative constructors that define the measure via enums and parameters
    // These constructors are likely be removed
@@ -180,7 +179,8 @@ public:
 /// \class NsubjettinessRatio
 // NsubjettinessRatio uses the results from Nsubjettiness to calculate the ratio
 // tau_N/tau_M, where N and M are specified by the user. The ratio of different tau values
-// is often used in analyses, so this class is helpful to streamline code.
+// is often used in analyses, so this class is helpful to streamline code.  Note that
+// manual axis mode is not supported
 class NsubjettinessRatio : public FunctionOfPseudoJet<double> {
 public:
 
@@ -190,7 +190,11 @@ public:
                       const AxesDefinition & axes_def,
                       const MeasureDefinition & measure_def)
    : _nsub_numerator(N,axes_def,measure_def),
-   _nsub_denominator(M,axes_def,measure_def) {}
+   _nsub_denominator(M,axes_def,measure_def) {
+      if (axes_def.needsManualAxes()) {
+         throw Error("NsubjettinessRatio does not yet support ManualAxes mode.");
+      }
+   }
 
    //returns tau_N/tau_M based off the input jet using result function from Nsubjettiness
    double result(const PseudoJet& jet) const;

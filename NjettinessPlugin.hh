@@ -50,15 +50,13 @@ namespace contrib {
  * particles are assigned to the nearest (DeltaR) axis and for each axis the
  * corresponding jet is simply the four-momentum sum of these particles.
  *
- * Axes can be found in several ways, specified by the AxesMode argument.  The
- * recommended choices are
+ * As of version 2.2, it is recommended to use the XConePlugin, which has
+ * sensible default values for jet finding.
  *
- * KT_Axes              : exclusive kT
- * WTA_KT_axes          : exclusive kT with winner-take-all-recombination
- * OnePass_KT_Axes      : one-pass minimization seeded by kt (pretty good)
- * OnePass_WTA_KT_Axes  : one-pass minimization seeded by wta_kt
+ * Axes can be found in several ways, specified by the AxesDefinition argument.
  *
- * For the UnnormalizedMeasure(beta), N-jettiness is defined as:
+ * Jet regions are determined by the MeasureDefinition. For example, 
+ * for the UnnormalizedMeasure(beta), N-jettiness is defined as:
  *
  * tau_N = Sum_{all particles i} p_T^i min((DR_i1)^beta, (DR_i2)^beta, ...)
  *
