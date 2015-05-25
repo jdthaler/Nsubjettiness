@@ -1,3 +1,9 @@
+2015-05-25 <TJW>
+   Added Combinatorial GenET_GenKT_Axes and MultiPass_Manual_Axes
+   Moved Axes refining information into MeasureDefinition, associated each measure with corresponding axes refiner
+   Moved get_one_pass_axes into MeasureDefinition, removed any mention of Npass
+   Moved all information on number of passes to AxesDefinition
+   Made AxesRefiner.hh/.cc into defunct files
 2015-05-22 <jthaler>
    Cleaning out commented text.  Renaming classes to be consistent with recommended usage.
 2015-05-22 <TJW>

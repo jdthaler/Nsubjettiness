@@ -70,8 +70,8 @@ class XConeMeasure;                 // (beta, Rcutoff)
 //
 ///////
 
-class AxesRefiner;  // Needed to avoid clashes with .hh files
-
+//This is a helper class for the Minimum Axes Finders. It is defined later.
+class LightLikeAxis;                                          
    
 //------------------------------------------------------------------------
 /// \class MeasureDefinition
@@ -95,7 +95,7 @@ public:
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
    virtual double beam_distance_squared(const fastjet::PseudoJet& particle) const = 0;
 
-   // axes_numerator added for use in minimization in AxesRefiner
+   // axes_numerator added for use in minimization in Axes refining
    virtual double axes_numerator(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
       return 1.0;
    }
@@ -130,9 +130,11 @@ public:
 
    // Create associated axes refiner (i.e. minimization routine), if available, otherwise use default
    
-   virtual AxesRefiner* createAxesRefiner(int /*nPass*/) const;
-   AxesRefiner* createAxesRefiner() const { return createAxesRefiner(1);} // no argument means one pass
-   
+   // added this to retrieve one-pass axes based on measure-specific minimization scheme -- TJW
+   virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
+                                                             const std::vector<fastjet::PseudoJet>& inputs,
+                                                             const std::vector<fastjet::PseudoJet>& seedAxes) const;
+
    // shorthand for squaring
    // TODO:  This should be moved to special function file?
    static inline double sq(double x) {return x*x;}
@@ -141,16 +143,20 @@ public:
    virtual ~MeasureDefinition(){}
    
 protected:
-   
    //flag set by derived classes to choose whether or not to use beam/denominator
    TauMode _tau_mode;
+   // added for axes refining -- TJW
+   double _nAttempts;
+   double _accuracy;
 
    // removed old constructor so that users cannot change the value of TauMode
    // added constructor with MeasureType argument so user will be able to set measure type when they need to
 
    // This constructor allows _has_denominator to be set by derived classes
    // MeasureDefinition(TauMode tau_mode) : _tau_mode(tau_mode) {}
-   MeasureDefinition() : _tau_mode(UNDEFINED_SHAPE) {}
+   MeasureDefinition() : _tau_mode(UNDEFINED_SHAPE),
+                         _nAttempts(100), //-- TJW
+                         _accuracy(0.00001) {} 
 
    void setTauMode(TauMode tau_mode) {
       _tau_mode = tau_mode;
@@ -160,12 +166,13 @@ protected:
    bool has_denominator() const { return (_tau_mode == NORMALIZED_JET_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
    bool has_beam() const {return (_tau_mode == UNNORMALIZED_EVENT_SHAPE || _tau_mode == NORMALIZED_EVENT_SHAPE);}
 
+   // create light-like axis -- added to easily make light-like axes -- TJW
+   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
+      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
+      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
+   }
+
 };
-
-
-// updated all classes to remove TauMode argument in constructor, added default MeasureType argument to constructor
-// updated instances of perp() and jet_distance_squared() to account for more general metrics
-
 
 //------------------------------------------------------------------------
 /// \class DefaultMeasure
@@ -177,7 +184,10 @@ class DefaultMeasure : public MeasureDefinition {
 public:
    
    DefaultMeasure(double beta, double R0, double Rcutoff, MeasureType measure_type = pt_R)
-   : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type) {}
+   : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type),        
+      _precision(0.0001), //hard coded for now -- TJW
+      _halt(1000) //hard coded for now
+      {}
 
    virtual std::string description() const;
    
@@ -204,9 +214,10 @@ public:
       return energy(particle) * std::pow(_R0,_beta);
    }
 
-   // The minimization routine is ConicalAxesRefiner
-   AxesRefiner* createAxesRefiner(int nPass) const;
-
+   // added -- TJW
+   virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
+                                                             const std::vector<fastjet::PseudoJet>& inputs,
+                                                             const std::vector<fastjet::PseudoJet>& seedAxes) const;
    
 protected:
    double _beta;
@@ -214,7 +225,10 @@ protected:
    double _Rcutoff;
    double _RcutoffSq;   
    MeasureType _measure_type;
-
+   // added for axes refining -- TJW
+   double _precision;  // Desired precision in axes alignment
+   int _halt;  // maximum number of steps per iteration
+   
    // added set measure method in case it becomes useful later
    void setMeasureType(MeasureType measure_type) {
       _measure_type = measure_type;
@@ -231,7 +245,11 @@ protected:
       else return "Measure Type Undefined";
    }      
 
+   template <int N> std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & old_axes,
+                                                              const std::vector <fastjet::PseudoJet> & inputJets) const;
    
+   std::vector<LightLikeAxis> UpdateAxes(const std::vector <LightLikeAxis> & old_axes,
+                                         const std::vector <fastjet::PseudoJet> & inputJets) const;   
 };
    
 class NormalizedCutoffMeasure : public DefaultMeasure {
@@ -328,7 +346,10 @@ public:
    :   MeasureDefinition(),
       _jet_beta(jet_beta), _beam_beta(1.0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
-      }
+         if (jet_beta != 2.0) {
+         throw Error("Geometric minimization is currently only defined for beta = 2.0.");
+      }      
+   }
 
    virtual std::string description() const;
    
@@ -358,21 +379,17 @@ public:
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
       return std::numeric_limits<double>::quiet_NaN();
    }
-   
-   // The minimization routine is GeometricAxesRefiner
-   AxesRefiner* createAxesRefiner(int nPass) const;
+
+   // added -- TJW   
+   virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
+                                                             const std::vector<fastjet::PseudoJet>& inputs,
+                                                             const std::vector<fastjet::PseudoJet>& seedAxes) const;
    
 protected:
    double _jet_beta;
    double _beam_beta;
    double _Rcutoff;
    double _RcutoffSq;
-   
-   // create light-like axis
-   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
-      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
-      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
-   }
 
 };
 
@@ -443,12 +460,6 @@ public:
 protected:
    double _Rcutoff;
    double _RcutoffSq;
-   
-   // create light-like axis
-   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
-      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
-      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
-   }
 
 };
 
@@ -498,12 +509,6 @@ public:
 protected:
    double _Rcutoff;
    double _RcutoffSq;
-   
-   // create light-like axis
-   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
-      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
-      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
-   }
 
 };
 
@@ -553,7 +558,6 @@ public:
       return (double)jet_numerator(particle, axis)/pseudoMomentum;
    }
 
-
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
       return std::numeric_limits<double>::quiet_NaN();
    }
@@ -564,12 +568,6 @@ protected:
    double _Rcutoff;
    double _RcutoffSq;
    
-   // create light-like axis
-   fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
-      double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
-      return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
-   }
-
 };
 
 // ------------------------------------------------------------------------
@@ -589,6 +587,64 @@ public:
 
    virtual XConeMeasure* create() const {return new XConeMeasure(*this);}
 
+};
+
+//------------------------------------------------------------------------
+/// \class LightLikeAxis
+// This is a helper class for the minimum Axes Finders classes above. It creates a convenient way of defining axes
+// in order to better facilitate calculations.
+class LightLikeAxis {
+
+public:
+   LightLikeAxis() : _rap(0.0), _phi(0.0), _weight(0.0), _mom(0.0) {}
+   LightLikeAxis(double my_rap, double my_phi, double my_weight, double my_mom) :
+   _rap(my_rap), _phi(my_phi), _weight(my_weight), _mom(my_mom) {}
+   double rap() const {return _rap;}
+   double phi() const {return _phi;}
+   double weight() const {return _weight;}
+   double mom() const {return _mom;}
+   void set_rap(double my_set_rap) {_rap = my_set_rap;}
+   void set_phi(double my_set_phi) {_phi = my_set_phi;}
+   void set_weight(double my_set_weight) {_weight = my_set_weight;}
+   void set_mom(double my_set_mom) {_mom = my_set_mom;}
+   void reset(double my_rap, double my_phi, double my_weight, double my_mom) {_rap=my_rap; _phi=my_phi; _weight=my_weight; _mom=my_mom;}
+
+   // return PseudoJet with information
+   fastjet::PseudoJet ConvertToPseudoJet();
+   
+   double DistanceSq(const fastjet::PseudoJet& input) const {
+      return DistanceSq(input.rap(),input.phi());
+   }
+
+   double Distance(const fastjet::PseudoJet& input) const {
+      return std::sqrt(DistanceSq(input));
+   }
+
+   double DistanceSq(const LightLikeAxis& input) const {
+      return DistanceSq(input.rap(),input.phi());
+   }
+
+   double Distance(const LightLikeAxis& input) const {
+      return std::sqrt(DistanceSq(input));
+   }
+
+private:
+   double _rap, _phi, _weight, _mom;
+   
+   double DistanceSq(double rap2, double phi2) const {
+      double rap1 = _rap;
+      double phi1 = _phi;
+      
+      double distRap = rap1-rap2;
+      double distPhi = std::fabs(phi1-phi2);
+      if (distPhi > M_PI) {distPhi = 2.0*M_PI - distPhi;}
+      return distRap*distRap + distPhi*distPhi;
+   }
+   
+   double Distance(double rap2, double phi2) const {
+      return std::sqrt(DistanceSq(rap2,phi2));
+   }
+      
 };
 
 } //namespace contrib

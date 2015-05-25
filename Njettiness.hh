@@ -28,7 +28,7 @@
 
 #include "MeasureDefinition.hh"
 #include "AxesDefinition.hh"
-#include "AxesRefiner.hh"
+// #include "AxesRefiner.hh"
 #include "TauComponents.hh"
 
 #include "fastjet/PseudoJet.hh"
@@ -100,8 +100,10 @@ private:
    
    // The AxesRefiner depends on the Npass settings of _axes_def, but the minimization routines specified by _measure_def,
    // hense the need for a helper function to set this.
+
    void setAxesRefinerAndManualMode();
-   SharedPtr<const AxesRefiner> _axes_refiner;
+   // No longer necessary -- TJW
+   // SharedPtr<const AxesRefiner> _axes_refiner;
    
    // Information about the current information
    // Defined as mutables, so user should be aware that these change when getTau is called.

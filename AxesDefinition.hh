@@ -27,7 +27,8 @@
 
 
 #include "MeasureDefinition.hh"
-#include "AxesRefiner.hh"
+#include "WinnerTakeAllRecombiner.hh"
+// #include "AxesRefiner.hh"
 
 #include "fastjet/PseudoJet.hh"
 #include <fastjet/LimitedWarning.hh>
@@ -60,12 +61,11 @@ class OnePass_WTA_GenKT_Axes;    // (p, R0)
 class OnePass_GenET_GenKT_Axes;  // (delta, p, R0)
 class OnePass_Manual_Axes;
    
-//TODO: class Comb_GenET_GenKT_Axes;       // (delta, p, R0, nExtra)
-class Comb_WTA_GenKT_Axes;       // (p, R0, nExtra)
-   
 class MultiPass_Axes;            // (NPass)
-// TODO: class MultiPass_Manual_Axes;
+class MultiPass_Manual_Axes;     // (NPass)
 
+class Comb_WTA_GenKT_Axes;       // (p, R0, nExtra)
+class Comb_GenET_GenKT_Axes;     // (delta, p, R0, nExtra)
 
 ///////
 //
@@ -112,8 +112,7 @@ public:
          return get_starting_axes(n_jets,inputs,measure);
       } else {
          if (measure == NULL) throw Error("AxesDefinition:  Minimization requires specifying a MeasureDefinition.");
-         SharedPtr<AxesRefiner> refiner(measure->createAxesRefiner(_Npass));
-         return refiner->get_axes(n_jets,inputs,get_starting_axes(n_jets,inputs,measure));
+         return get_multi_pass_axes(n_jets,inputs,measure); // changed to account for new strucutre -- TJW
       }
    }
    
@@ -153,9 +152,15 @@ protected:
    // TODO:  Allow user to change NPass, also change amout of jiggling.
 
    // Constructor that requires knowing the number of passes
-   // AxesDefinition(int nPass) : _Npass(nPass), _needsManualAxes(false) {
-   //    if (nPass < 0) throw Error("AxesDefinition requires a nPass >= 0.");
-   // }
+   AxesDefinition(int nPass) : _Npass(nPass), _needsManualAxes(false) {
+      if (nPass < 0) throw Error("AxesDefinition requires a nPass >= 0.");
+   }
+
+   // Constructor that requires knowing the number of passes and noise range -- TJW
+   AxesDefinition(int nPass, double noise_range) : _Npass(nPass), _noise_range(noise_range), _needsManualAxes(false) {
+      if (nPass < 0) throw Error("AxesDefinition requires a nPass >= 0.");
+   }
+
    AxesDefinition() : _Npass(UNDEFINED_REFINE), _needsManualAxes(false) {}
 
    //Added method to set number of passes in each derived class
@@ -163,8 +168,24 @@ protected:
       _Npass = nPass;
       if (nPass < 0) throw Error("AxesDefinition requires a nPass >= 0");
    }
+
+   //Added method to set amount of noise 
+   void setNoise(double noise_range) {
+      _noise_range = noise_range;
+   }
+
+   // Does multi-pass minimization by jiggling the axes.
+   // std::vector<fastjet::PseudoJet> get_multi_pass_axes(int n_jets,
+   //                                                     const std::vector<fastjet::PseudoJet>& inputs,
+   //                                                     const std::vector<fastjet::PseudoJet>& seedAxes) const;
+   std::vector<fastjet::PseudoJet> get_multi_pass_axes(int n_jets,
+                                                       const std::vector<fastjet::PseudoJet>& inputs,
+                                                       const MeasureDefinition* measure) const;
+   
+   PseudoJet jiggle(const PseudoJet& axis) const;
    
    int _Npass; // number of passes (0 = no refining, 1 = one-pass, >1 multi-pass)
+   double _noise_range; // 
    bool _needsManualAxes; // special case of manual axes
 };
   
@@ -446,7 +467,6 @@ public:
    virtual WTA_KT_Axes* create() const {return new WTA_KT_Axes(*this);}
 
 private:
-   // const WinnerTakeAllRecombiner _recomb;
    const WinnerTakeAllRecombiner *_recomb; 
 
 };
@@ -812,13 +832,39 @@ public:
    
 };
 
+// Added by TJW 5/25
+//------------------------------------------------------------------------
+/// \class MultiPass_Manual_Axes
+// multi-pass minimization from kT starting point
+class MultiPass_Manual_Axes : public Manual_Axes {
+
+public:
+   MultiPass_Manual_Axes(unsigned int Npass) : Manual_Axes() {
+      setNpass(Npass);
+   }
+
+   virtual std::string short_description() const {
+      return "MultiPass Manual";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "Multi-Pass Manual Axes (Npass = " << _Npass << ")";
+      return stream.str();
+   };
+   
+   virtual MultiPass_Manual_Axes* create() const {return new MultiPass_Manual_Axes(*this);}
+   
+};
+
+
 //------------------------------------------------------------------------
 /// \class Comb_WTA_KT_Axes
 // Axes from kT algorithm and winner-take-all recombination
 // Requires nExtra parameter and returns set of N that minimizes N-jettiness
-// default p value added due to compilation issues
 
-   class Comb_WTA_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
+class Comb_WTA_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
 public:
    Comb_WTA_GenKT_Axes(int nExtra, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new WinnerTakeAllRecombiner())).getJetDef(), nExtra),
@@ -845,6 +891,41 @@ private:
    const WinnerTakeAllRecombiner *_recomb; 
 };
    
+// Added by TJW 5/25
+//------------------------------------------------------------------------
+/// \class Comb_GenET_KT_Axes
+// Axes from kT algorithm and General Et scheme recombination
+// Requires nExtra parameter and returns set of N that minimizes N-jettiness
+
+class Comb_GenET_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
+public:
+   Comb_GenET_GenKT_Axes(int nExtra, double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
+   : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralEtSchemeRecombiner(delta))).getJetDef(), nExtra),
+    _delta(delta), _p(p), _R0(R0) {
+        setNpass(NO_REFINING);
+    }
+
+   virtual std::string short_description() const {
+      return "N Choose M WTA GenKT";
+   };
+   
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "N Choose M General KT (p = " << _p << "), General Et-Scheme Recombiner (delta = " << _delta << "), R0 = " << _R0;
+      return stream.str();
+   };
+   
+   virtual Comb_GenET_GenKT_Axes* create() const {return new Comb_GenET_GenKT_Axes(*this);}
+
+private:
+   double _delta;
+   double _p;
+   double _R0;
+   const GeneralEtSchemeRecombiner *_recomb; 
+};
+   
+
 } // namespace contrib
 
 FASTJET_END_NAMESPACE

@@ -45,17 +45,18 @@ void Njettiness::setAxesRefinerAndManualMode() {
    
    // TODO:  Put AxesRefiner into MeasureDefinition since now we have a generic way to do minimization for arbitrary measures.
    
-   int nPass = _axes_def->nPass();
-   
+   // None of this is necessary since AxesRefiner is removed -- TJW;
+   // int nPass = _axes_def->nPass();
    // Set Axes Refiner if needed
-   if (nPass == AxesDefinition::NO_REFINING) {
-      _axes_refiner.reset(); // no refining
-   } else {
-      _axes_refiner.reset(_measure_def->createAxesRefiner(nPass));
-      if (!_axes_refiner()) {
-         throw Error("The selected MeasureDefinition does not support minimization.");
-      }
-   }
+   // if (nPass == AxesDefinition::NO_REFINING) {
+      // _axes_refiner.reset(); // no refining
+   // } else {
+      // _axes_refiner.reset(_measure_def->createAxesRefiner(nPass));
+      // _axes_refiner.reset(_measure_def->createAxesRefiner());
+      // if (!_axes_refiner()) {
+         // throw Error("The selected MeasureDefinition does not support minimization.");
+      // }
+   // }
    
    // Handle Manual Mode by making _axes_def into NULL
    if (_axes_def->needsManualAxes()) {
@@ -86,16 +87,18 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       // Initial axes finding
       if (_axes_def()) {
          _seedAxes = _axes_def->get_starting_axes(n_jets,inputJets,_measure_def()); //sets starting point for minimization
-      } else {
+         _currentAxes = _axes_def->get_axes(n_jets,inputJets,_measure_def());
+      }  else {
          _seedAxes = _currentAxes; //manual mode
       }
    
+      // removed for code clarity -- TJW
       // One-pass or multi-pass minimization step
-      if (_axes_refiner()) {
-         _currentAxes = _axes_refiner->get_axes(n_jets,inputJets,_seedAxes);
-      } else {
-         _currentAxes = _seedAxes;
-      }
+      // if (_axes_def()) {
+      //    _currentAxes = _axes_def->get_axes(n_jets,inputJets,_measure_def());
+      // } else {
+      //    _currentAxes = _seedAxes;
+      // }
       
       // Find and store partition
       _currentPartition = _measure_def->get_partition(inputJets,_currentAxes);
