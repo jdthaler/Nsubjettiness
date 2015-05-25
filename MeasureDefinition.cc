@@ -278,12 +278,7 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
    for (int i_att = 0; i_att < nAttempts; i_att++) {
       
       std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
-      std::vector<fastjet::PseudoJet> summed_jets(seedAxes.size(), fastjet::PseudoJet(0,0,0,0));
-      
-      
-      std::vector<int> constit_count(seedAxes.size(),0);
-      int unclus = 0;
-      
+      std::vector<fastjet::PseudoJet> summed_jets(seedAxes.size(), fastjet::PseudoJet(0,0,0,0));      
       
       // find closest axis and assign to that
       for (unsigned int i = 0; i < particles.size(); i++) {
@@ -309,10 +304,6 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
             PseudoJet scaled_jet = particles[i]*axes_function;
             newAxes[minJ] += scaled_jet;
             summed_jets[minJ] += unscaled_jet; // keep track of energy to use later.
-            
-            constit_count[minJ]++;
-         } else {
-            unclus++;
          }
       }
 
@@ -327,26 +318,24 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
       // calculate tau on new axes
       double newTau = result(particles, newAxes);
       
+      if (fabs(newTau - seedTau) < accuracy) {// close enough for jazz
+         seedAxes = newAxes;
+         seedTau = newTau;
+         break;
+      }
+      
       if (newTau > seedTau) { // whoops, went up hill
          // store best so far, if its the best
          if (seedTau < bestTauSoFar) {
             bestAxesSoFar = seedAxes;
             bestTauSoFar = seedTau;
          }
-         
-         // but keep on going
-         seedAxes = newAxes;
-         seedTau = newTau;
-         
-      } else if (fabs(newTau - seedTau) < accuracy) {// close enough for jazz
-         seedAxes = newAxes;
-         seedTau = newTau;
-         break;
-      } else {
-         seedAxes = newAxes;
-         seedTau = newTau;
       }
-   }
+      
+      seedAxes = newAxes;
+      seedTau = newTau;
+
+}
 
    if (bestTauSoFar < seedTau) return bestAxesSoFar;
    else return seedAxes;
