@@ -302,8 +302,10 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
 
       // //convert the axes to LightLike and then back to PseudoJet (not sure if this is necessary or not) -- TJW
       for (unsigned int k = 0; k < newAxes.size(); k++) {
-         newAxes[k] = lightFrom(newAxes[k]);
-         newAxes[k] *= summed_jets[k].E();
+         if (newAxes[k].perp()) {
+            newAxes[k] = lightFrom(newAxes[k]);
+            newAxes[k] *= summed_jets[k].E();
+         }
       }
 
       // calculate tau on new axes

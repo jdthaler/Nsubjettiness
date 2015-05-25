@@ -112,7 +112,7 @@ public:
       
       assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning
       
-      if (_needsManualAxes) throw Error("AxesDefinition:  You can't get_axes in Manual Mode");
+      // if (_needsManualAxes) throw Error("AxesDefinition:  You can't get_axes in Manual Mode");
       
       if (_Npass == 0) {
          // no refining, just use seeds
@@ -834,10 +834,8 @@ public:
 class MultiPass_Axes : public KT_Axes {
 
 public:
-   MultiPass_Axes(unsigned int Npass,
-                  double noise_range = 1.0 // default to phi/rap noise of 1.0
-                  ) : KT_Axes() {
-      setNPass(Npass,noise_range);
+   MultiPass_Axes(unsigned int Npass) : KT_Axes() {
+      setNPass(Npass);
    }
 
    virtual std::string short_description() const {
@@ -861,10 +859,8 @@ public:
 class MultiPass_Manual_Axes : public Manual_Axes {
 
 public:
-   MultiPass_Manual_Axes(unsigned int Npass,
-                         double noise_range = 1.0  // default to phi/rap noise of 1.0
-                         ) : Manual_Axes() {
-      setNPass(Npass,noise_range);
+   MultiPass_Manual_Axes(unsigned int Npass) : Manual_Axes() {
+      setNPass(Npass);
    }
 
    virtual std::string short_description() const {

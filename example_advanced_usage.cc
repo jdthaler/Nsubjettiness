@@ -153,6 +153,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    double p = 0.5;
    double delta = 10.0; // close to winner-take-all.  TODO:  Think about right value here.
    double R0 = 0.2;
+   double Rcutoff = 0.5;
+   double infinity = std::numeric_limits<int>::max();
    int nExtra = 2;
 
    // A list of all of the available axes modes
@@ -164,6 +166,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(WTA_CA_Axes());
    _testAxes.push_back(WTA_GenKT_Axes(p, R0));
    _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0));
+
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
@@ -171,8 +174,16 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(OnePass_WTA_CA_Axes());
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0));
    _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0));
+
    _testAxes.push_back(MultiPass_Axes(100));
+
    _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0));
+   _testAxes.push_back(Comb_GenET_GenKT_Axes(nExtra, delta, p, R0));
+
+   // now for manual axes (should be identical to kt axes)
+   _testAxes.push_back(Manual_Axes());
+   _testAxes.push_back(OnePass_Manual_Axes());
+   _testAxes.push_back(MultiPass_Manual_Axes(100));
 
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -188,17 +199,16 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testRecommendedAxes.push_back(WTA_KT_Axes());
    _testRecommendedAxes.push_back(OnePass_KT_Axes());
    _testRecommendedAxes.push_back(OnePass_WTA_KT_Axes());
-   // new axes options added in most recent version of Nsubjettiness
 
+   // new axes options added in most recent version of Nsubjettiness
    // these are separate from above since they should only be defined with a cutoff value for sensible results
-   // TODO:  Change RCutoff to variable, and set to 0.5.
    vector<AxesStruct> _testAlgorithmRecommendedAxes;
-   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 1.0, 0.8));
-   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
-   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 0.5, 0.8));
-   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 1.0, 0.8));
-   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8));
-   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 0.5, 0.8));
+   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 1.0, Rcutoff));
+   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(infinity, 1.0, Rcutoff));
+   _testAlgorithmRecommendedAxes.push_back(GenET_GenKT_Axes(1.0, 0.5, Rcutoff));
+   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 1.0, Rcutoff));
+   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(infinity, 1.0, Rcutoff));
+   _testAlgorithmRecommendedAxes.push_back(OnePass_GenET_GenKT_Axes(1.0, 0.5, Rcutoff));
 
    // Getting some of the measure modes to test
    // (When applied to a single jet we won't test the cutoff measures,
@@ -209,24 +219,28 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(1.0     , pt_R));
    _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, pt_R));
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
-   // No pt_R flag in geometric measure since there is no pp/e+e- distinction
-   _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0));
+   // _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0)); //No pt_R flag in geometric measure since there is no pp/e+e- distinction
+   // new measures added in the most recent version of NSubjettiness
+   _testMeasures.push_back(OriginalGeometricMeasure(JetDefinition::max_allowable_R));
+   _testMeasures.push_back(ModifiedGeometricMeasure(JetDefinition::max_allowable_R));
+   _testMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, JetDefinition::max_allowable_R));
+   _testMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, JetDefinition::max_allowable_R));
+   _testMeasures.push_back(XConeMeasure(1.0, JetDefinition::max_allowable_R)); // Should be identical to ConicalGeometric
+   _testMeasures.push_back(XConeMeasure(2.0, JetDefinition::max_allowable_R));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, pt_R));
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, pt_R));
-   // _testCutoffMeasures.push_back(   GeometricCutoffMeasure(2.0, 0.8, pt_R));
-   _testCutoffMeasures.push_back(   DeprecatedGeometricCutoffMeasure(2.0, 0.8));   
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, Rcutoff, pt_R));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, Rcutoff, pt_R));
+   // _testCutoffMeasures.push_back(DeprecatedGeometricCutoffMeasure(2.0, Rcutoff));   
    // new measures added in the most recent version of NSubjettiness
-   _testCutoffMeasures.push_back(OriginalGeometricMeasure(0.8));
-   _testCutoffMeasures.push_back(ModifiedGeometricMeasure(0.8));
-   _testCutoffMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, 0.8));
-   _testCutoffMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, 0.8));
-   _testCutoffMeasures.push_back(XConeMeasure(1.0, 0.8));
-   _testCutoffMeasures.push_back(XConeMeasure(2.0, 0.8));
-
+   _testCutoffMeasures.push_back(OriginalGeometricMeasure(Rcutoff));
+   _testCutoffMeasures.push_back(ModifiedGeometricMeasure(Rcutoff));
+   _testCutoffMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, Rcutoff));
+   _testCutoffMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, Rcutoff));
+   _testCutoffMeasures.push_back(XConeMeasure(1.0, Rcutoff)); // Should be identical to ConicalGeometric
+   _testCutoffMeasures.push_back(XConeMeasure(2.0, Rcutoff));
 
    /////// N-subjettiness /////////////////////////////
 
@@ -302,36 +316,60 @@ void analyze(const vector<PseudoJet> & input_particles) {
             const MeasureDefinition & measure_def = _testMeasures[iM].def();
             
             // This case doesn't work, so skip it.
-            if (axes_def.givesRandomizedResults()) continue;
+            // if (axes_def.givesRandomizedResults()) continue;
 
             // define Nsubjettiness functions
             Nsubjettiness        nSub1(1,    axes_def, measure_def);
             Nsubjettiness        nSub2(2,    axes_def, measure_def);
             Nsubjettiness        nSub3(3,    axes_def, measure_def);
-            NsubjettinessRatio   nSub21(2,1, axes_def, measure_def);
-            NsubjettinessRatio   nSub32(3,2, axes_def, measure_def);
+
+            // define manual axes when they are necessary (should be identical to KT_Axes)
+            if (axes_def.needsManualAxes()) {
+               JetDefinition manual_jetDef(fastjet::kt_algorithm,
+                                             fastjet::JetDefinition::max_allowable_R, 
+                                             // new WinnerTakeAllRecombiner(), 
+                                             fastjet::E_scheme, 
+                                             fastjet::Best);
+
+               fastjet::ClusterSequence manual_clustSeq(particles, manual_jetDef);
+
+               nSub1.setAxes(manual_clustSeq.exclusive_jets(1));
+               nSub2.setAxes(manual_clustSeq.exclusive_jets(2));
+               nSub3.setAxes(manual_clustSeq.exclusive_jets(3));
+            }
+
             // calculate Nsubjettiness values
             double tau1 = nSub1(my_jet);
             double tau2 = nSub2(my_jet);
             double tau3 = nSub3(my_jet);
-            double tau21 = nSub21(my_jet);
-            double tau32 = nSub32(my_jet);
-            
-            
-            // An entirely equivalent, but painful way to calculate is:
-            double tau1alt = measure_def(particles,axes_def(1,particles,&measure_def));
-            double tau2alt = measure_def(particles,axes_def(2,particles,&measure_def));
-            double tau3alt = measure_def(particles,axes_def(3,particles,&measure_def));
-            assert(tau1alt == tau1);
-            assert(tau2alt == tau2);
-            assert(tau3alt == tau3);
-            
-            // Make sure calculations are consistent
-            if (!_testAxes[iA].def().givesRandomizedResults()) {
-               assert(abs(tau21 - tau2/tau1) < epsilon);
-               assert(abs(tau32 - tau3/tau2) < epsilon);
+                        
+            //These should only happen if the axes are not manual and are not multipass
+            double tau21, tau32;
+            if (!axes_def.needsManualAxes() && !axes_def.givesRandomizedResults()) {
+               // An entirely equivalent, but painful way to calculate is:
+               double tau1alt = measure_def(particles,axes_def(1,particles,&measure_def));
+               double tau2alt = measure_def(particles,axes_def(2,particles,&measure_def));
+               double tau3alt = measure_def(particles,axes_def(3,particles,&measure_def));
+               assert(tau1alt == tau1);
+               assert(tau2alt == tau2);
+               assert(tau3alt == tau3);
+
+               NsubjettinessRatio   nSub21(2,1, axes_def, measure_def);
+               NsubjettinessRatio   nSub32(3,2, axes_def, measure_def);
+               tau21 = nSub21(my_jet);
+               tau32 = nSub32(my_jet);
+
+               // Make sure calculations are consistent
+               if (!_testAxes[iA].def().givesRandomizedResults()) {
+                  assert(abs(tau21 - tau2/tau1) < epsilon);
+                  assert(abs(tau32 - tau3/tau2) < epsilon);
+               }
             }
-            
+            else {
+               tau21 = tau2/tau1;
+               tau32 = tau3/tau2;
+            }
+
             string axesName = _testAxes[iA].short_description();
             // comment out with # because MultiPass uses random number seed
             if (_testAxes[iA].def().givesRandomizedResults()) axesName = "#    " + axesName;
@@ -459,9 +497,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
       double beta = betalist[iB];
 
       // define the plugins
-      XConePlugin xcone_plugin2(2, 0.8, beta);
-      XConePlugin xcone_plugin3(3, 0.8, beta);
-      XConePlugin xcone_plugin4(4, 0.8, beta);
+      XConePlugin xcone_plugin2(2, Rcutoff, beta);
+      XConePlugin xcone_plugin3(3, Rcutoff, beta);
+      XConePlugin xcone_plugin4(4, Rcutoff, beta);
 
       // and the jet definitions
       JetDefinition xcone_jetDef2(&xcone_plugin2);
@@ -568,8 +606,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //  beta with onepass_wta_kt_axes:  between 1.0 and 3.0
    //
    //  Note that the user should find that the usage of Conical Geometric Measure beta = 1.0 with 
-   //  GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, 0.8) should be identical to XCone beta = 1.0,
-   //  and Conical Geometric Measure beta = 2.0 with GenET_GenKT_Axes(1.0, 0.5, 0.8) should be identical to
+   //  GenET_GenKT_Axes(std::numeric_limits<int>::max(), 1.0, Rcutoff) should be identical to XCone beta = 1.0,
+   //  and Conical Geometric Measure beta = 2.0 with GenET_GenKT_Axes(1.0, 0.5, Rcutoff) should be identical to
    //  XCone beta = 2.0.
    //
    ///////
