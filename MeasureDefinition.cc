@@ -318,27 +318,25 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
       // calculate tau on new axes
       double newTau = result(particles, newAxes);
       
+      if (newTau < bestTauSoFar) {
+         bestAxesSoFar = newAxes;
+         bestTauSoFar = newTau;
+      }
+
       if (fabs(newTau - seedTau) < accuracy) {// close enough for jazz
          seedAxes = newAxes;
          seedTau = newTau;
          break;
       }
-      
-      if (newTau > seedTau) { // whoops, went up hill
-         // store best so far, if its the best
-         if (seedTau < bestTauSoFar) {
-            bestAxesSoFar = seedAxes;
-            bestTauSoFar = seedTau;
-         }
-      }
-      
+
       seedAxes = newAxes;
       seedTau = newTau;
 
 }
 
-   if (bestTauSoFar < seedTau) return bestAxesSoFar;
-   else return seedAxes;
+   return bestAxesSoFar;
+   // if (bestTauSoFar < seedTau) return bestAxesSoFar;
+   // else return seedAxes;
 }
 
 
