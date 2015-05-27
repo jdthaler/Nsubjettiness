@@ -168,17 +168,19 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0));
 
    _testAxes.push_back(OnePass_KT_Axes());
-   _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
    _testAxes.push_back(OnePass_WTA_KT_Axes());
-   _testAxes.push_back(OnePass_WTA_CA_Axes());
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0));
    _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0));
 
-   _testAxes.push_back(MultiPass_Axes(NPass));
-
    _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0));
    _testAxes.push_back(Comb_GenET_GenKT_Axes(nExtra, delta, p, R0));
+
+   // these axes are not checked during make check since they do not give reliable results
+   _testAxes.push_back(OnePass_CA_Axes()); // not recommended 
+   _testAxes.push_back(OnePass_WTA_CA_Axes()); // not recommended
+   _testAxes.push_back(MultiPass_Axes(NPass));
+   int num_unchecked = 3; // number of unchecked axes
 
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -286,7 +288,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
             const MeasureDefinition & measure_def = _testMeasures[iM].def();
             
             // This case doesn't work, so skip it.
-            if (axes_def.givesRandomizedResults()) continue;
+            // if (axes_def.givesRandomizedResults()) continue;
 
             // define Nsubjettiness functions
             Nsubjettiness        nSub1(1,    axes_def, measure_def);
@@ -306,23 +308,27 @@ void analyze(const vector<PseudoJet> & input_particles) {
             double tau1alt = measure_def(particles,axes_def(1,particles,&measure_def));
             double tau2alt = measure_def(particles,axes_def(2,particles,&measure_def));
             double tau3alt = measure_def(particles,axes_def(3,particles,&measure_def));
-            assert(tau1alt == tau1);
-            assert(tau2alt == tau2);
-            assert(tau3alt == tau3);
             
             // Make sure calculations are consistent
             if (!_testAxes[iA].def().givesRandomizedResults()) {
+               assert(tau1alt == tau1);
+               assert(tau2alt == tau2);
+               assert(tau3alt == tau3);
                assert(abs(tau21 - tau2/tau1) < epsilon);
                assert(abs(tau32 - tau3/tau2) < epsilon);
             }
             
             string axesName = _testAxes[iA].short_description();
-            // comment out with # because MultiPass uses random number seed
-            if (_testAxes[iA].def().givesRandomizedResults()) axesName = "#    " + axesName;
+            string left_hashtag;
+
+            // comment out with # because MultiPass uses random number seed, or because axes do not give reliable results (those at the end of axes vector)
+            if (_testAxes[iA].def().givesRandomizedResults() || iA >= (_testAxes.size() - num_unchecked)) left_hashtag = "#";
+            else left_hashtag = " ";
             
             // Output results:
             cout << std::right
-               << setw(24)
+               << left_hashtag
+               << setw(23)
                << axesName
                << ":"
                << setw(14) << tau1
