@@ -546,7 +546,7 @@ public:
    virtual std::string description() const {
       std::stringstream stream;
       stream << std::fixed << std::setprecision(2)
-      << "General KT (p = " << _p << "), Winner-Take-All Recombiner, R0 = " << _R0;
+      << "Winner-Take-All General KT (p = " << _p << "), R0 = " << _R0;
       return stream.str();
    };
    
@@ -574,15 +574,17 @@ public:
    virtual std::string short_description() const {
       std::stringstream stream;
       stream << std::fixed << std::setprecision(2)
-      << "GenET, GenKT Axes" ;
+      << "GenET, GenKT Axes";
       return stream.str();
    };
    
    virtual std::string description() const {
       std::stringstream stream;
-      stream << std::fixed << std::setprecision(2)
+      stream << std::fixed << std::setprecision(2);
       // TODO: if _delta is huge, change to "WTA"
-      << "General Recombiner (delta = " << _delta << "), " << "General KT (p = " << _p << ") Axes, R0 = " << _R0;
+      if (_delta < std::numeric_limits<int>::max()) stream << "General Recombiner (delta = " << _delta << "), " << "General KT (p = " << _p << ") Axes, R0 = " << _R0;
+      else stream << "Winner-Take-All General KT (p = " << _p << "), R0 = " << _R0;
+
       return stream.str();
    };
    
@@ -740,7 +742,7 @@ public:
    virtual std::string description() const {
       std::stringstream stream;
       stream << std::fixed << std::setprecision(2)
-      << "One-Pass Minimization from Winner-Take-All, General KT";
+      << "One-Pass Minimization from Winner-Take-All General KT (p = " << _p << "), R0 = " << _R0;
       return stream.str();
    };
    
@@ -763,8 +765,10 @@ public:
    
    virtual std::string description() const {
       std::stringstream stream;
-      stream << std::fixed << std::setprecision(2)
-      << "One-Pass Minimization from General Recomb, General KT";
+      stream << std::fixed << std::setprecision(2);
+      if (_delta < std::numeric_limits<int>::max()) stream << "One-Pass Minimization from General Recombiner (delta = " 
+        << _delta << "), " << "General KT (p = " << _p << ") Axes, R0 = " << _R0;
+      else stream << "One-Pass Minimization from Winner-Take-All General KT (p = " << _p << "), R0 = " << _R0;
       return stream.str();
    };
    
@@ -899,13 +903,14 @@ public:
    virtual std::string description() const {
       std::stringstream stream;
       stream << std::fixed << std::setprecision(2)
-      << "N Choose M General KT (p = " << _p << "), Winner-Take-All Recombiner, R0 = " << _R0;
+      << "N Choose M Minimization (nExtra = " << _nExtra << ") from Winner-Take-All General KT (p = " << _p << "), R0 = " << _R0;
       return stream.str();
    };
    
    virtual Comb_WTA_GenKT_Axes* create() const {return new Comb_WTA_GenKT_Axes(*this);}
 
 private:
+   double _nExtra;
    double _p;
    double _R0;
    const WinnerTakeAllRecombiner *_recomb; 
@@ -924,19 +929,22 @@ public:
     }
 
    virtual std::string short_description() const {
-      return "N Choose M WTA GenKT";
+      return "N Choose M GenET GenKT";
    };
    
    virtual std::string description() const {
       std::stringstream stream;
-      stream << std::fixed << std::setprecision(2)
-      << "N Choose M General KT (p = " << _p << "), General Et-Scheme Recombiner (delta = " << _delta << "), R0 = " << _R0;
+      stream << std::fixed << std::setprecision(2);
+      if (_delta < std::numeric_limits<int>::max()) stream << "N choose M Minimization (nExtra = " << _nExtra 
+        << ") from General Recombiner (delta = " << _delta << "), " << "General KT (p = " << _p << ") Axes, R0 = " << _R0;
+      else stream << "N choose M Minimization (nExtra = " << _nExtra << ") from Winner-Take-All General KT (p = " << _p << "), R0 = " << _R0;
       return stream.str();
    };
    
    virtual Comb_GenET_GenKT_Axes* create() const {return new Comb_GenET_GenKT_Axes(*this);}
 
 private:
+   double _nExtra;
    double _delta;
    double _p;
    double _R0;

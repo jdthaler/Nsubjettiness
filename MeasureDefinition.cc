@@ -122,7 +122,7 @@ std::string ConicalGeometricMeasure::description() const {
 std::string XConeMeasure::description() const {
    std::stringstream stream;
    stream << std::fixed << std::setprecision(2)
-   << "XCone Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+   << "XCone Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
    return stream.str();
 }; 
     
@@ -212,41 +212,63 @@ TauComponents MeasureDefinition::component_result_from_partition(const TauPartit
 
 // new methods added to generalize energy and angle squared for different measure types
 double DefaultMeasure::energy(const PseudoJet& jet) const {
-   // TODO: should this be switch statement?
-   if (_measure_type == pt_R || _measure_type == perp_lorentz_dot) {
-      return jet.perp();
-   }  else if (_measure_type == E_theta || _measure_type == lorentz_dot) {
-      return jet.e();
-   } else {
-      assert(_measure_type == pt_R || _measure_type == E_theta || _measure_type == lorentz_dot);
-      return std::numeric_limits<double>::quiet_NaN();
+   double energy;
+   switch (_measure_type) {
+      case pt_R : 
+      case perp_lorentz_dot : 
+         energy = jet.perp();
+         break;
+      case E_theta : 
+      case lorentz_dot : 
+         energy = jet.e();
+         break;
+      default : {
+         assert(_measure_type == pt_R || _measure_type == E_theta || _measure_type == lorentz_dot || _measure_type == perp_lorentz_dot);
+         energy = std::numeric_limits<double>::quiet_NaN();
+      }
    }
+   return energy;
 }
    
 double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2) const {
-   if (_measure_type == pt_R) {
-      return jet1.squared_distance(jet2);
-   } else if (_measure_type == E_theta) {
-      // doesn't seem to be a fastjet built in for this
-      double dot = jet1.px()*jet2.px() + jet1.py()*jet2.py() + jet1.pz()*jet2.pz();
-      double norm1 = sqrt(jet1.px()*jet1.px() + jet1.py()*jet1.py() + jet1.pz()*jet1.pz());
-      double norm2 = sqrt(jet2.px()*jet2.px() + jet2.py()*jet2.py() + jet2.pz()*jet2.pz());
+   double pseudoRsquared;
+   switch(_measure_type) {
+      case pt_R : {
+         pseudoRsquared = jet1.squared_distance(jet2);
+         break; 
+      }
+      case E_theta : {
+         // doesn't seem to be a fastjet built in for this
+         double dot = jet1.px()*jet2.px() + jet1.py()*jet2.py() + jet1.pz()*jet2.pz();
+         double norm1 = sqrt(jet1.px()*jet1.px() + jet1.py()*jet1.py() + jet1.pz()*jet1.pz());
+         double norm2 = sqrt(jet2.px()*jet2.px() + jet2.py()*jet2.py() + jet2.pz()*jet2.pz());
         
-      double costheta = dot/(norm1 * norm2);
-      if (costheta > 1.0) costheta = 1.0; // Need to handle case of numerical overflow
-      double theta = acos(costheta);
-      return theta*theta;   
-   } else if (_measure_type == lorentz_dot) {
-      double dotproduct = dot_product(jet1,jet2);
-      return 2.0 * dotproduct / (jet1.e() * jet2.e());
-   } else if (_measure_type == perp_lorentz_dot) {
-      double pseudoRsquared = 2.0*dot_product(lightFrom(jet1),jet2)/(jet1.pt()*jet2.pt());
-      return pseudoRsquared;
+         double costheta = dot/(norm1 * norm2);
+         if (costheta > 1.0) costheta = 1.0; // Need to handle case of numerical overflow
+         double theta = acos(costheta);
+         pseudoRsquared = theta*theta;   
+         break;
+      }
+      case lorentz_dot : {
+         double dotproduct = dot_product(jet1,jet2);
+         pseudoRsquared = 2.0 * dotproduct / (jet1.e() * jet2.e());
+         break;
+      }
+      case perp_lorentz_dot : {
+         PseudoJet lightJet = lightFrom(jet1);
+         double dotproduct = 2.0*dot_product(lightJet,jet2);
+         pseudoRsquared = 2.0 * dotproduct / (lightJet.pt() * jet2.pt());
+         break;
+      }
+      default : {
+         assert(_measure_type == pt_R || _measure_type == E_theta);
+         pseudoRsquared = std::numeric_limits<double>::quiet_NaN();
+         break;
+      }
    }
-   else {
-      assert(_measure_type == pt_R || _measure_type == E_theta);
-      return std::numeric_limits<double>::quiet_NaN();
-   }
+
+   return pseudoRsquared;
+
 }
 
 
@@ -342,6 +364,7 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
 }
 
    // return the axes corresponding to the smallest tau found throughout all iterations
+   // this is to prevent the minimization from returning a non-minimized of tau due to potential oscillations around the minimum
    return bestAxesSoFar;
 
 }

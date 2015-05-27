@@ -177,7 +177,6 @@ enum DefaultMeasureType {
    E_theta,    ///  use energies and angles,
    lorentz_dot, ///  use dot product inspired measure
    perp_lorentz_dot /// use conical geometric inspired measures
-   // TODO:  add perp_lorentz_dot?
 };
 
 //------------------------------------------------------------------------
