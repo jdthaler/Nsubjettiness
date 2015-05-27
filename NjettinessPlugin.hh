@@ -54,7 +54,8 @@ namespace contrib {
  * sensible default values for jet finding.
  *
  * Axes can be found in several ways, specified by the AxesDefinition argument.
- *
+ * For recommendations on which axes to use, please see the README file.
+ * 
  * Jet regions are determined by the MeasureDefinition. For example, 
  * for the UnnormalizedMeasure(beta), N-jettiness is defined as:
  *
@@ -65,8 +66,17 @@ namespace contrib {
  * 
  * The NormalizedMeausure include an extra parameter R0, and the various cutoff
  * measures include an Rcutoff, which effectively defines an angular cutoff
- * similar in effect to a cone-jet radius.
- *
+ * similar in effect to a cone-jet radius. 
+ * 
+ * Other measures introduced in version 2.2 include OriginalGeometricMeasure,
+ * ModifiedGeometricMeasure, and ConicalGeometricMeasure, which define N-jettiness
+ * through dot products of particle momenta with light-like axes. OriginalGeometricMeasure
+ * produces football-shaped jets due to its central weighting of the beam measure,
+ * but ModifiedGeometric and ConicalGeometric both deform the original geometric measure
+ * to allow for cone-shaped jets. The size of these cones can be controlled through Rcutoff
+ * just as in the other measures. See the README file or MeasureDefinition.hh for information
+ * on how to call these measures.
+
  */
 
 class NjettinessPlugin : public JetDefinition::Plugin {

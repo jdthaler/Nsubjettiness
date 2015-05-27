@@ -298,14 +298,16 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
          
          // if not unclustered, then cluster
          if (minJ != -1) {
-            double axes_function = axis_scale_factor(particles[i], seedAxes[minJ]);
-            
-            PseudoJet unscaled_jet = particles[i];
-            PseudoJet scaled_jet = particles[i]*axes_function;
-            newAxes[minJ] += scaled_jet;
-            summed_jets[minJ] += unscaled_jet; // keep track of energy to use later.
+            summed_jets[minJ] += particles[i]; // keep track of energy to use later.
+            if (_useAxisScaling) {
+               double pseudoMomentum = dot_product(lightFrom(seedAxes[minJ]),particles[i]) + accuracy*particles[i].E(); // need small offset to avoid potential divide by zero issues
+               double axis_scaling = (double)jet_numerator(particles[i], seedAxes[minJ])/pseudoMomentum;
+
+               newAxes[minJ] += particles[i]*axis_scaling;
+            }
          }
       }
+      if (!_useAxisScaling) newAxes = summed_jets;
 
       // convert the axes to LightLike and then back to PseudoJet
       for (unsigned int k = 0; k < newAxes.size(); k++) {
@@ -318,6 +320,7 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
       // calculate tau on new axes
       double newTau = result(particles, newAxes);
       
+      // find the smallest value of tau (and the corresponding axes) so far
       if (newTau < bestTauSoFar) {
          bestAxesSoFar = newAxes;
          bestTauSoFar = newTau;
@@ -334,9 +337,9 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
 
 }
 
+   // return the axes corresponding to the smallest tau found throughout all iterations
    return bestAxesSoFar;
-   // if (bestTauSoFar < seedTau) return bestAxesSoFar;
-   // else return seedAxes;
+
 }
 
 

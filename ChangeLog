@@ -1,4 +1,8 @@
-2015-06-25 <jthaler>
+2015-05-26 <TJW>
+   Removed axis_scale_factor(), added bool to calculate this value if needed to save computation time
+   Defined small offset in denominator of axis scaling according to accuracy of refinement
+   Updated advanced examples to include tau values and number of jet constituents
+2015-05-25 <jthaler>
    Clean up of AxesDefinition
    Splitting get_axes into get_starting_axes and get_refined axes
    Putting in proper noise ranges (hopefully) for MultiPass
@@ -6,7 +10,7 @@
    Put in zero checking for jet_distance in ConicalGeometricMeasure
    Added in ConicalMeasure for consistency
    Changing OnePass Minimization to allow for temporary uphill
-2015-05-25 <TJW>
+2015-05-24 <TJW>
    Added Combinatorial GenET_GenKT_Axes and MultiPass_Manual_Axes
    Moved Axes refining information into MeasureDefinition, associated each measure with corresponding axes refiner
    Moved get_one_pass_axes into MeasureDefinition, removed any mention of Npass

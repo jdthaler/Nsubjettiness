@@ -90,6 +90,7 @@ void read_event(vector<PseudoJet> &event){
 // Helper Function for Printing out Jet Information
 void PrintJets(const vector <PseudoJet>& jets, const TauComponents & components, bool showTotal = true);
 void PrintXConeJets(const vector <PseudoJet>& jets, bool commentOut = false);
+void PrintXConeAxes(const vector <PseudoJet>& jets, bool commentOut = false);
 
 ////////
 //
@@ -320,11 +321,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
       cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
       cout << "Axes Used for Above Jets" << endl;
       
-      PrintXConeJets(xcone_axes2);
+      PrintXConeAxes(xcone_axes2);
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintXConeJets(xcone_axes3);
+      PrintXConeAxes(xcone_axes3);
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintXConeJets(xcone_axes4);
+      PrintXConeAxes(xcone_axes4);
       
       bool calculateArea = false;
       if (calculateArea) {
@@ -430,9 +431,91 @@ void PrintXConeJets(const vector <PseudoJet>& jets, bool commentOut) {
    if (jets.size() == 0) return;
    const NjettinessExtras * extras = njettiness_extras(jets[0]);
    
+   // bool useExtras = true;
    bool useExtras = (extras != NULL);
    bool useArea = jets[0].has_area();
+   bool useConstit = jets[0].has_constituents();
+
+   // define nice tauN header
+   int N = jets.size();
+   stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
    
+   cout << fixed << right;
+   
+   cout << commentStr << setw(5) << "jet #" << "   "
+   <<  setw(10) << "rap"
+   <<  setw(10) << "phi"
+   <<  setw(11) << "pt"
+   <<  setw(11) << "m"
+   <<  setw(11) << "e";
+   if (useConstit) cout <<  setw(11) << "constit";
+   if (useExtras) cout << setw(14) << tauName;
+   if (useArea) cout << setw(10) << "area";
+   cout << endl;
+   
+   fastjet::PseudoJet total(0,0,0,0);
+   int total_constit = 0;
+   
+   // print out individual jet information
+   for (unsigned i = 0; i < jets.size(); i++) {
+      cout << commentStr << setw(5) << i+1  << "   "
+      << setprecision(4) <<  setw(10) << jets[i].rap()
+      << setprecision(4) <<  setw(10) << jets[i].phi()
+      << setprecision(4) <<  setw(11) << jets[i].perp()
+      << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
+      << setprecision(4) <<  setw(11) << jets[i].e();
+      if (useConstit) cout << setprecision(4) <<  setw(11) << jets[i].constituents().size();
+      if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
+      if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
+      cout << endl;
+      total += jets[i];
+      if (useConstit) total_constit += jets[i].constituents().size();
+   }
+   
+   // print out total jet
+   if (useExtras) {
+      double beamTau = extras->beamTau();
+      
+      if (beamTau > 0.0) {
+         cout << commentStr << setw(5) << " beam" << "   "
+         <<  setw(10) << ""
+         <<  setw(10) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(14) << setprecision(6) << beamTau
+         << endl;
+      }
+      
+      cout << commentStr << setw(5) << "total" << "   "
+      <<  setprecision(4) << setw(10) << total.rap()
+      <<  setprecision(4) << setw(10) << total.phi()
+      <<  setprecision(4) << setw(11) << total.perp()
+      <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
+      <<  setprecision(4) <<  setw(11) << total.e();
+      if (useConstit) cout << setprecision(4) <<  setw(11) << total_constit;
+      if (useExtras) cout <<  setprecision(6) << setw(14) << extras->totalTau();
+      if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
+      cout << endl;
+   }
+   
+}
+
+
+void PrintXConeAxes(const vector <PseudoJet>& jets, bool commentOut) {
+   
+   string commentStr = "";
+   if (commentOut) commentStr = "#";
+   
+   // gets extras information
+   if (jets.size() == 0) return;
+   const NjettinessExtras * extras = njettiness_extras(jets[0]);
+   
+   // bool useExtras = true;
+   bool useExtras = (extras != NULL);
+   bool useArea = jets[0].has_area();
+
    // define nice tauN header
    int N = jets.size();
    stringstream ss(""); ss << "tau" << N; string tauName = ss.str();

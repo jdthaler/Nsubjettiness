@@ -52,17 +52,19 @@ class Nsubjettiness : public FunctionOfPseudoJet<double> {
 
 public:
    
-   // Main constructor, which takes N, the AxesDefiniation, and the MeasureDefinition.
-   // The Definitions are given in NjettinessDefinition.hh
+   // Main constructor, which takes N, the AxesDefinition, and the MeasureDefinition.
+   // The Definitions are given in AxesDefinition.hh and MeasureDefinition.hh
    //
    // The recommended AxesDefinitions are (more are available as listed in the README
-   // and defined in NjettinessDefinition.hh):
+   // and defined in AxesDefinition.hh):
    //   KT_Axes             : exclusive kt axes
    //   WTA_KT_Axes         : exclusive kt with winner-take-all recombination
    //   OnePass_KT_Axes     : one-pass minimization from kt starting point
    //   OnePass_WTA_KT_Axes : one-pass min. from wta_kt starting point
    //
    // The recommended measure definition are (with the corresponding parameters)
+   // For updates on the newest measure definitions in v. 2.2, look in the README
+   // or in MeasureDefinition.hh
    //   NormalizedMeasure(beta,R0)
    //      :  This was the original N-subjettiness measure (dimensionless)
    //   UnnormalizedMeasure(beta)
@@ -72,6 +74,7 @@ public:
    //      :  Same as normalized_measure, but cuts off at Rcutoff
    //   UnnormalizedCutoffMeasure(beta,Rcutoff)
    //      :  Same as unnormalized_measure, but cuts off at Rcutoff
+   //
    
    Nsubjettiness(int N,
                  const AxesDefinition& axes_def,
@@ -192,7 +195,7 @@ public:
    : _nsub_numerator(N,axes_def,measure_def),
    _nsub_denominator(M,axes_def,measure_def) {
       if (axes_def.needsManualAxes()) {
-         throw Error("NsubjettinessRatio does not yet support ManualAxes mode.");
+         throw Error("NsubjettinessRatio does not support ManualAxes mode.");
       }
    }
 

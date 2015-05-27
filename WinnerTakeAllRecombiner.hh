@@ -53,7 +53,10 @@ public:
   
   virtual std::string description() const;
   
-  virtual void recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const;
+  /// recombine pa and pb and put result into pab
+  virtual void recombine(const fastjet::PseudoJet & pa, 
+                         const fastjet::PseudoJet & pb, 
+                         fastjet::PseudoJet & pab) const;
 
 private:
   double _delta;

@@ -96,19 +96,6 @@ public:
    // a possible normalization factor
    virtual double denominator(const fastjet::PseudoJet& particle) const = 0;
    
-   
-   
-   
-   // for generic one_pass minimization, axis_scale_factor can be used for refining
-   // Here, defined according to g(n,p) in XCone paper, but can be overriden if computationally easier
-   virtual double axis_scale_factor(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      double pseudoMomentum = dot_product(lightFrom(axis),particle)
-                              + 0.0000001*particle.E(); // need small offset to avoid potential divide by zero issues
-      return (double)jet_numerator(particle, axis)/pseudoMomentum;
-   }
-
-   
-   
 public:
    
    // Returns the tau value for a give set of particles and axes
@@ -148,12 +135,17 @@ protected:
    
    //flag set by derived classes to choose whether or not to use beam/denominator
    TauMode _tau_mode;
+   bool _useAxisScaling;
 
    // This constructor allows _tau_mode to be set by derived classes
    MeasureDefinition() : _tau_mode(UNDEFINED_SHAPE) {}
 
    void setTauMode(TauMode tau_mode) {
       _tau_mode = tau_mode;
+   }
+
+   void setAxisScaling(bool useAxisScaling) {
+      _useAxisScaling = useAxisScaling;
    }
 
    // methods added to generalize energy and angle squared for different measure types
@@ -240,7 +232,9 @@ protected:
    // Constructor is protected so that no one tries to call this directly.
    DefaultMeasure(double beta, double R0, double Rcutoff, DefaultMeasureType measure_type = pt_R)
    : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type)
-   {}
+   {
+      setAxisScaling(false);
+   }
    
    
    // added set measure method in case it becomes useful later
@@ -368,6 +362,7 @@ public:
       _Rcutoff(Rcutoff),
       _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
+         setAxisScaling(false);
          if (jet_beta != 2.0) {
          throw Error("Geometric minimization is currently only defined for beta = 2.0.");
       }      
@@ -446,6 +441,7 @@ public:
    ConicalMeasure(double beta, double Rcutoff)
    :   MeasureDefinition(), _beta(beta), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
       setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      setAxisScaling(true);
    }
    
    virtual std::string description() const;
@@ -507,6 +503,7 @@ public:
    :   MeasureDefinition(),
      _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
+         setAxisScaling(false);
       }
 
    virtual std::string description() const;
@@ -538,11 +535,6 @@ public:
       return std::numeric_limits<double>::quiet_NaN();
    }
    
-   // Simplified formula in this case
-   virtual double axis_scale_factor(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
-      return 1.0;
-   }
-   
 protected:
    double _Rcutoff;
    double _RcutoffSq;
@@ -562,6 +554,7 @@ public:
    :   MeasureDefinition(),
      _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
+         setAxisScaling(false);
       }
 
    virtual std::string description() const;
@@ -591,11 +584,6 @@ public:
       return std::numeric_limits<double>::quiet_NaN();
    }
    
-   // Simplified formula in this case
-   virtual double axis_scale_factor(const fastjet::PseudoJet& /*particle*/, const fastjet::PseudoJet& /*axis*/) const {
-      return 1.0;
-   }
-   
 protected:
    double _Rcutoff;
    double _RcutoffSq;
@@ -612,8 +600,9 @@ class ConicalGeometricMeasure : public MeasureDefinition {
 public:
    ConicalGeometricMeasure(double jet_beta, double beam_gamma, double Rcutoff)
    :   MeasureDefinition(),
-      _jet_beta(jet_beta), _beam_gamma(beam_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      _jet_beta(jet_beta), _beam_gamma(beam_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)){
          setTauMode(UNNORMALIZED_EVENT_SHAPE);
+         setAxisScaling(true);
       }
 
    virtual std::string description() const;

@@ -60,7 +60,7 @@ class OnePass_WTA_GenKT_Axes;    // (p, R0)
 class OnePass_GenET_GenKT_Axes;  // (delta, p, R0)
 class OnePass_Manual_Axes;
    
-class MultiPass_Axes;            // (NPass)
+class MultiPass_Axes;            // (NPass) (currently only defined for KT_Axes)
 class MultiPass_Manual_Axes;     // (NPass)
 
 class Comb_WTA_GenKT_Axes;       // (p, R0, nExtra)
@@ -109,7 +109,7 @@ public:
                                                     const std::vector<fastjet::PseudoJet>& inputs,
                                                     const std::vector<fastjet::PseudoJet>& seedAxes,
                                                     const MeasureDefinition * measure = NULL) const {
-      
+
       assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning
       
       // if (_needsManualAxes) throw Error("AxesDefinition:  You can't get_axes in Manual Mode");
@@ -242,7 +242,7 @@ private:
 // It takes an extra number of jets (specificed by the user), and then finds the set of N that minimizes N-jettiness
 // This can be implemented with different jet algorithms, and can be called by the user
 // WARNING: If one wants to be guarenteed that results improve by increasing nExtra, then one should use
-// WTA Recombination scheme for sensible results.
+// WTA Recombination schemes
 class ExclusiveCombinatorialJetAxes : public AxesDefinition {
    
 public:

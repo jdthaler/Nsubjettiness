@@ -131,6 +131,7 @@ void read_event(vector<PseudoJet> &event){
 
 // Helper Function for Printing out Jet Information
 void PrintJets(const vector <PseudoJet>& jets, bool commentOut = false);
+void PrintAxes(const vector <PseudoJet>& jets, bool commentOut = false);
 void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut = false);
 
 ////////
@@ -150,9 +151,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
 
    //Define characteristic test parameters to use here
    double p = 0.5;
-   double delta = 10.0; // TODO: revisit value.
+   double delta = 10.0; // close to winner-take-all.  TODO:  Think about right value here.
    double R0 = 0.2;
+   double Rcutoff = 0.5;
    int nExtra = 2;
+   int NPass = 10;
 
    // A list of all of the available axes modes
    vector<AxesStruct> _testAxes;
@@ -163,6 +166,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(WTA_CA_Axes());
    _testAxes.push_back(WTA_GenKT_Axes(p, R0));
    _testAxes.push_back(GenET_GenKT_Axes(delta, p, R0));
+
    _testAxes.push_back(OnePass_KT_Axes());
    _testAxes.push_back(OnePass_CA_Axes());
    _testAxes.push_back(OnePass_AntiKT_Axes(R0));
@@ -170,8 +174,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testAxes.push_back(OnePass_WTA_CA_Axes());
    _testAxes.push_back(OnePass_WTA_GenKT_Axes(p, R0));
    _testAxes.push_back(OnePass_GenET_GenKT_Axes(delta, p, R0));
-   _testAxes.push_back(MultiPass_Axes(100));
+
+   _testAxes.push_back(MultiPass_Axes(NPass));
+
    _testAxes.push_back(Comb_WTA_GenKT_Axes(nExtra, p, R0));
+   _testAxes.push_back(Comb_GenET_GenKT_Axes(nExtra, delta, p, R0));
 
    //
    // Note:  Njettiness::min_axes is not guarenteed to give a global
@@ -202,8 +209,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, 0.8, E_theta));
-   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, 0.8, E_theta));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, Rcutoff, E_theta));
+   _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, Rcutoff, E_theta));
    
    
    /////// N-subjettiness /////////////////////////////
@@ -225,13 +232,13 @@ void analyze(const vector<PseudoJet> & input_particles) {
    double epsilon = 0.0001;
    
    for (int j = 0; j < 2; j++) { // Two hardest jets per event
-      if (antikt_jets[j].perp() < 200) continue;
+      // if (antikt_jets[j].perp() < 200) continue;
       
       vector<PseudoJet> jet_constituents = clust_seq.constituents(antikt_jets[j]);
       
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
       cout << "Analyzing Jet " << j + 1 << ":" << endl;
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
 
       
       ////////
@@ -251,16 +258,16 @@ void analyze(const vector<PseudoJet> & input_particles) {
       ///////
       
       
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
       cout << "Outputting N-subjettiness Values" << endl;
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
 
       
       // Now loop through all options
       cout << setprecision(6) << right << fixed;
       for (unsigned iM = 0; iM < _testMeasures.size(); iM++) {
          
-         cout << "-------------------------------------------------------------------------------------" << endl;
+         cout << "-----------------------------------------------------------------------------------------------" << endl;
          cout << _testMeasures[iM].description() << ":" << endl;
          cout << setw(25) << "AxisMode"
             << setw(14) << "tau1"
@@ -327,9 +334,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
          }
       }
 
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
       cout << "Done Outputting N-subjettiness Values" << endl;
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
 
       
       ////////
@@ -340,9 +347,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
       //
       ///////
 
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
       cout << "Outputting N-subjettiness Subjets" << endl;
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
 
       
       // Loop through all options, this time setting up jet finding
@@ -376,7 +383,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
             vector<PseudoJet> axes2 = tau2comp.axes();
             vector<PseudoJet> axes3 = tau3comp.axes();
 
-            cout << "-------------------------------------------------------------------------------------" << endl;
+            cout << "-----------------------------------------------------------------------------------------------" << endl;
             cout << measure_def.description() << ":" << endl;
             cout << axes_def.description() << ":" << endl;
             
@@ -385,26 +392,33 @@ void analyze(const vector<PseudoJet> & input_particles) {
             
             // This helper function tries to find out if the jets have tau information for printing
             PrintJetsWithComponents(jets1,commentOut);
-            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
             PrintJetsWithComponents(jets2,commentOut);
-            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
             PrintJetsWithComponents(jets3,commentOut);
             
-            cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+            cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
             cout << "Axes Used for Above Subjets" << endl;
 
-            PrintJets(axes1,commentOut);
-            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-            PrintJets(axes2,commentOut);
-            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-            PrintJets(axes3,commentOut);
+            // PrintJets(axes1,commentOut);
+            // cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            // PrintJets(axes2,commentOut);
+            // cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            // PrintJets(axes3,commentOut);
             
+            PrintAxes(axes1,commentOut);
+            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            PrintAxes(axes2,commentOut);
+            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            PrintAxes(axes3,commentOut);
+            
+
          }
       }
       
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
       cout << "Done Outputting N-subjettiness Subjets" << endl;
-      cout << "-------------------------------------------------------------------------------------" << endl;
+      cout << "-----------------------------------------------------------------------------------------------" << endl;
 
    }
    
@@ -424,9 +438,9 @@ void analyze(const vector<PseudoJet> & input_particles) {
    //
    ///////
    
-   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "-----------------------------------------------------------------------------------------------" << endl;
    cout << "Using N-jettiness as a Jet Algorithm" << endl;
-   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "-----------------------------------------------------------------------------------------------" << endl;
 
    
    for (unsigned iM = 0; iM < _testCutoffMeasures.size(); iM++) {
@@ -466,14 +480,14 @@ void analyze(const vector<PseudoJet> & input_particles) {
          //vector<PseudoJet> njet_jets3 = extras3->jets();
          //vector<PseudoJet> njet_jets4 = extras4->jets();
 
-         cout << "-------------------------------------------------------------------------------------" << endl;
+         cout << "-----------------------------------------------------------------------------------------------" << endl;
          cout << measure_def.description() << ":" << endl;
          cout << axes_def.description() << ":" << endl;
          
          PrintJets(njet_jets2);
-         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
          PrintJets(njet_jets3);
-         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
          PrintJets(njet_jets4);
 
          // The axes might point in a different direction than the jets
@@ -482,18 +496,18 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> njet_axes3 = extras3->axes();
          vector<PseudoJet> njet_axes4 = extras4->axes();
          
-         cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+         cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
          cout << "Axes Used for Above Jets" << endl;
-         
-         PrintJets(njet_axes2);
-         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-         PrintJets(njet_axes3);
-         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-         PrintJets(njet_axes4);
+
+         PrintAxes(njet_axes2);
+         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+         PrintAxes(njet_axes3);
+         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+         PrintAxes(njet_axes4);
          
          bool calculateArea = false;
          if (calculateArea) {
-            cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+            cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
             cout << "Adding Area Information (quite slow)" << endl;
             
             double ghost_maxrap = 5.0; // e.g. if particles go up to y=5
@@ -509,21 +523,20 @@ void analyze(const vector<PseudoJet> & input_particles) {
             vector<PseudoJet> njet_jets_area4 = njet_seq_area4.inclusive_jets();
             
             PrintJets(njet_jets_area2);
-            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
             PrintJets(njet_jets_area3);
-            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+            cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
             PrintJets(njet_jets_area4);
          }
          
       }
    }
    
-   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "-----------------------------------------------------------------------------------------------" << endl;
    cout << "Done Using N-jettiness as a Jet Algorithm" << endl;
-   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "-----------------------------------------------------------------------------------------------" << endl;
 
 }
-
 
 void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    
@@ -534,9 +547,91 @@ void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
    if (jets.size() == 0) return;
    const NjettinessExtras * extras = njettiness_extras(jets[0]);
    
+   // bool useExtras = true;
    bool useExtras = (extras != NULL);
    bool useArea = jets[0].has_area();
+   bool useConstit = jets[0].has_constituents();
+
+   // define nice tauN header
+   int N = jets.size();
+   stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
    
+   cout << fixed << right;
+   
+   cout << commentStr << setw(5) << "jet #" << "   "
+   <<  setw(10) << "rap"
+   <<  setw(10) << "phi"
+   <<  setw(11) << "pt"
+   <<  setw(11) << "m"
+   <<  setw(11) << "e";
+   if (useConstit) cout <<  setw(11) << "constit";
+   if (useExtras) cout << setw(14) << tauName;
+   if (useArea) cout << setw(10) << "area";
+   cout << endl;
+   
+   fastjet::PseudoJet total(0,0,0,0);
+   int total_constit = 0;
+   
+   // print out individual jet information
+   for (unsigned i = 0; i < jets.size(); i++) {
+      cout << commentStr << setw(5) << i+1  << "   "
+      << setprecision(4) <<  setw(10) << jets[i].rap()
+      << setprecision(4) <<  setw(10) << jets[i].phi()
+      << setprecision(4) <<  setw(11) << jets[i].perp()
+      << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
+      << setprecision(4) <<  setw(11) << jets[i].e();
+      if (useConstit) cout << setprecision(4) <<  setw(11) << jets[i].constituents().size();
+      if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
+      if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
+      cout << endl;
+      total += jets[i];
+      if (useConstit) total_constit += jets[i].constituents().size();
+   }
+   
+   // print out total jet
+   if (useExtras) {
+      double beamTau = extras->beamTau();
+      
+      if (beamTau > 0.0) {
+         cout << commentStr << setw(5) << " beam" << "   "
+         <<  setw(10) << ""
+         <<  setw(10) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(11) << ""
+         <<  setw(14) << setprecision(6) << beamTau
+         << endl;
+      }
+      
+      cout << commentStr << setw(5) << "total" << "   "
+      <<  setprecision(4) << setw(10) << total.rap()
+      <<  setprecision(4) << setw(10) << total.phi()
+      <<  setprecision(4) << setw(11) << total.perp()
+      <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
+      <<  setprecision(4) <<  setw(11) << total.e();
+      if (useConstit) cout << setprecision(4) <<  setw(11) << total_constit;
+      if (useExtras) cout <<  setprecision(6) << setw(14) << extras->totalTau();
+      if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
+      cout << endl;
+   }
+   
+}
+
+
+void PrintAxes(const vector <PseudoJet>& jets, bool commentOut) {
+   
+   string commentStr = "";
+   if (commentOut) commentStr = "#";
+   
+   // gets extras information
+   if (jets.size() == 0) return;
+   const NjettinessExtras * extras = njettiness_extras(jets[0]);
+   
+   // bool useExtras = true;
+   bool useExtras = (extras != NULL);
+   bool useArea = jets[0].has_area();
+
    // define nice tauN header
    int N = jets.size();
    stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
@@ -615,13 +710,15 @@ void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut) {
    <<  setw(10) << "phi"
    <<  setw(11) << "pt"
    <<  setw(11) << "m"
-   <<  setw(11) << "e"
-   << setw(14) << tauName;
+   <<  setw(11) << "e";
+   if (jets[0].has_constituents()) cout <<  setw(11) << "constit";
+   cout << setw(14) << tauName;
    if (useArea) cout << setw(10) << "area";
    cout << endl;
    
    fastjet::PseudoJet total(0,0,0,0);
    double total_tau = 0;
+   int total_constit = 0;
    
    
    // print out individual jet information
@@ -633,12 +730,14 @@ void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut) {
       << setprecision(4) <<  setw(10) << jets[i].phi()
       << setprecision(4) <<  setw(11) << jets[i].perp()
       << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
-      << setprecision(4) <<  setw(11) << jets[i].e()
-      << setprecision(6) <<  setw(14) << max(thisTau,0.0);
+      << setprecision(4) <<  setw(11) << jets[i].e();
+      if (jets[i].has_constituents()) cout << setprecision(4) <<  setw(11) << jets[i].constituents().size();
+      cout << setprecision(6) <<  setw(14) << max(thisTau,0.0);
       if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
       cout << endl;
       total += jets[i];
       total_tau += thisTau;
+      if (jets[i].has_constituents()) total_constit += jets[i].constituents().size();
    }
    
    cout << commentStr << setw(5) << "total" << "   "
@@ -646,12 +745,146 @@ void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut) {
    <<  setprecision(4) << setw(10) << total.phi()
    <<  setprecision(4) << setw(11) << total.perp()
    <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
-   <<  setprecision(4) <<  setw(11) << total.e()
-   <<  setprecision(6) << setw(14) << total_tau;
+   <<  setprecision(4) <<  setw(11) << total.e();
+   if (jets[0].has_constituents()) cout << setprecision(4)  <<  setw(11) << total_constit;
+   cout <<  setprecision(6) << setw(14) << total_tau;
    if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
    cout << endl;
    
 }
+
+
+
+
+
+
+// void PrintJets(const vector <PseudoJet>& jets, bool commentOut) {
+   
+//    string commentStr = "";
+//    if (commentOut) commentStr = "#";
+   
+//    // gets extras information
+//    if (jets.size() == 0) return;
+//    const NjettinessExtras * extras = njettiness_extras(jets[0]);
+   
+//    bool useExtras = (extras != NULL);
+//    bool useArea = jets[0].has_area();
+   
+//    // define nice tauN header
+//    int N = jets.size();
+//    stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
+   
+//    cout << fixed << right;
+   
+//    cout << commentStr << setw(5) << "jet #" << "   "
+//    <<  setw(10) << "rap"
+//    <<  setw(10) << "phi"
+//    <<  setw(11) << "pt"
+//    <<  setw(11) << "m"
+//    <<  setw(11) << "e";
+//    if (useExtras) cout << setw(14) << tauName;
+//    if (useArea) cout << setw(10) << "area";
+//    cout << endl;
+   
+//    fastjet::PseudoJet total(0,0,0,0);
+   
+//    // print out individual jet information
+//    for (unsigned i = 0; i < jets.size(); i++) {
+//       cout << commentStr << setw(5) << i+1  << "   "
+//       << setprecision(4) <<  setw(10) << jets[i].rap()
+//       << setprecision(4) <<  setw(10) << jets[i].phi()
+//       << setprecision(4) <<  setw(11) << jets[i].perp()
+//       << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
+//       << setprecision(4) <<  setw(11) << jets[i].e();
+//       if (useExtras) cout << setprecision(6) <<  setw(14) << max(extras->subTau(jets[i]),0.0);
+//       if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
+//       cout << endl;
+//       total += jets[i];
+//    }
+   
+//    // print out total jet
+//    if (useExtras) {
+//       double beamTau = extras->beamTau();
+      
+//       if (beamTau > 0.0) {
+//          cout << commentStr << setw(5) << " beam" << "   "
+//          <<  setw(10) << ""
+//          <<  setw(10) << ""
+//          <<  setw(11) << ""
+//          <<  setw(11) << ""
+//          <<  setw(11) << ""
+//          <<  setw(14) << setprecision(6) << beamTau
+//          << endl;
+//       }
+      
+//       cout << commentStr << setw(5) << "total" << "   "
+//       <<  setprecision(4) << setw(10) << total.rap()
+//       <<  setprecision(4) << setw(10) << total.phi()
+//       <<  setprecision(4) << setw(11) << total.perp()
+//       <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
+//       <<  setprecision(4) <<  setw(11) << total.e()
+//       <<  setprecision(6) << setw(14) << extras->totalTau();
+//       if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
+//       cout << endl;
+//    }
+   
+// }
+
+// void PrintJetsWithComponents(const vector <PseudoJet>& jets, bool commentOut) {
+   
+//    string commentStr = "";
+//    if (commentOut) commentStr = "#";
+   
+//    bool useArea = jets[0].has_area();
+   
+//    // define nice tauN header
+//    int N = jets.size();
+//    stringstream ss(""); ss << "tau" << N; string tauName = ss.str();
+   
+//    cout << fixed << right;
+   
+//    cout << commentStr << setw(5) << "jet #" << "   "
+//    <<  setw(10) << "rap"
+//    <<  setw(10) << "phi"
+//    <<  setw(11) << "pt"
+//    <<  setw(11) << "m"
+//    <<  setw(11) << "e"
+//    << setw(14) << tauName;
+//    if (useArea) cout << setw(10) << "area";
+//    cout << endl;
+   
+//    fastjet::PseudoJet total(0,0,0,0);
+//    double total_tau = 0;
+   
+   
+//    // print out individual jet information
+//    for (unsigned i = 0; i < jets.size(); i++) {
+//       double thisTau = jets[i].structure_of<TauComponents>().tau();
+      
+//       cout << commentStr << setw(5) << i+1  << "   "
+//       << setprecision(4) <<  setw(10) << jets[i].rap()
+//       << setprecision(4) <<  setw(10) << jets[i].phi()
+//       << setprecision(4) <<  setw(11) << jets[i].perp()
+//       << setprecision(4) <<  setw(11) << max(jets[i].m(),0.0) // needed to fix -0.0 issue on some compilers.
+//       << setprecision(4) <<  setw(11) << jets[i].e()
+//       << setprecision(6) <<  setw(14) << max(thisTau,0.0);
+//       if (useArea) cout << setprecision(4) << setw(10) << (jets[i].has_area() ? jets[i].area() : 0.0 );
+//       cout << endl;
+//       total += jets[i];
+//       total_tau += thisTau;
+//    }
+   
+//    cout << commentStr << setw(5) << "total" << "   "
+//    <<  setprecision(4) << setw(10) << total.rap()
+//    <<  setprecision(4) << setw(10) << total.phi()
+//    <<  setprecision(4) << setw(11) << total.perp()
+//    <<  setprecision(4) << setw(11) << max(total.m(),0.0) // needed to fix -0.0 issue on some compilers.
+//    <<  setprecision(4) <<  setw(11) << total.e()
+//    <<  setprecision(6) << setw(14) << total_tau;
+//    if (useArea) cout << setprecision(4) << setw(10) << (total.has_area() ? total.area() : 0.0);
+//    cout << endl;
+   
+// }
 
 
 
