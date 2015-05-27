@@ -213,7 +213,7 @@ TauComponents MeasureDefinition::component_result_from_partition(const TauPartit
 // new methods added to generalize energy and angle squared for different measure types
 double DefaultMeasure::energy(const PseudoJet& jet) const {
    // TODO: should this be switch statement?
-   if (_measure_type == pt_R) {
+   if (_measure_type == pt_R || _measure_type == perp_lorentz_dot) {
       return jet.perp();
    }  else if (_measure_type == E_theta || _measure_type == lorentz_dot) {
       return jet.e();
@@ -239,7 +239,11 @@ double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2
    } else if (_measure_type == lorentz_dot) {
       double dotproduct = dot_product(jet1,jet2);
       return 2.0 * dotproduct / (jet1.e() * jet2.e());
-   } else {
+   } else if (_measure_type == perp_lorentz_dot) {
+      double pseudoRsquared = 2.0*dot_product(lightFrom(jet1),jet2)/(jet1.pt()*jet2.pt());
+      return pseudoRsquared;
+   }
+   else {
       assert(_measure_type == pt_R || _measure_type == E_theta);
       return std::numeric_limits<double>::quiet_NaN();
    }
@@ -300,7 +304,7 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
          if (minJ != -1) {
             summed_jets[minJ] += particles[i]; // keep track of energy to use later.
             if (_useAxisScaling) {
-               double pseudoMomentum = dot_product(lightFrom(seedAxes[minJ]),particles[i]) + accuracy*particles[i].E(); // need small offset to avoid potential divide by zero issues
+               double pseudoMomentum = dot_product(lightFrom(seedAxes[minJ]),particles[i]) + accuracy; // need small offset to avoid potential divide by zero issues
                double axis_scaling = (double)jet_numerator(particles[i], seedAxes[minJ])/pseudoMomentum;
 
                newAxes[minJ] += particles[i]*axis_scaling;
