@@ -76,7 +76,7 @@ namespace contrib {
  * to allow for cone-shaped jets. The size of these cones can be controlled through Rcutoff
  * just as in the other measures. See the README file or MeasureDefinition.hh for information
  * on how to call these measures.
-
+ * 
  */
 
 class NjettinessPlugin : public JetDefinition::Plugin {

@@ -111,9 +111,7 @@ public:
                                                     const MeasureDefinition * measure = NULL) const {
 
       assert(n_jets == (int)seedAxes.size()); //added int casting to get rid of compiler warning
-      
-      // if (_needsManualAxes) throw Error("AxesDefinition:  You can't get_axes in Manual Mode");
-      
+            
       if (_Npass == 0) {
          // no refining, just use seeds
          return seedAxes;
@@ -203,7 +201,7 @@ protected:
    int _Npass; // number of passes (0 = no refining, 1 = one-pass, >1 multi-pass)
    int _nAttempts; // number of attempts per pass
    double _accuracy;  // accuracy goal per pass
-   double _noise_range; // defaults to 1.0 (noise in rapidity/phi)
+   double _noise_range; // noise in rapidity/phi
    bool _needsManualAxes; // special case of manual axes
 };
   

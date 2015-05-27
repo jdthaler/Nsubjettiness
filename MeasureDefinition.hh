@@ -46,7 +46,7 @@ class UnnormalizedMeasure;          // (beta)
 class NormalizedCutoffMeasure;      // (beta,R0,Rcutoff)
 class UnnormalizedCutoffMeasure;    // (beta,Rcutoff)
 
-// Formerly GeometricMeasure, now no longer recommended
+// Formerly GeometricMeasure, now no longer recommended, kept only for cross-check purposes
 class DeprecatedGeometricMeasure;         // (beta)
 class DeprecatedGeometricCutoffMeasure;   // (beta,Rcutoff)
 
@@ -250,6 +250,7 @@ protected:
       if (_measure_type == pt_R) return "pt_R";
       else if (_measure_type == E_theta) return "E_theta";
       else if (_measure_type == lorentz_dot) return "lorentz_dot";
+      else if (_measure_type == perp_lorentz_dot) return "perp lorentz_dot";
       else return "Measure Type Undefined";
    }      
 
@@ -434,6 +435,7 @@ public:
 //------------------------------------------------------------------------
 /// \class ConicalMeasure
 // Same as UnnormalizedCutoffMeasure, but using the new default one-pass minimization algorithm.
+// Axes are also made to be light-like to ensure sensible behavior
 // Intended to be used as an event shape.
 class ConicalMeasure : public MeasureDefinition {
    
@@ -449,7 +451,8 @@ public:
    virtual ConicalMeasure* create() const {return new ConicalMeasure(*this);}
    
    virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return particle.squared_distance(axis);
+      PseudoJet lightAxis = lightFrom(axis);
+      return particle.squared_distance(lightAxis);
    }
    
    virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
@@ -457,7 +460,8 @@ public:
    }
    
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      double jet_dist = particle.squared_distance(axis);
+      PseudoJet lightAxis = lightFrom(axis);
+      double jet_dist = particle.squared_distance(lightAxis);
       double jet_perp = particle.perp();
       
       if (_beta == 2.0) {

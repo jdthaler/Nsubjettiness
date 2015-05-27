@@ -24,7 +24,7 @@ The key new features are:
     calculation.
   * TauExtras to get complete access to get partitioning and axes information.
   * For clarity, split the example file into an example_basic_usage and
-    example_advanced_usage.
+    example_advanced_usage (and example_advanced_usage_ee for e+e- collisions).
   * In Nsubjettiness, access to seedAxes() and currentAxes() to figure out the
     axes used before and after minimization.
   * In Nsubjettiness, access to currentSubjets() to get the subjet fourvectors.

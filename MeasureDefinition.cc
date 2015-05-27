@@ -255,13 +255,13 @@ double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2
          break;
       }
       case perp_lorentz_dot : {
-         PseudoJet lightJet = lightFrom(jet1);
-         double dotproduct = 2.0*dot_product(lightJet,jet2);
-         pseudoRsquared = 2.0 * dotproduct / (lightJet.pt() * jet2.pt());
+         PseudoJet lightJet = lightFrom(jet2); // assuming jet2 is the axis
+         double dotproduct = 2.0*dot_product(jet1,lightJet);
+         pseudoRsquared = 2.0 * dotproduct / (jet1.pt() * lightJet.pt());
          break;
       }
       default : {
-         assert(_measure_type == pt_R || _measure_type == E_theta);
+         assert(_measure_type == pt_R || _measure_type == E_theta || _measure_type == lorentz_dot || _measure_type == perp_lorentz_dot);
          pseudoRsquared = std::numeric_limits<double>::quiet_NaN();
          break;
       }
@@ -292,12 +292,13 @@ std::vector<fastjet::PseudoJet> MeasureDefinition::get_one_pass_axes(int n_jets,
    
    std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
 
+   std::vector<fastjet::PseudoJet> temp_axes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
    for (unsigned int k = 0; k < seedAxes.size(); k++) {
       seedAxes[k] = lightFrom(seedAxes[k]) * seedAxes[k].E(); // making light-like, but keeping energy
    }
    
    double seedTau = result(particles, seedAxes);
-   
+
    std::vector<fastjet::PseudoJet> bestAxesSoFar = seedAxes;
    double bestTauSoFar = seedTau;
    

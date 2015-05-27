@@ -129,6 +129,9 @@ routine is tied to the choice of MeasureDefinition.
     OnePass_GenET_GenKT_Axes(delta, p, R0) // one-pass min. from GenET/KT
     OnePass_WTA_GenKT_Axes(p, R0)          // one-pass min from WTA/GenKT
 
+For one-pass minimization, Onepass_CA_Axes and OnePass_WTA_CA_Axes are not recommended
+as they provide a poor choice of seed axes.
+
 In general, it is difficult to find the global minimum, but this mode attempts
 to do so:
     MultiPass_Axes(NPass) // axes that (attempt to) minimize N-subjettiness
@@ -178,7 +181,7 @@ There are also measures that incorporate a radial cutoff:
 For all of the above measures, there is an optional argument to change from the
 ordinary pt_R distance measure recommended for pp collisions to an 
 E_theta distance measure recommended for ee collisions.  There are also
-lorentz_dot and perp_lorentz_dot distance measures recommmended only for
+lorentz_dot and perp_lorentz_dot distance measures recommended only for
 advanced users.
 
 New for v2.2 is a set of measures defined in arXiv:1506.xxxxx.  First, there is
@@ -265,10 +268,10 @@ winner-take-all is similar to the beta = 1 measure.
 New in v2.2 is the GeneralEtSchemeRecombiner, as defined in arxiv:1506.XXXX. This
 functions similarly to the Et-scheme defined in Fastjet, but the reweighting of the
 sum of rap and phi is parameterized by an exponent delta. Thus, delta = 1 is the normal
-Et-scheme recombination, delta = 2 is Et2 recombination, and delta = infinity
+Et-scheme recombination, delta = 2 is Et^2 recombination, and delta = infinity
 is the winner-take-all recombination. This recombination scheme is used in
 GenET_GenKT_Axes, and we find that optimal seed axes for minimization can be found
-by tuning delta = 1/(beta - 1). 
+by using delta = 1/(beta - 1). 
 
 Note that the WinnerTakeAllRecombiner can be used outside of Nsubjettiness
 itself for jet finding.  For example, the direction of anti-kT jets found
@@ -356,7 +359,7 @@ and its axis, and beta is the angular exponent.  Again, in the future the user
 will be able to write their own measures, but for the time being, only the
 predefined MeasureDefinition values should be used.  Note that the one-pass
 minimization algorithms are defined within MeasureDefinition, since they are
-measure specific,
+measure specific.
 
 --------------------------------------------------------------------------------
 Known Issues
@@ -364,8 +367,9 @@ Known Issues
 
 -- The MultiPass_Axes mode gives different answers on different runs, since
    random numbers are used.
--- In rare cases, one pass minimization can give a larger value of Njettiness
-   than without minimization.
+-- For the default meausres, in rare cases, one pass minimization can give a 
+   larger value of Njettiness than without minimization. The reason is due 
+   to the fact that axes in default measure are not defined as light-like
 -- Nsubjettiness is not thread safe, since there are mutables in Njettiness.
 
 --------------------------------------------------------------------------------

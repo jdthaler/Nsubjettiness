@@ -131,11 +131,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
       //  then you can use the simple function Nsubjettiness.
       //
       //  Recommended usage for Nsubjettiness:
-      //  AxesMode:  kt_axes, wta_kt_axes, onepass_kt_axes, or onepass_wta_kt_axes
-      //  MeasureMode:  unnormalized_measure
-      //  beta with kt_axes: 2.0
-      //  beta with wta_kt_axes: anything greater than 0.0 (particularly good for 1.0)
-      //  beta with onepass_kt_axes or onepass_wta_kt_axes:  between 1.0 and 3.0
+      //  AxesMode:  KT_Axes(), WTA_KT_Axes(), OnePass_KT_Axes(), or OnePass_WTA_KT_Axes()
+      //  MeasureMode:  Unnormalized_Measure(beta)
+      //  beta with KT_Axes: 2.0
+      //  beta with WTA_KT_Axes: anything greater than 0.0 (particularly good for 1.0)
+      //  beta with OnePass_KT_Axes or OnePass_WTA_KT_Axes:  between 1.0 and 3.0
       //
       ///////
       
@@ -270,10 +270,12 @@ void analyze(const vector<PseudoJet> & input_particles) {
    
       double beta = betalist[iB];
 
+      double Rcutoff = 0.5;
+
       // define the plugins
-      XConePlugin xcone_plugin2(2, 0.8, beta);
-      XConePlugin xcone_plugin3(3, 0.8, beta);
-      XConePlugin xcone_plugin4(4, 0.8, beta);
+      XConePlugin xcone_plugin2(2, Rcutoff, beta);
+      XConePlugin xcone_plugin3(3, Rcutoff, beta);
+      XConePlugin xcone_plugin4(4, Rcutoff, beta);
 
       // and the jet definitions
       JetDefinition xcone_jetDef2(&xcone_plugin2);
@@ -301,7 +303,7 @@ void analyze(const vector<PseudoJet> & input_particles) {
       //vector<PseudoJet> xcone_jets4 = extras4->jets();
 
       cout << "-------------------------------------------------------------------------------------" << endl;
-      cout << "Using beta = " << beta << endl;
+      cout << "Using beta = " << setprecision(2) << beta << ", Rcut = " << setprecision(2) << Rcutoff << endl;
       cout << "-------------------------------------------------------------------------------------" << endl;
       // cout << measure_def.description() << ":" << endl;
       // cout << axes_def.description() << ":" << endl;
