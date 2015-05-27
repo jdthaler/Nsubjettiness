@@ -250,7 +250,7 @@ protected:
       if (_measure_type == pt_R) return "pt_R";
       else if (_measure_type == E_theta) return "E_theta";
       else if (_measure_type == lorentz_dot) return "lorentz_dot";
-      else if (_measure_type == perp_lorentz_dot) return "perp lorentz_dot";
+      else if (_measure_type == perp_lorentz_dot) return "perp_lorentz_dot";
       else return "Measure Type Undefined";
    }      
 

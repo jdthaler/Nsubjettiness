@@ -225,6 +225,7 @@ double DefaultMeasure::energy(const PseudoJet& jet) const {
       default : {
          assert(_measure_type == pt_R || _measure_type == E_theta || _measure_type == lorentz_dot || _measure_type == perp_lorentz_dot);
          energy = std::numeric_limits<double>::quiet_NaN();
+         break;
       }
    }
    return energy;
@@ -256,8 +257,8 @@ double DefaultMeasure::angleSquared(const PseudoJet& jet1, const PseudoJet& jet2
       }
       case perp_lorentz_dot : {
          PseudoJet lightJet = lightFrom(jet2); // assuming jet2 is the axis
-         double dotproduct = 2.0*dot_product(jet1,lightJet);
-         pseudoRsquared = 2.0 * dotproduct / (jet1.pt() * lightJet.pt());
+         double dotproduct = dot_product(jet1,lightJet);
+         pseudoRsquared = 2.0 * dotproduct / (lightJet.pt() * jet1.pt());
          break;
       }
       default : {
