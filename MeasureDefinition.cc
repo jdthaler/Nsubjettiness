@@ -511,7 +511,12 @@ std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets,
                                                                   int nAttempts,
                                                                   double accuracy
                                                                   ) const {
-   
+
+   // if the measure type doesn't use the pt_R metric, then the standard minimization scheme should be used   
+   if (_measure_type != pt_R) {
+      return MeasureDefinition::get_one_pass_axes(n_jets, inputJets, seedAxes, nAttempts, accuracy);
+   }
+
    // convert from PseudoJets to LightLikeAxes
    std::vector< LightLikeAxis > old_axes(n_jets, LightLikeAxis(0,0,0,0));
    for (int k = 0; k < n_jets; k++) {

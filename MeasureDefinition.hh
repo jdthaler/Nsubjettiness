@@ -203,7 +203,12 @@ public:
    
    // general definitions of energy and angle
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const{
-      return energy(particle) * std::pow(angleSquared(particle, axis), _beta/2.0);
+      double jet_dist = angleSquared(particle, axis);
+      if (jet_dist > 0.0) {
+         return energy(particle) * std::pow(jet_dist,_beta/2.0);
+      } else {
+         return 0.0;
+      }
    }
    
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
@@ -233,7 +238,7 @@ protected:
    DefaultMeasure(double beta, double R0, double Rcutoff, DefaultMeasureType measure_type = pt_R)
    : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type)
    {
-      setAxisScaling(false);
+      setAxisScaling(true); // for those measure types that will require the default minimization
    }
    
    
