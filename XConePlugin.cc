@@ -28,8 +28,19 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-std::string XConePlugin::description() const {return "XCone Jet Algorithm";}
+std::string XConePlugin::description() const {
+   std::stringstream stream;
+   stream << "XCone Jet Algorithm with N = " << _N << std::fixed << std::setprecision(2) << ", Rcut = " << _R0 << ", beta = " << _beta;
+   return stream.str();
+}
 
+std::string PseudoXConePlugin::description() const {
+   std::stringstream stream;
+   stream
+   << "PseudoXCone Jet Algorithm with N = " << _N << std::fixed << std::setprecision(2) << ", Rcut = " << _R0 << ", beta = " << _beta;
+   return stream.str();
+}
+   
 } // namespace contrib
 
 FASTJET_END_NAMESPACE

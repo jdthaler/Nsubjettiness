@@ -358,6 +358,68 @@ void analyze(const vector<PseudoJet> & input_particles) {
    cout << "Done Using the XCone Jet Algorithm" << endl;
    cout << "-------------------------------------------------------------------------------------" << endl;
 
+   
+   
+   
+   // Below are timing tests for the developers
+   double do_timing_test = false;
+   if (do_timing_test) {
+      
+      clock_t clock_begin, clock_end;
+      double num_iter;
+      
+      cout << setprecision(6);
+      
+      num_iter = 1000;
+      
+      double R0 = 0.5;
+      double beta = 2.0;
+      double N = 6;
+
+
+      // AKT
+      JetDefinition aktDef = JetDefinition(antikt_algorithm,R0,E_scheme,Best);
+      
+      // XC
+      XConePlugin xconePlugin(N, R0, beta);
+      JetDefinition xconeDef = JetDefinition(&xconePlugin);
+
+      // pXC
+      PseudoXConePlugin pseudoxconePlugin(N, R0, beta);
+      JetDefinition pseudoxconeDef = JetDefinition(&pseudoxconePlugin);
+      
+      //AKT
+      cout << "Timing for " << aktDef.description() << endl;
+      clock_begin = clock();
+      for (int t = 0; t < num_iter; t++) {
+         aktDef(input_particles);
+      }
+      clock_end = clock();
+      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per AKT"<< endl;
+
+      // XC
+      cout << "Timing for " << xconeDef.description() << endl;
+      clock_begin = clock();
+      for (int t = 0; t < num_iter; t++) {
+         xconeDef(input_particles);
+      }
+      clock_end = clock();
+      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per XCone"<< endl;
+
+      // pXC
+      cout << "Timing for " << pseudoxconePlugin.description() << endl;
+      clock_begin = clock();
+      for (int t = 0; t < num_iter; t++) {
+         pseudoxconeDef(input_particles);
+      }
+      clock_end = clock();
+      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per PseudoXCone"<< endl;
+
+      
+   }
+
+
+
 
 }
 

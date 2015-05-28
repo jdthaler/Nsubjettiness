@@ -77,7 +77,7 @@ public:
                       OnePass_GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), // use recommended axes method only
                       XConeMeasure(beta, R0)  // use recommended XCone measure.
                       ),
-   _R0(R0)
+   _N(N), _R0(R0), _beta(beta)
    {}
    
    // The things that are required by base class.
@@ -103,12 +103,64 @@ private:
       return (double) 1.0/beta;
    }
 
+   double _N;
    double _R0;
+   double _beta;
 
 public:
 
 };
 
+   
+// class PseudoXConePlugin
+// A "poor man's" version of XCone with no minimization step
+// Right now, just for testing purposes by the developers
+class PseudoXConePlugin : public NjettinessPlugin {
+public:
+   
+   // Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
+   // All this does is use the NjettinessPlugin with GenET_GenKT_Axes and the XConeMeasure.
+   PseudoXConePlugin(int N, double R0, double beta = 2.0)
+   : NjettinessPlugin(N,
+                      GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), // poor man's axes
+                      XConeMeasure(beta, R0)  // use recommended XCone measure.
+                      ),
+   _N(N), _R0(R0), _beta(beta)
+   {}
+   
+   // The things that are required by base class.
+   virtual std::string description () const;
+   virtual double R() const {return _R0;}
+   
+   // run_clustering is done by NjettinessPlugin
+   
+   virtual ~PseudoXConePlugin() {}
+   
+private:
+   
+   // static calls to use with in the constructor, sets the recommended delta value
+   static double calc_delta(double beta) {
+      double delta;
+      if (beta > 1) delta = 1/(beta - 1);
+      else delta = std::numeric_limits<int>::max(); // use winner take all
+      return delta;
+   }
+   
+   // static calls to use with in the constructor, sets the recommended p value
+   static double calc_power(double beta) {
+      return (double) 1.0/beta;
+   }
+   
+   double _N;
+   double _R0;
+   double _beta;
+   
+public:
+   
+};
+
+   
+   
 } // namespace contrib
 
 FASTJET_END_NAMESPACE
