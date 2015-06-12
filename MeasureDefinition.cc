@@ -62,12 +62,6 @@ std::string UnnormalizedMeasure::description() const {
    return stream.str();
 };
 
-std::string DeprecatedGeometricMeasure::description() const {
-   std::stringstream stream;
-   stream << std::fixed << std::setprecision(2)
-   << "Deprecated Geometric Measure (beta = " << _jet_beta << ", in GeV)";
-   return stream.str();
-};
 
 std::string NormalizedCutoffMeasure::description() const {
    std::stringstream stream;
@@ -83,12 +77,19 @@ std::string UnnormalizedCutoffMeasure::description() const {
    return stream.str();
 };
 
-std::string DeprecatedGeometricCutoffMeasure::description() const {
-   std::stringstream stream;
-   stream << std::fixed << std::setprecision(2)
-   << "Deprecated Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
-   return stream.str();
-};
+//std::string DeprecatedGeometricMeasure::description() const {
+//   std::stringstream stream;
+//   stream << std::fixed << std::setprecision(2)
+//   << "Deprecated Geometric Measure (beta = " << _jet_beta << ", in GeV)";
+//   return stream.str();
+//};
+   
+//std::string DeprecatedGeometricCutoffMeasure::description() const {
+//   std::stringstream stream;
+//   stream << std::fixed << std::setprecision(2)
+//   << "Deprecated Geometric Cutoff Measure (beta = " << _jet_beta << ", Rcut = " << _Rcutoff << ", in GeV)";
+//   return stream.str();
+//};
    
 std::string ConicalMeasure::description() const {
    std::stringstream stream;
@@ -559,56 +560,56 @@ std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets,
    return outputAxes;
 }
    
-// One-pass minimization for the Deprecated Geometric Measure
-// Uses minimization of the geometric distance in order to find the minimum axes.
-// It continually updates until it reaches convergence or it reaches the maximum number of attempts.
-// This is essentially the same as a stable cone finder.
-std::vector<fastjet::PseudoJet> DeprecatedGeometricCutoffMeasure::get_one_pass_axes(int n_jets,
-                                                                                    const std::vector <fastjet::PseudoJet> & particles,
-                                                                                    const std::vector<fastjet::PseudoJet>& currentAxes,
-                                                                                    int nAttempts,
-                                                                                    double accuracy) const {
-
-   assert(n_jets == (int)currentAxes.size()); //added int casting to get rid of compiler warning
-   
-   std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
-   double seedTau = result(particles, seedAxes);
-   
-   for (int i = 0; i < nAttempts; i++) {
-      
-      std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
-      
-      // find closest axis and assign to that
-      for (unsigned int i = 0; i < particles.size(); i++) {
-         
-         // start from unclustered beam measure
-         int minJ = -1;
-         double minDist = beam_distance_squared(particles[i]);
-         
-         // which axis am I closest to?
-         for (unsigned int j = 0; j < seedAxes.size(); j++) {
-            double tempDist = jet_distance_squared(particles[i],seedAxes[j]);
-            if (tempDist < minDist) {
-               minDist = tempDist;
-               minJ = j;
-            }
-         }
-         
-         // if not unclustered, then cluster
-         if (minJ != -1) newAxes[minJ] += particles[i];
-      }
-
-      // calculate tau on new axes
-      seedAxes = newAxes;
-      double tempTau = result(particles, newAxes);
-      
-      // close enough to stop?
-      if (fabs(tempTau - seedTau) < accuracy) break;
-      seedTau = tempTau;
-   }
-   
-   return seedAxes;
-}
+//// One-pass minimization for the Deprecated Geometric Measure
+//// Uses minimization of the geometric distance in order to find the minimum axes.
+//// It continually updates until it reaches convergence or it reaches the maximum number of attempts.
+//// This is essentially the same as a stable cone finder.
+//std::vector<fastjet::PseudoJet> DeprecatedGeometricCutoffMeasure::get_one_pass_axes(int n_jets,
+//                                                                                    const std::vector <fastjet::PseudoJet> & particles,
+//                                                                                    const std::vector<fastjet::PseudoJet>& currentAxes,
+//                                                                                    int nAttempts,
+//                                                                                    double accuracy) const {
+//
+//   assert(n_jets == (int)currentAxes.size()); //added int casting to get rid of compiler warning
+//   
+//   std::vector<fastjet::PseudoJet> seedAxes = currentAxes;
+//   double seedTau = result(particles, seedAxes);
+//   
+//   for (int i = 0; i < nAttempts; i++) {
+//      
+//      std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
+//      
+//      // find closest axis and assign to that
+//      for (unsigned int i = 0; i < particles.size(); i++) {
+//         
+//         // start from unclustered beam measure
+//         int minJ = -1;
+//         double minDist = beam_distance_squared(particles[i]);
+//         
+//         // which axis am I closest to?
+//         for (unsigned int j = 0; j < seedAxes.size(); j++) {
+//            double tempDist = jet_distance_squared(particles[i],seedAxes[j]);
+//            if (tempDist < minDist) {
+//               minDist = tempDist;
+//               minJ = j;
+//            }
+//         }
+//         
+//         // if not unclustered, then cluster
+//         if (minJ != -1) newAxes[minJ] += particles[i];
+//      }
+//
+//      // calculate tau on new axes
+//      seedAxes = newAxes;
+//      double tempTau = result(particles, newAxes);
+//      
+//      // close enough to stop?
+//      if (fabs(tempTau - seedTau) < accuracy) break;
+//      seedTau = tempTau;
+//   }
+//   
+//   return seedAxes;
+//}
 
 
 // Go from internal LightLikeAxis to PseudoJet

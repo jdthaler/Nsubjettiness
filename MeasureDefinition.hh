@@ -47,8 +47,8 @@ class NormalizedCutoffMeasure;      // (beta,R0,Rcutoff)
 class UnnormalizedCutoffMeasure;    // (beta,Rcutoff)
 
 // Formerly GeometricMeasure, now no longer recommended, kept only for cross-check purposes
-class DeprecatedGeometricMeasure;         // (beta)
-class DeprecatedGeometricCutoffMeasure;   // (beta,Rcutoff)
+//class DeprecatedGeometricMeasure;         // (beta)
+//class DeprecatedGeometricCutoffMeasure;   // (beta,Rcutoff)
 
 // New measures as of v2.2
 class ConicalMeasure;               // (beta,Rcutoff)
@@ -86,8 +86,13 @@ public:
    //and are overloaded by the various measures below
    
    // Distanes to axes.  These are called many times, so need to be as fast as possible
-   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
-   virtual double beam_distance_squared(const fastjet::PseudoJet& particle) const = 0;
+   // Unless overloaded, they just call jet_numerator and beam_numerator
+   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+      return jet_numerator(particle,axis);
+   }
+   virtual double beam_distance_squared(const fastjet::PseudoJet& particle) const {
+      return beam_numerator(particle);
+   }
    
    // The actual measures used in N-(sub)jettiness
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const = 0;
@@ -352,89 +357,89 @@ public:
    
 };
 
-//------------------------------------------------------------------------
-/// \class DeprecatedGeometricCutoffMeasure
-// This class is the old, incorrectly coded geometric measure.
-// It is kept in case anyone wants to check old code, but should not be used for production purposes.
-class DeprecatedGeometricCutoffMeasure : public MeasureDefinition {
-
-public:
-
-   // Please, please don't use this.
-   DeprecatedGeometricCutoffMeasure(double jet_beta, double Rcutoff)
-   :   MeasureDefinition(),
-      _jet_beta(jet_beta),
-      _beam_beta(1.0), // This is hard coded, since alternative beta_beam values were never checked.
-      _Rcutoff(Rcutoff),
-      _RcutoffSq(sq(Rcutoff)) {
-         setTauMode(UNNORMALIZED_EVENT_SHAPE);
-         setAxisScaling(false);
-         if (jet_beta != 2.0) {
-         throw Error("Geometric minimization is currently only defined for beta = 2.0.");
-      }      
-   }
-
-   virtual std::string description() const;
-   
-   virtual DeprecatedGeometricCutoffMeasure* create() const {return new DeprecatedGeometricCutoffMeasure(*this);}
-   
-   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
-      return pseudoRsquared;
-   }
-
-   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
-      return _RcutoffSq;
-   }
-
-   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
-      return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
-   }
-
-   virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
-      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
-      return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
-   }
-
-   virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
-      return std::numeric_limits<double>::quiet_NaN();
-   }
-
-   virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
-                                                             const std::vector<fastjet::PseudoJet>& inputs,
-                                                             const std::vector<fastjet::PseudoJet>& seedAxes,
-                                                             int nAttempts,    // cap number of iterations
-                                                             double accuracy   // cap distance of closest approach
-                                                            ) const;
-   
-protected:
-   double _jet_beta;
-   double _beam_beta;
-   double _Rcutoff;
-   double _RcutoffSq;
-
-};
-
-// ------------------------------------------------------------------------
-// / \class DeprecatedGeometricMeasure
-// Same as DeprecatedGeometricMeasureCutoffMeasure, but with Rcutoff taken to infinity.
-// NOTE:  This class should not be used for production purposes.
-class DeprecatedGeometricMeasure : public DeprecatedGeometricCutoffMeasure {
-   
-public:
-   DeprecatedGeometricMeasure(double beta)
-   : DeprecatedGeometricCutoffMeasure(beta,std::numeric_limits<double>::max()) {
-      _RcutoffSq = std::numeric_limits<double>::max();
-      setTauMode(UNNORMALIZED_JET_SHAPE);
-   }
-
-   virtual std::string description() const;
-
-   virtual DeprecatedGeometricMeasure* create() const {return new DeprecatedGeometricMeasure(*this);}
-};
+////------------------------------------------------------------------------
+///// \class DeprecatedGeometricCutoffMeasure
+//// This class is the old, incorrectly coded geometric measure.
+//// It is kept in case anyone wants to check old code, but should not be used for production purposes.
+//class DeprecatedGeometricCutoffMeasure : public MeasureDefinition {
+//
+//public:
+//
+//   // Please, please don't use this.
+//   DeprecatedGeometricCutoffMeasure(double jet_beta, double Rcutoff)
+//   :   MeasureDefinition(),
+//      _jet_beta(jet_beta),
+//      _beam_beta(1.0), // This is hard coded, since alternative beta_beam values were never checked.
+//      _Rcutoff(Rcutoff),
+//      _RcutoffSq(sq(Rcutoff)) {
+//         setTauMode(UNNORMALIZED_EVENT_SHAPE);
+//         setAxisScaling(false);
+//         if (jet_beta != 2.0) {
+//         throw Error("Geometric minimization is currently only defined for beta = 2.0.");
+//      }      
+//   }
+//
+//   virtual std::string description() const;
+//   
+//   virtual DeprecatedGeometricCutoffMeasure* create() const {return new DeprecatedGeometricCutoffMeasure(*this);}
+//   
+//   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+//      fastjet::PseudoJet lightAxis = lightFrom(axis);
+//      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
+//      return pseudoRsquared;
+//   }
+//
+//   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
+//      return _RcutoffSq;
+//   }
+//
+//   virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
+//      fastjet::PseudoJet lightAxis = lightFrom(axis);
+//      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(lightAxis.pt(),_beam_beta - 1.0);
+//      return particle.pt() * weight * std::pow(jet_distance_squared(particle,axis),_jet_beta/2.0);
+//   }
+//
+//   virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
+//      double weight = (_beam_beta == 1.0) ? 1.0 : std::pow(particle.pt()/particle.e(),_beam_beta - 1.0);
+//      return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
+//   }
+//
+//   virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
+//      return std::numeric_limits<double>::quiet_NaN();
+//   }
+//
+//   virtual std::vector<fastjet::PseudoJet> get_one_pass_axes(int n_jets,
+//                                                             const std::vector<fastjet::PseudoJet>& inputs,
+//                                                             const std::vector<fastjet::PseudoJet>& seedAxes,
+//                                                             int nAttempts,    // cap number of iterations
+//                                                             double accuracy   // cap distance of closest approach
+//                                                            ) const;
+//   
+//protected:
+//   double _jet_beta;
+//   double _beam_beta;
+//   double _Rcutoff;
+//   double _RcutoffSq;
+//
+//};
+//
+//// ------------------------------------------------------------------------
+//// / \class DeprecatedGeometricMeasure
+//// Same as DeprecatedGeometricMeasureCutoffMeasure, but with Rcutoff taken to infinity.
+//// NOTE:  This class should not be used for production purposes.
+//class DeprecatedGeometricMeasure : public DeprecatedGeometricCutoffMeasure {
+//   
+//public:
+//   DeprecatedGeometricMeasure(double beta)
+//   : DeprecatedGeometricCutoffMeasure(beta,std::numeric_limits<double>::max()) {
+//      _RcutoffSq = std::numeric_limits<double>::max();
+//      setTauMode(UNNORMALIZED_JET_SHAPE);
+//   }
+//
+//   virtual std::string description() const;
+//
+//   virtual DeprecatedGeometricMeasure* create() const {return new DeprecatedGeometricMeasure(*this);}
+//};
 
 
 //------------------------------------------------------------------------
@@ -466,7 +471,7 @@ public:
    
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
       PseudoJet lightAxis = lightFrom(axis);
-      double jet_dist = particle.squared_distance(lightAxis);
+      double jet_dist = particle.squared_distance(lightAxis)/_RcutoffSq;
       double jet_perp = particle.perp();
       
       if (_beta == 2.0) {
@@ -477,13 +482,7 @@ public:
    }
    
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
-      double jet_perp = particle.perp();
-      
-      if (_beta == 2.0) {
-         return jet_perp * _RcutoffSq;
-      } else {
-         return jet_perp * pow(_Rcutoff,_beta);
-      }
+      return particle.perp();
    }
    
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -519,25 +518,17 @@ public:
    
    virtual OriginalGeometricMeasure* create() const {return new OriginalGeometricMeasure(*this);}
    
-   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
-      return pseudoRsquared;
-   }
-
-   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
-      return _RcutoffSq;
-   }
+   // use default jet_distance_squared and beam_distance_squared
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return dot_product(lightFrom(axis), particle);
+      return dot_product(lightFrom(axis), particle)/_RcutoffSq;
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet beam_a(1,0,0,1);
       fastjet::PseudoJet beam_b(-1,0,0,1);
       double min_perp = std::min(dot_product(beam_a, particle),dot_product(beam_b, particle));
-      return _RcutoffSq*min_perp;
+      return min_perp;
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -570,23 +561,15 @@ public:
    
    virtual ModifiedGeometricMeasure* create() const {return new ModifiedGeometricMeasure(*this);}
    
-   virtual double jet_distance_squared(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      fastjet::PseudoJet lightAxis = lightFrom(axis);
-      double pseudoRsquared = 2.0*dot_product(lightFrom(axis),particle)/(lightAxis.pt()*particle.pt());
-      return pseudoRsquared;
-   }
-
-   virtual double beam_distance_squared(const fastjet::PseudoJet&  /*particle*/) const {
-      return _RcutoffSq;
-   }
-
+   // use default jet_distance_squared and beam_distance_squared
+   
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      return dot_product(lightFrom(axis), particle);
+      return dot_product(lightFrom(axis), particle)/_RcutoffSq;
    }
 
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet lightParticle = lightFrom(particle);
-      return 0.5*particle.mperp()*_RcutoffSq*lightParticle.pt();
+      return 0.5*particle.mperp()*lightParticle.pt();
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -600,7 +583,7 @@ protected:
 };
 
 // ------------------------------------------------------------------------
-// / \class ConicalGeometricCutoffMeasure
+// / \class ConicalGeometricMeasure
 // This class is the Conical Geometric measure.  This measure is defined by the Lorentz dot product between
 // the particle and the axis normalized by the axis and particle pT, as well as a factor of cosh(y) to vary
 // the rapidity depepdence of the beam. New in Nsubjettiness v2.2, and the basis for the XCone jet algorithm
@@ -629,7 +612,7 @@ public:
    }
 
    virtual double jet_numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) const {
-      double jet_dist = jet_distance_squared(particle,axis);
+      double jet_dist = jet_distance_squared(particle,axis)/_RcutoffSq;
       if (jet_dist > 0.0) {
          fastjet::PseudoJet lightParticle = lightFrom(particle);
          double weight = (_beam_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_beam_gamma - 1.0);
@@ -642,7 +625,7 @@ public:
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
       fastjet::PseudoJet lightParticle = lightFrom(particle);
       double weight = (_beam_gamma == 1.0) ? 1.0 : std::pow(0.5*lightParticle.pt(),_beam_gamma - 1.0);
-      return particle.pt() * weight * std::pow(_Rcutoff,_jet_beta);
+      return particle.pt() * weight;
    }
 
    virtual double denominator(const fastjet::PseudoJet&  /*particle*/) const {
@@ -664,10 +647,10 @@ protected:
 class XConeMeasure : public ConicalGeometricMeasure {
 
 public:
-   XConeMeasure(double jet_beta, double Rcutoff)
+   XConeMeasure(double jet_beta, double R)
    :   ConicalGeometricMeasure(jet_beta,
                                1.0, // beam_gamma, hard coded
-                               Rcutoff
+                               R    // Rcutoff scale
                                ) { }
 
    virtual std::string description() const;
