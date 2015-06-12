@@ -1,3 +1,8 @@
+2015-06-12 <jthaler>
+   Synchronized definition of new measures with XCone paper.
+   In MeasureDefinition, added default values of jet_distance_squared and beam_distance_squared for cases where we don't want to optimize specifically.
+   Fixed bug in OriginalGeometricMeasure and ModifiedGeometric Measure
+   Commented out DeprecatedGeometricMeasure and DeprecatedGeometricCutoffMeasure since they were only causing confusion
 2015-05-26 <TJW>
    Removed axis_scale_factor(), added bool to calculate this value if needed to save computation time
    Defined small offset in denominator of axis scaling according to accuracy of refinement

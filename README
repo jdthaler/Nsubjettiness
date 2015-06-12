@@ -187,22 +187,20 @@ advanced users.
 New for v2.2 is a set of measures defined in arXiv:1506.xxxxx.  First, there is
 the "conical measure":
 
-    ConicalMeasure(beta,Rcutoff) // same as UnnormalizedCutoffMeasure
-                                 // (differs in choice of one-pass minimization)
+    ConicalMeasure(beta,Rcutoff) // same jets as UnnormalizedCutoffMeasure
+                                 // but differs in normalization and specifics
+                                 // of one-pass minimization
 
 Next, there is the geometric measure (as well as a modified version to yield
 more conical jet regions):
 
-    OriginalGeometricMeasure(Rcutoff)
+    OriginalGeometricMeasure(Rcutoff) // not recommended for analysis
     ModifiedGeometricMeasure(Rcutoff)
 
-Prior to v2.2, there was a "GeometricMeasure" which unfortunately had the wrong
-definition.   For backwards compatibility, we have renamed these measures to:
-
-    DeprecatedGeometricMeasure(beta)
-    DeprecatedGeometricCutoffMeasure(beta,Rcutoff)
-
-As the name suggests, please do not use these old Geometric measures.
+(Prior to v2.2, there was a "GeometricMeasure" which unfortunately had the wrong
+definition.  These have been commented out in the code as
+"DeprecatedGeometricMeasure" and "DeprecatedGeometricCutoffMeasure", but they
+should not be used.)
 
 Next, there is a "conical geometric" measure:
 
@@ -289,7 +287,7 @@ finds N axes, and jets are simply the sum of particles closest to a given axis
 (or unclustered if they are closest to the beam).  Unlike the NjettinessPlugin
 below, the user is restricted to using the XConeMeasure. 
 
-   XConePlugin plugin(N,R0,beta=2);
+   XConePlugin plugin(N,R,beta=2);
    JetDefinition def(&plugin);
    ClusterSequence cs(vector<PseudoJet>,def);
    vector<PseudoJet> jets = cs.inclusive_jets();
@@ -301,11 +299,11 @@ The AxesDefinition and MeasureDefinition are defaulted in this measure to
 OnePass_GenET_GenKT_Axes and XConeMeasure, respectively. The parameters chosen 
 for the OnePass_GenET_GenKT_Axes are defined according to the chosen value of beta
 as delta = 1/(beta - 1) and p = 1/beta. These have been shown to give the optimal
-choice of seed axes. The R0 value for finding the axes is chosen to be the same
-as the R0 for the jet algorithm, although in principle, these two radii could be 
+choice of seed axes. The R value for finding the axes is chosen to be the same
+as the R for the jet algorithm, although in principle, these two radii could be 
 different. 
 
-N.B.:  The order of the R0, beta arguments is *reversed* from the XConeMeasure
+N.B.:  The order of the R, beta arguments is *reversed* from the XConeMeasure
 itself, since this ordering is the more natural one to use for Plugins.  We
 apologize in advance for any confusion this might cause.
 

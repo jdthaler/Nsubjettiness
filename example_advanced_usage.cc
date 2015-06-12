@@ -225,14 +225,15 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
    // _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0)); //No pt_R flag in geometric measure since there is no pp/e+e- distinction
    // new measures added in the most recent version of NSubjettiness
-   _testMeasures.push_back(ConicalMeasure(1.0, JetDefinition::max_allowable_R));
-   _testMeasures.push_back(ConicalMeasure(2.0, JetDefinition::max_allowable_R));
-   _testMeasures.push_back(OriginalGeometricMeasure(JetDefinition::max_allowable_R));
-   _testMeasures.push_back(ModifiedGeometricMeasure(JetDefinition::max_allowable_R));
-   _testMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, JetDefinition::max_allowable_R));
-   _testMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, JetDefinition::max_allowable_R));
-   _testMeasures.push_back(XConeMeasure(1.0, JetDefinition::max_allowable_R)); // Should be identical to ConicalGeometric
-   _testMeasures.push_back(XConeMeasure(2.0, JetDefinition::max_allowable_R));
+   // Commented out because these don't really make sense without a cutoff scale
+   //_testMeasures.push_back(ConicalMeasure(1.0, JetDefinition::max_allowable_R));
+   //_testMeasures.push_back(ConicalMeasure(2.0, JetDefinition::max_allowable_R));
+   //_testMeasures.push_back(OriginalGeometricMeasure(JetDefinition::max_allowable_R));
+   //_testMeasures.push_back(ModifiedGeometricMeasure(JetDefinition::max_allowable_R));
+   //_testMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, JetDefinition::max_allowable_R));
+   //_testMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, JetDefinition::max_allowable_R));
+   //_testMeasures.push_back(XConeMeasure(1.0, JetDefinition::max_allowable_R)); // Should be identical to ConicalGeometric
+   //_testMeasures.push_back(XConeMeasure(2.0, JetDefinition::max_allowable_R));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
@@ -241,8 +242,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, Rcutoff, pt_R));
    // _testCutoffMeasures.push_back(DeprecatedGeometricCutoffMeasure(2.0, Rcutoff));   
    // new measures added in the most recent version of NSubjettiness
-   _testMeasures.push_back(ConicalMeasure(1.0, Rcutoff));
-   _testMeasures.push_back(ConicalMeasure(2.0, Rcutoff));
+   _testCutoffMeasures.push_back(ConicalMeasure(1.0, Rcutoff));
+   _testCutoffMeasures.push_back(ConicalMeasure(2.0, Rcutoff));
    _testCutoffMeasures.push_back(OriginalGeometricMeasure(Rcutoff));
    _testCutoffMeasures.push_back(ModifiedGeometricMeasure(Rcutoff));
    _testCutoffMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, Rcutoff));
