@@ -43,6 +43,8 @@ class NsubjettinessRatio;
    
 ///------------------------------------------------------------------------
 /// \class Nsubjettiness
+/// \brief Implements the N-subjettiness jet shape
+///
 /**
  * The N-jettiness jet shape.
  *
@@ -145,6 +147,7 @@ public:
    // The following interfaces are included for backwards compatibility, but no longer recommended.
    // They may be deleted in a future release
    
+   /// \deprecated
    /// Alternative constructors that define the measure via enums and parameters
    /// These constructors will be removed in v3.0
    /// Zero parameter arguments
@@ -156,6 +159,7 @@ public:
       _old_constructor_warning.warn("Nsubjettiness:  You are using the old style constructor.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use the Nsubjettiness constructor based on AxesDefinition and MeasureDefinition instead.");
    }
    
+   /// \deprecated
    /// Construcotr for one parameter argument
    /// (for unnormalized_measure, para1=beta)
    Nsubjettiness(int N,
@@ -166,6 +170,7 @@ public:
       _old_constructor_warning.warn("Nsubjettiness:  You are using the old style constructor.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use the Nsubjettiness constructor based on AxesDefinition and MeasureDefinition instead.");
    }
    
+   /// \deprecated
    /// Constructor for two parameter arguments
    /// (for normalized_measure, para1=beta, para2=R0)
    /// (for unnormalized_cutoff_measure, para1=beta, para2=Rcutoff)
@@ -178,6 +183,7 @@ public:
       _old_constructor_warning.warn("Nsubjettiness:  You are using the old style constructor.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use the Nsubjettiness constructor based on AxesDefinition and MeasureDefinition instead.");
    }
    
+   /// \deprecated
    /// Constructor for three parameter arguments
    /// (for unnormalized_cutoff_measure, para1=beta, para2=R0, para3=Rcutoff)
    Nsubjettiness(int N,
@@ -190,6 +196,7 @@ public:
       _old_constructor_warning.warn("Nsubjettiness:  You are using the old style constructor.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use the Nsubjettiness constructor based on AxesDefinition and MeasureDefinition instead.");
    }
    
+   /// \deprecated
    /// Old constructor for backwards compatibility with v1.0,
    /// where normalized_cutoff_measure was the only option
    Nsubjettiness(int N,
@@ -206,6 +213,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class NsubjettinessRatio
+/// \brief Implements ratios of N-subjettiness jet shapes
+///
 /// NsubjettinessRatio uses the results from Nsubjettiness to calculate the ratio
 /// tau_N/tau_M, where N and M are specified by the user. The ratio of different tau values
 /// is often used in analyses, so this class is helpful to streamline code.  Note that
@@ -238,6 +247,7 @@ public:
    // The following interfaces are included for backwards compatibility, but no longer recommended.
    // They may be deprecated at some point.
    
+   /// \deprecated
    /// Old-style constructor for zero arguments
    /// Alternative constructor with enums and parameters
    /// Again, likely to be removed
@@ -248,6 +258,7 @@ public:
    : _nsub_numerator(N, axes_mode, measure_mode),
    _nsub_denominator(M, axes_mode, measure_mode) {}
    
+   /// \deprecated
    /// Old-style constructor for one argument
    NsubjettinessRatio(int N,
                       int M,
@@ -257,6 +268,7 @@ public:
    : _nsub_numerator(N, axes_mode, measure_mode, para1),
    _nsub_denominator(M, axes_mode, measure_mode, para1) {}
    
+   /// \deprecated
    /// Old-style constructor for 2 arguments
    NsubjettinessRatio(int N,
                       int M,
@@ -267,6 +279,7 @@ public:
    : _nsub_numerator(N, axes_mode, measure_mode, para1, para2),
    _nsub_denominator(M, axes_mode, measure_mode, para1, para2) {}
    
+   /// \deprecated
    /// Old-style constructor for 3 arguments
    NsubjettinessRatio(int N,
                       int M,

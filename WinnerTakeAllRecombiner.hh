@@ -42,6 +42,8 @@ namespace contrib {
 
 ///------------------------------------------------------------------------
 /// \class GeneralEtSchemeRecombiner
+/// \brief Recombination scheme with generalized Et weighting
+///
 /// GeneralEtSchemeRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
 /// This scheme compares the pT of two input particles, and then combines them into a particle with
 /// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) weighted by the respective momenta of the
@@ -69,6 +71,8 @@ private:
 
 ///------------------------------------------------------------------------
 /// \class WinnerTakeAllRecombiner
+/// \brief Recombination scheme with winner-take-all weighting
+///
 /// WinnerTakeAllRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
 /// This scheme compares the pT of two input particles, and then combines them into a particle with
 /// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) identical to that of the harder

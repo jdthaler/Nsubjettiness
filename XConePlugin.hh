@@ -42,7 +42,7 @@ namespace contrib {
 
 ///------------------------------------------------------------------------
 /// \class XConePlugin
-/// \brief The XCone Jet Algorithm
+/// \brief Implements the XCone Jet Algorithm
 /**
  * An exclusive jet finder that identifies N jets.  First N axes are found, then
  * particles are assigned to the nearest (approximte DeltaR) axis and for each axis the
@@ -112,6 +112,8 @@ public:
 
    
 /// \class PseudoXConePlugin
+/// \brief Implements a faster, non-optimal version of the XCone Jet Algorithm
+///
 /// A "poor man's" version of XCone with no minimization step
 /// Right now, used just for testing purposes by the developers
 class PseudoXConePlugin : public NjettinessPlugin {

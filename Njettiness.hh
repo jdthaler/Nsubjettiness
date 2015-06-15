@@ -47,18 +47,68 @@ namespace contrib {
  * These Doxygen pages provide automatically generated documentation for the
  * Nsubjettiness FastJet contrib.  This documentation is being slowly improved.
  *
- * \section key_classes Key Classes
+ * \section core_classes Core Classes
  *
- * - Nsubjettiness:  Calculating the N-subjettiness jet shapes
- *
+ * - Nsubjettiness:  Calculating N-subjettiness jet shapes
  * - NsubjettinessRatio:  Calculating N-subjettiness ratios
+ * - XConePlugin:  Running the XCone jet algorithm
+ * - NjettinessPlugin:  Running generic N-jettiness as a jet algorithm
  *
- * - XConePlugin:  Running the XCone Jet Algorithm
+ * \subsection core_classes_helper Helper Classes for Core
+ * - Njettiness:  Core code for all N-(sub)jettiness calculations
+ * - NjettinessExtras:  Way to access additional N-jettiness information
+ * - TauComponents:  Output format for all N-(sub)jettiness information
+ * - TauPartition:  Access to N-(sub)jettiness partitioning information
+ * - PseudoXConePlugin:  Testing code to compare to XConePlugin (doesn't use one-pass minimization)
  *
- * - NjettinessPlugin:  Running N-jettiness as a Jet Algorithm more generically
+ * \section axes_classes Axes Definitions
+ *
+ * \subsection axes_classes_base Base Classes
+ * - AxesDefinition:  Defines generic axes definition
+ * - ExclusiveJetAxes:  Axes finder from exclusive jet algorithm
+ * - ExclusiveCombinatorialJetAxes:  Axes finder from exclusive jet algorithm (with extra axes to test combinatoric options)
+ * - HardestJetAxes:  Axes finder from inclusive jet algorithm
+ *
+ * \subsection axes_classes_derived Derived Classes
+ *
+ * \b OnePass means iterative improvement to a (local) N-(sub)jettiness minimum.
+ *
+ * \b MultiPass means using multiple random seed inputs
+ *
+ * \b Comb means checking N + Nextra choose N combinatorial options
+ *
+ * - KT_Axes / OnePass_KT_Axes:  Axes from exclusive kT
+ * - CA_Axes / OnePass_CA_Axes:  Axes from exclusive Cambridge/Aachen
+ * - AntiKT_Axes / OnePass_AntiKT_Axes:  Axes from inclusive anti-kT
+ * - WTA_KT_Axes / OnePass_WTA_KT_Axes:  Axes from exclusive kT, using winner-take-all recombination
+ * - WTA_CA_Axes / OnePass_WTA_CA_Axes:  Axes from exclusive CA, using winner-take-all recombination
+ *
+ * - GenET_GenKT_Axes / OnePass_GenET_GenKT_Axes / Comb_GenET_GenKT_Axes:  Axes from exclusive generalized kt, with generalized Et recombination
+ * - WTA_GenKT_Axes / OnePass_WTA_GenKT_Axes / Comb_WTA_GenKT_Axes:  Axes from exclusive generalized kt, with winner-take-all recombination
+ *
+ * - Manual_Axes / OnePass_Manual_Axes / MultiPass_Manual_Axes:  Use manual axes
+ * - MultiPass_Axes:  Multiple passes with random input seeds
+ *
+ * \subsection axes_classes_helper Helper Classes for Axes
+ * - GeneralEtSchemeRecombiner:  Generalized Et-scheme recombiner
+ * - WinnerTakeAllRecombiner:  Winner-take-all recombiner (similar functionality now in FastJet 3.1)
+ * - JetDefinitionWrapper:  Wrapper for Jet Definitions to handle memory management
+ *
+ * \section measure_classes Measure Definitions
+ *
+ * \subsection measure_classes_bases Base Classes
+ * - MeasureDefinition:  Defines generic measures
+ * - DefaultMeasure:  Base class for the original N-subjettiness measures
+ *
+ * \subsection measure_classes_derived Derived Classes
+ * - NormalizedMeasure / UnnormalizedMeasure / NormalizedCutoffMeasure / UnnormalizedCutoffMeasure : Variants on the default N-subjettiness measure.
+ * - ConicalMeasure: Similar to default measure, but intended as N-jettiness event shape
+ * - ConicalGeometricMeasure / XConeMeasure:  Measure used in XCone jet algorithm
+ * - OriginalGeometricMeasure / ModifiedGeometricMeasure:  Dot product measures useful for theoretical calcualtions
+ *
+ * \subsection measure_classes_helper Helper Classes for Measures
+ * - LightLikeAxis : Defines light-like axis
  */
-   
-
 
 ///////
 //
@@ -68,6 +118,8 @@ namespace contrib {
 
 ///------------------------------------------------------------------------
 /// \class Njettiness
+/// \brief Core class for N-(sub)jettiness calculations
+///
 /**
  * The N-jettiness event shape.
  *
@@ -81,8 +133,6 @@ namespace contrib {
  * It also can return information about the axes and jets it used in the calculation, as well as
  * information about how the event was partitioned.
  */
-///------------------------------------------------------------------------
-
 class Njettiness {
 public:
    
@@ -146,6 +196,7 @@ public:
    
    // These interfaces are included for backwards compability, and will be deprecated in a future release (scheduled for deletion in v3.0)
    
+   /// \deprecated
    /// Deprecated enum to determine axes mode
    /// The various axes choices available to the user
    /// It is recommended to use AxesDefinition instead of these.
@@ -165,6 +216,7 @@ public:
       onepass_manual_axes  // one-pass minimization from manual starting point
    };
    
+   /// \deprecated
    /// Deprecated enum to determine measure mode
    /// The measures available to the user.
    /// "normalized_cutoff_measure" was the default in v1.0 of Nsubjettiness
@@ -179,9 +231,11 @@ public:
       geometric_cutoff_measure      //geometric measure with explicit Rcutoff
    };
    
+   /// \deprecated
    /// Intermediate constructor (needed to enable v1.0.3 backwards compatibility?)
    Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def);
    
+   /// \deprecated
    /// Old-style constructor which takes axes/measure information as enums with measure parameters
    /// This version absolutely is not recommended
    Njettiness(AxesMode axes_mode,
@@ -193,9 +247,11 @@ public:
    : _axes_def(createAxesDef(axes_mode)), _measure_def(createMeasureDef(measure_mode, num_para, para1, para2, para3)) {
    }
   
+   /// \deprecated
    /// Convert old style enums into new style MeasureDefinition
    AxesDefinition* createAxesDef(AxesMode axes_mode) const;
    
+   /// \deprecated
    /// Convert old style enums into new style MeasureDefinition
    MeasureDefinition* createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const;
 

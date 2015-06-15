@@ -45,7 +45,7 @@ namespace contrib {
 
 
 /// \class NjettinessPlugin
-/// \brief The Njettiness Jet Algorithm
+/// \brief Implements the N-jettiness Jet Algorithm
 /**
  * An exclusive jet finder that identifies N jets; first N axes are found, then
  * particles are assigned to the nearest (DeltaR) axis and for each axis the
@@ -116,6 +116,7 @@ public:
    // Alternative constructors that define the measure via enums and parameters
    // These constructors are deprecated and will be removed in a future version.
    
+   /// \deprecated
    /// Old-style constructor with 0 arguments (DEPRECATED)
    NjettinessPlugin(int N,
                     Njettiness::AxesMode axes_mode,
@@ -124,6 +125,7 @@ public:
       _old_constructor_warning.warn("NjettinessPlugin:  You are using the old style constructor.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use the NjettinessPlugin constructor based on AxesDefinition and MeasureDefinition instead.");
    }
    
+   /// \deprecated
    /// Old-style constructor with 1 argument (DEPRECATED)
       NjettinessPlugin(int N,
                     Njettiness::AxesMode axes_mode,
@@ -134,6 +136,7 @@ public:
    
    }
    
+   /// \deprecated
    /// Old-style constructor with 2 arguments (DEPRECATED)
    NjettinessPlugin(int N,
                     Njettiness::AxesMode axes_mode,
@@ -145,7 +148,7 @@ public:
    
    }
    
-   
+   /// \deprecated
    /// Old-style constructor with 3 arguments (DEPRECATED)
    NjettinessPlugin(int N,
                     Njettiness::AxesMode axes_mode,
@@ -157,7 +160,7 @@ public:
       _old_constructor_warning.warn("NjettinessPlugin:  You are using the old style constructor.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use the NjettinessPlugin constructor based on AxesDefinition and MeasureDefinition instead.");
    }
    
-   
+   /// \deprecated
    /// Old-style constructor for backwards compatibility with v1.0, when NormalizedCutoffMeasure was the only option
    NjettinessPlugin(int N,
                     Njettiness::AxesMode mode,

@@ -65,6 +65,8 @@ enum TauMode {
 
 ///------------------------------------------------------------------------
 /// \class TauComponents
+/// \brief Output wrapper for supplemental N-(sub)jettiness information
+///
 /// This class creates a wrapper for the various tau/subtau values calculated in Njettiness. This class allows Njettiness access to these variables
 /// without ever having to do the calculation itself. It takes in subtau numerators and tau denominator from MeasureFunction
 /// and outputs tau numerator, and normalized tau and subtau.
@@ -144,6 +146,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class TauPartition
+/// \brief Output wrapper for N-(sub)jettiness partitioning information
+///
 /// Class for storing partitioning information.
 ///------------------------------------------------------------------------
 class TauPartition {
@@ -210,6 +214,8 @@ private:
    
 ///------------------------------------------------------------------------
 /// \class NjettinessExtras
+/// \brief ClusterSequence add on for N-jettiness information
+///
 /// This class contains the same information as TauComponents, but adds additional ways of linking up
 /// the jets found in the ClusterSequence::Extras class.
 /// This is done in order to help improve the interface for the main NjettinessPlugin class.
@@ -312,6 +318,8 @@ inline const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence
    
 ///------------------------------------------------------------------------
 /// \class TauComponents::StructureType
+/// \brief Wrapped structure for jet-based N-(sub)jettiness information
+///
 /// Small wrapped structure to store tau information
 /// TODO:  Can these be auto-joined?
 ///------------------------------------------------------------------------

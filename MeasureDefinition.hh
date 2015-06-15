@@ -71,6 +71,8 @@ class LightLikeAxis;
    
 ///------------------------------------------------------------------------
 /// \class MeasureDefinition
+/// \brief Base class for measure definitions
+///
 /// This is the base class for measure definitions.  Derived classes will calculate
 /// the tau_N of a jet given a specific measure and a set of axes.  The measure is
 /// determined by various jet and beam distances (and possible normalization factors).
@@ -191,9 +193,10 @@ protected:
    
 ///------------------------------------------------------------------------
 /// \enum DefaultMeasureType
+/// \brief Options for default measure
+///
 /// Can be used to switch between pp and ee measure types in the DefaultMeasure
 ///------------------------------------------------------------------------
-
 enum DefaultMeasureType {
    pt_R,       ///  use transverse momenta and boost-invariant angles,
    E_theta,    ///  use energies and angles,
@@ -203,6 +206,8 @@ enum DefaultMeasureType {
 
 ///------------------------------------------------------------------------
 /// \class DefaultMeasure
+/// \brief Base class for default N-subjettiness measure definitions
+///
 /// This class is the default measure as defined in the original N-subjettiness papers.
 /// Based on the conical measure, but with a normalization factor
 /// This measure is defined as the pT of the particle multiplied by deltaR
@@ -301,6 +306,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class NormalizedCutoffMeasure
+/// \brief Dimensionless default measure, with radius cutoff
+///
 /// This measure is just a wrapper for DefaultMeasure
 ///------------------------------------------------------------------------
 class NormalizedCutoffMeasure : public DefaultMeasure {
@@ -323,6 +330,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class NormalizedMeasure
+/// \brief Dimensionless default measure, with no cutoff
+///
 /// This measure is the same as NormalizedCutoffMeasure, with Rcutoff taken to infinity.
 ///------------------------------------------------------------------------
 class NormalizedMeasure : public NormalizedCutoffMeasure {
@@ -346,6 +355,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class UnnormalizedCutoffMeasure
+/// \brief Dimensionful default measure, with radius cutoff
+///
 /// This class is the unnormalized conical measure. The only difference from NormalizedCutoffMeasure
 /// is that the denominator is defined to be 1.0 by setting _has_denominator to false.
 /// class UnnormalizedCutoffMeasure : public NormalizedCutoffMeasure {
@@ -372,6 +383,8 @@ public:
    
 ///------------------------------------------------------------------------
 /// \class UnnormalizedMeasure
+/// \brief Dimensionless default measure, with no cutoff
+///
 /// This measure is the same as UnnormalizedCutoffMeasure, with Rcutoff taken to infinity.
 ///------------------------------------------------------------------------
 class UnnormalizedMeasure : public UnnormalizedCutoffMeasure {
@@ -397,6 +410,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class ConicalMeasure
+/// \brief Dimensionful event-shape measure, with radius cutoff
+///
 /// Very similar to UnnormalizedCutoffMeasure, but with different normalization convention
 /// and using the new default one-pass minimization algorithm.
 /// Axes are also made to be light-like to ensure sensible behavior
@@ -462,11 +477,13 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class OriginalGeometricMeasure
-// This class is the original (and hopefully now correctly coded) geometric measure.
-// This measure is defined by the Lorentz dot product between
-// the particle and the axis.  This class does not include normalization of tau_N.
-// New in Nsubjettiness v2.2
-// NOTE: This is defined differently from the DeprecatedGeometricMeasure which are now commented out.
+/// \brief Dimensionful event-shape measure, with dot-product distances
+///
+/// This class is the original (and hopefully now correctly coded) geometric measure.
+/// This measure is defined by the Lorentz dot product between
+/// the particle and the axis.  This class does not include normalization of tau_N.
+/// New in Nsubjettiness v2.2
+/// NOTE: This is defined differently from the DeprecatedGeometricMeasure which are now commented out.
 ///------------------------------------------------------------------------
 class OriginalGeometricMeasure : public MeasureDefinition {
 
@@ -513,6 +530,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class ModifiedGeometricMeasure
+/// \brief Dimensionful event-shape measure, with dot-product distances, modified beam measure
+///
 /// This class is the Modified geometric measure.  This jet measure is defined by the Lorentz dot product between
 /// the particle and the axis, as in the Original Geometric Measure. The beam measure is defined differently from
 /// the above OriginalGeometric to allow for more conical jets. New in Nsubjettiness v2.2
@@ -560,6 +579,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class ConicalGeometricMeasure
+/// \brief Dimensionful event-shape measure, basis for XCone jet algorithm
+///
 /// This class is the Conical Geometric measure.  This measure is defined by the Lorentz dot product between
 /// the particle and the axis normalized by the axis and particle pT, as well as a factor of cosh(y) to vary
 /// the rapidity depepdence of the beam. New in Nsubjettiness v2.2, and the basis for the XCone jet algorithm
@@ -626,6 +647,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class XConeMeasure
+/// \brief Dimensionful event-shape measure used in XCone jet algorithm
+///
 /// This class is the XCone Measure.  This is the default measure for use with the
 /// XCone algorithm. It is identical to the conical geometric measure but with gamma = 1.0.
 ///------------------------------------------------------------------------
@@ -648,6 +671,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class LightLikeAxis
+/// \brief Helper class to define light-like axes directions
+///
 /// This is a helper class for the minimization routines.
 /// It creates a convenient way of defining axes in order to better facilitate calculations.
 ///------------------------------------------------------------------------

@@ -211,6 +211,8 @@ protected:
   
 ///------------------------------------------------------------------------
 /// \class ExclusiveJetAxes
+/// \brief Base class for axes defined from exclusive jet algorithm
+///
 /// This class finds axes by clustering particles with an exclusive jet definition.
 /// This can be implemented with different jet algorithms.  The user can call this directly
 /// using their favorite fastjet::JetDefinition
@@ -247,6 +249,8 @@ private:
 
 ///------------------------------------------------------------------------
 /// \class ExclusiveCombinatorialJetAxes
+/// \brief Base class for axes defined from exclusive jet algorithm, checking combinatorial options
+///
 /// This class finds axes by clustering particles with an exclusive jet definition.
 /// It takes an extra number of jets (specificed by the user via nExtra), and then finds the set of N that minimizes N-jettiness.
 /// WARNING: If one wants to be guarenteed that results improve by increasing nExtra, then one should use
@@ -320,6 +324,8 @@ private:
    
 ///------------------------------------------------------------------------
 /// \class HardestJetAxes
+/// \brief Base class for axes defined from an inclusive jet algorithm
+///
 /// This class finds axes by running an inclusive algorithm and then finding the n hardest jets.
 /// This can be implemented with different jet algorithms, and can be called by the user.
 ///------------------------------------------------------------------------
@@ -354,6 +360,8 @@ private:
    
 ///------------------------------------------------------------------------
 /// \class KT_Axes
+/// \brief Axes from exclusive kT
+///
 /// Axes from kT algorithm with E_scheme recombination.
 ///------------------------------------------------------------------------
 class KT_Axes : public ExclusiveJetAxes {
@@ -388,6 +396,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class CA_Axes
+/// \brief Axes from exclusive CA
+///
 /// Axes from CA algorithm with E_scheme recombination.
 ///------------------------------------------------------------------------
 class CA_Axes : public ExclusiveJetAxes {
@@ -423,6 +433,8 @@ public:
    
 ///------------------------------------------------------------------------
 /// \class AntiKT_Axes
+/// \brief Axes from inclusive anti-kT
+///
 /// Axes from anti-kT algorithm and E_scheme.
 /// The one parameter R0 is subjet radius
 ///------------------------------------------------------------------------
@@ -465,6 +477,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class JetDefinitionWrapper
+/// \brief Wrapper for jet definitions (for memory management)
+///
 /// This class was introduced to avoid issue of a FastJet bug when using genKT clustering
 /// Now using this for all AxesDefinition with a manual recombiner to use the delete_recombiner_when_unused function
 ///------------------------------------------------------------------------
@@ -496,6 +510,8 @@ private:
 
 ///------------------------------------------------------------------------
 /// \class WTA_KT_Axes
+/// \brief Axes from exclusive kT, winner-take-all recombination
+///
 /// Axes from kT algorithm and winner-take-all recombination
 ///------------------------------------------------------------------------
 class WTA_KT_Axes : public ExclusiveJetAxes {
@@ -533,6 +549,8 @@ private:
    
 ///------------------------------------------------------------------------
 /// \class WTA_CA_Axes
+/// \brief Axes from exclusive CA, winner-take-all recombination
+///
 /// Axes from CA algorithm and winner-take-all recombination
 ///------------------------------------------------------------------------
 class WTA_CA_Axes : public ExclusiveJetAxes {
@@ -570,6 +588,8 @@ private:
 
 ///------------------------------------------------------------------------
 /// \class WTA_GenKT_Axes
+/// \brief Axes from exclusive generalized kT, winner-take-all recombination
+///
 /// Axes from a general KT algorithm with a Winner Take All Recombiner
 /// Requires the power of the KT algorithm to be used and the radius parameter
 ///------------------------------------------------------------------------
@@ -613,6 +633,8 @@ protected:
    
 ///------------------------------------------------------------------------
 /// \class GenET_GenKT_Axes
+/// \brief Axes from exclusive kT, generalized Et-scheme recombination
+///
 /// Class using general KT algorithm with a more general recombination scheme
 /// Requires power of KT algorithm, power of recombination weights, and radius parameter
 ///------------------------------------------------------------------------
@@ -657,6 +679,8 @@ protected:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_KT_Axes
+/// \brief Axes from exclusive kT, with one-pass minimization
+///
 /// Onepass minimization from kt axes
 ///------------------------------------------------------------------------
 class OnePass_KT_Axes : public KT_Axes {
@@ -687,6 +711,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_CA_Axes
+/// \brief Axes from exclusive CA, with one-pass minimization
+///
 /// Onepass minimization from CA axes
 ///------------------------------------------------------------------------
 class OnePass_CA_Axes : public CA_Axes {
@@ -717,6 +743,8 @@ public:
    
 ///------------------------------------------------------------------------
 /// \class OnePass_AntiKT_Axes
+/// \brief Axes from inclusive anti-kT, with one-pass minimization
+///
 /// Onepass minimization from AntiKT axes, one parameter R0
 ///------------------------------------------------------------------------
 class OnePass_AntiKT_Axes : public AntiKT_Axes {
@@ -750,6 +778,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_WTA_KT_Axes
+/// \brief Axes from exclusive kT, winner-take-all recombination, with one-pass minimization
+///
 /// Onepass minimization from winner-take-all kt axes
 ///------------------------------------------------------------------------
 class OnePass_WTA_KT_Axes : public WTA_KT_Axes {
@@ -780,6 +810,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_WTA_CA_Axes
+/// \brief Axes from exclusive CA, winner-take-all recombination, with one-pass minimization
+///
 /// Onepass minimization from winner-take-all CA axes
 ///------------------------------------------------------------------------
 class OnePass_WTA_CA_Axes : public WTA_CA_Axes {
@@ -810,6 +842,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_WTA_GenKT_Axes
+/// \brief Axes from exclusive generalized kT, winner-take-all recombination, with one-pass minimization
+///
 /// Onepass minimization from winner-take-all, General KT Axes
 ///------------------------------------------------------------------------
 class OnePass_WTA_GenKT_Axes : public WTA_GenKT_Axes {
@@ -839,6 +873,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_GenET_GenKT_Axes
+/// \brief Axes from exclusive generalized kT, generalized Et-scheme recombination, with one-pass minimization
+///
 /// Onepass minimization from General Recomb, General KT axes
 ///------------------------------------------------------------------------
 class OnePass_GenET_GenKT_Axes : public GenET_GenKT_Axes {
@@ -871,6 +907,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class Manual_Axes
+/// \brief Manual axes finding
+///
 /// Allows the user to set the axes manually
 ///------------------------------------------------------------------------
 class Manual_Axes : public AxesDefinition {
@@ -908,6 +946,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class OnePass_Manual_Axes
+/// \brief Manual axes finding, with one-pass minimization
+///
 /// One pass minimization from manual starting point
 ///------------------------------------------------------------------------
 class OnePass_Manual_Axes : public Manual_Axes {
@@ -937,6 +977,8 @@ public:
    
 ///------------------------------------------------------------------------
 /// \class MultiPass_Axes
+/// \brief Manual axes finding, with multi-pass (randomized) minimization
+///
 /// Multi-pass minimization from kT starting point
 ///------------------------------------------------------------------------
 class MultiPass_Axes : public KT_Axes {
@@ -968,6 +1010,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class MultiPass_Manual_Axes
+/// \brief Axes finding from exclusive kT, with multi-pass (randomized) minimization
+///
 /// multi-pass minimization from kT starting point
 ///------------------------------------------------------------------------
 class MultiPass_Manual_Axes : public Manual_Axes {
@@ -1000,6 +1044,8 @@ public:
 
 ///------------------------------------------------------------------------
 /// \class Comb_WTA_GenKT_Axes
+/// \brief Axes from exclusive generalized kT, winner-take-all recombination, with combinatorial testing
+///
 /// Axes from kT algorithm and winner-take-all recombination
 /// Requires nExtra parameter and returns set of N that minimizes N-jettiness
 ///------------------------------------------------------------------------
@@ -1037,6 +1083,8 @@ private:
    
 ///------------------------------------------------------------------------
 /// \class Comb_GenET_GenKT_Axes
+/// \brief Axes from exclusive generalized kT, generalized Et-scheme recombination, with combinatorial testing
+///
 /// Axes from kT algorithm and General Et scheme recombination
 /// Requires nExtra parameter and returns set of N that minimizes N-jettiness
 ///------------------------------------------------------------------------
