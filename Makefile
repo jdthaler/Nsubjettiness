@@ -80,6 +80,9 @@ install: all
 	$(install_DIR) $(PREFIX)/lib
 	$(install_LIB) lib$(NAME).a $(PREFIX)/lib
 
+doxygen:
+	doxygen Doxyfile
+
 depend:
 	makedepend -Y --   -- $(SRCS) $(EXAMPLES_SRCS)
 # DO NOT DELETE

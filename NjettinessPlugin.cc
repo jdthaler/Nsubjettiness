@@ -28,7 +28,7 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib{
 
-
+LimitedWarning NjettinessPlugin::_old_constructor_warning;
 
 std::string NjettinessPlugin::description() const {return "N-jettiness jet finder";}
 

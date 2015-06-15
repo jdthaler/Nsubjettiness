@@ -223,24 +223,12 @@ void analyze(const vector<PseudoJet> & input_particles) {
    _testMeasures.push_back(UnnormalizedMeasure(1.0     , pt_R));
    _testMeasures.push_back(  NormalizedMeasure(2.0, 1.0, pt_R));
    _testMeasures.push_back(UnnormalizedMeasure(2.0     , pt_R));
-   // _testMeasures.push_back(   DeprecatedGeometricMeasure(2.0)); //No pt_R flag in geometric measure since there is no pp/e+e- distinction
-   // new measures added in the most recent version of NSubjettiness
-   // Commented out because these don't really make sense without a cutoff scale
-   //_testMeasures.push_back(ConicalMeasure(1.0, JetDefinition::max_allowable_R));
-   //_testMeasures.push_back(ConicalMeasure(2.0, JetDefinition::max_allowable_R));
-   //_testMeasures.push_back(OriginalGeometricMeasure(JetDefinition::max_allowable_R));
-   //_testMeasures.push_back(ModifiedGeometricMeasure(JetDefinition::max_allowable_R));
-   //_testMeasures.push_back(ConicalGeometricMeasure(1.0, 1.0, JetDefinition::max_allowable_R));
-   //_testMeasures.push_back(ConicalGeometricMeasure(2.0, 1.0, JetDefinition::max_allowable_R));
-   //_testMeasures.push_back(XConeMeasure(1.0, JetDefinition::max_allowable_R)); // Should be identical to ConicalGeometric
-   //_testMeasures.push_back(XConeMeasure(2.0, JetDefinition::max_allowable_R));
 
    // When doing Njettiness as a jet algorithm, want to test the cutoff measures.
    // (Since they are not senisible without a cutoff)
    vector<MeasureStruct> _testCutoffMeasures;
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(1.0, Rcutoff, pt_R));
    _testCutoffMeasures.push_back(UnnormalizedCutoffMeasure(2.0, Rcutoff, pt_R));
-   // _testCutoffMeasures.push_back(DeprecatedGeometricCutoffMeasure(2.0, Rcutoff));   
    // new measures added in the most recent version of NSubjettiness
    _testCutoffMeasures.push_back(ConicalMeasure(1.0, Rcutoff));
    _testCutoffMeasures.push_back(ConicalMeasure(2.0, Rcutoff));
@@ -534,10 +522,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
       vector<PseudoJet> xcone_jets3 = xcone_seq3.inclusive_jets();
       vector<PseudoJet> xcone_jets4 = xcone_seq4.inclusive_jets();
 
-      // xcone_seq2.delete_self_when_unused();
-      // xcone_seq3.delete_self_when_unused();
-      // xcone_seq4.delete_self_when_unused();
-
       // (alternative way to find the jets)
       //vector<PseudoJet> xcone_jets2 = extras2->jets();
       //vector<PseudoJet> xcone_jets3 = extras3->jets();
@@ -546,8 +530,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
       cout << "-----------------------------------------------------------------------------------------------" << endl;
       cout << "Using beta = " << setprecision(2) << beta << ", Rcut = " << setprecision(2) << Rcutoff << endl;
       cout << "-----------------------------------------------------------------------------------------------" << endl;
-      // cout << measure_def.description() << ":" << endl;
-      // cout << axes_def.description() << ":" << endl;
       
       PrintJets(xcone_jets2);
       cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
@@ -586,10 +568,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> xcone_jets_area2 = xcone_seq_area2.inclusive_jets();
          vector<PseudoJet> xcone_jets_area3 = xcone_seq_area3.inclusive_jets();
          vector<PseudoJet> xcone_jets_area4 = xcone_seq_area4.inclusive_jets();
-         
-         // xcone_seq_area2.delete_self_when_unused();
-         // xcone_seq_area3.delete_self_when_unused();
-         // xcone_seq_area4.delete_self_when_unused();
          
          PrintJets(xcone_jets_area2);
          cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
@@ -662,10 +640,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
          vector<PseudoJet> njet_jets3 = njet_seq3.inclusive_jets();
          vector<PseudoJet> njet_jets4 = njet_seq4.inclusive_jets();
 
-         // njet_seq2.delete_self_when_unused();
-         // njet_seq3.delete_self_when_unused();
-         // njet_seq4.delete_self_when_unused();
-
          // (alternative way to find the jets)
          //vector<PseudoJet> njet_jets2 = extras2->jets();
          //vector<PseudoJet> njet_jets3 = extras3->jets();
@@ -712,10 +686,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
             vector<PseudoJet> njet_jets_area2 = njet_seq_area2.inclusive_jets();
             vector<PseudoJet> njet_jets_area3 = njet_seq_area3.inclusive_jets();
             vector<PseudoJet> njet_jets_area4 = njet_seq_area4.inclusive_jets();
-            
-            // njet_seq_area2.delete_self_when_unused();
-            // njet_seq_area3.delete_self_when_unused();
-            // njet_seq_area4.delete_self_when_unused();
 
             PrintJets(njet_jets_area2);
             cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
@@ -730,7 +700,68 @@ void analyze(const vector<PseudoJet> & input_particles) {
    cout << "-----------------------------------------------------------------------------------------------" << endl;
    cout << "Done Using N-jettiness as a Jet Algorithm" << endl;
    cout << "-----------------------------------------------------------------------------------------------" << endl;
-
+   
+   
+   
+   // Below are timing tests for the developers
+   double do_timing_test = false;
+   if (do_timing_test) {
+      
+      clock_t clock_begin, clock_end;
+      double num_iter;
+      
+      cout << setprecision(6);
+      
+      num_iter = 1000;
+      
+      double R0 = 0.5;
+      double beta = 2.0;
+      double N = 6;
+      
+      
+      // AKT
+      JetDefinition aktDef = JetDefinition(antikt_algorithm,R0,E_scheme,Best);
+      
+      // XC
+      XConePlugin xconePlugin(N, R0, beta);
+      JetDefinition xconeDef = JetDefinition(&xconePlugin);
+      
+      // pXC
+      PseudoXConePlugin pseudoxconePlugin(N, R0, beta);
+      JetDefinition pseudoxconeDef = JetDefinition(&pseudoxconePlugin);
+      
+      //AKT
+      cout << "Timing for " << aktDef.description() << endl;
+      clock_begin = clock();
+      for (int t = 0; t < num_iter; t++) {
+         ClusterSequence clust_seq(input_particles,aktDef);
+         clust_seq.inclusive_jets();
+      }
+      clock_end = clock();
+      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per AKT"<< endl;
+      
+      // XC
+      cout << "Timing for " << xconeDef.description() << endl;
+      clock_begin = clock();
+      for (int t = 0; t < num_iter; t++) {
+         ClusterSequence clust_seq(input_particles,xconeDef);
+         clust_seq.inclusive_jets();
+      }
+      clock_end = clock();
+      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per XCone"<< endl;
+      
+      // pXC
+      cout << "Timing for " << pseudoxconePlugin.description() << endl;
+      clock_begin = clock();
+      for (int t = 0; t < num_iter; t++) {
+         ClusterSequence clust_seq(input_particles,pseudoxconeDef);
+         clust_seq.inclusive_jets();
+      }
+      clock_end = clock();
+      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per PseudoXCone"<< endl;
+      
+      
+   }
 }
 
 

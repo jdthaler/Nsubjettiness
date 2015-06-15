@@ -28,9 +28,8 @@ The key new features are:
   * In Nsubjettiness, access to seedAxes() and currentAxes() to figure out the
     axes used before and after minimization.
   * In Nsubjettiness, access to currentSubjets() to get the subjet fourvectors.
-  * As of v2.2, new ConicalGeometric measure which is the basis for the XCone
-    jet algorithm (improving upon the previous NjettinessPlugin)
-
+  * (v2.2)  XConePlugin, which improves on the previous NjettinessPlugin to use
+    N-jettiness as a jet finder using the new ConicalGeometric measure.
 
 -- 2.2.0:  (June xx, 2015)  Inclusion of the XCone jet algorithm, as well as a
            few new measures, including the "conical geometric" measure and

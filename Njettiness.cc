@@ -35,7 +35,10 @@ namespace contrib {
 //
 ///////
 
+LimitedWarning Njettiness::_old_measure_warning;
+LimitedWarning Njettiness::_old_axes_warning;
 
+   
 // Constructor
 Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition & measure_def)
 : _axes_def(axes_def.create()), _measure_def(measure_def.create()) {}
@@ -103,6 +106,8 @@ Njettiness::Njettiness(AxesMode axes_mode, const MeasureDefinition & measure_def
 // This returns a pointer that will be claimed by a SharedPtr
 MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int num_para, double para1, double para2, double para3) const {
    
+   _old_measure_warning.warn("Njettiness::createMeasureDef:  You are using the old MeasureMode way of specifying N-subjettiness measures.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use MeasureDefinition instead.");
+   
    // definition of maximum Rcutoff for non-cutoff measures, changed later by other measures
    double Rcutoff = std::numeric_limits<double>::max();  //large number
    // Most (but not all) measures have some kind of beta value
@@ -130,7 +135,7 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
          }
          break;
       case geometric_measure:
-         throw Error("This class has been deprecated. Please use OriginalGeometricMeasure, ModifiedGeometricMeasure, or ConicalGeometricMeasure with the new Njettiness constructor.");
+         throw Error("This class has been removed. Please use OriginalGeometricMeasure, ModifiedGeometricMeasure, or ConicalGeometricMeasure with the new Njettiness constructor.");
          break;
       case normalized_cutoff_measure:
          beta = para1;
@@ -152,7 +157,7 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
          }
          break;
       case geometric_cutoff_measure:
-         throw Error("This class has been deprecated. Please use OriginalGeometricMeasure, ModifiedGeometricMeasure, or ConicalGeometricMeasure with the new Njettiness constructor.");
+         throw Error("This class has been removed. Please use OriginalGeometricMeasure, ModifiedGeometricMeasure, or ConicalGeometricMeasure with the new Njettiness constructor.");
       default:
          assert(false);
          break;
@@ -163,6 +168,9 @@ MeasureDefinition* Njettiness::createMeasureDef(MeasureMode measure_mode, int nu
 // Convert from AxesMode enum to AxesDefinition
 // This returns a pointer that will be claimed by a SharedPtr
 AxesDefinition* Njettiness::createAxesDef(Njettiness::AxesMode axes_mode) const {
+   
+   _old_axes_warning.warn("Njettiness::createAxesDef:  You are using the old AxesMode way of specifying N-subjettiness axes.  This is deprecated as of v2.1 and will be removed in v3.0.  Please use AxesDefinition instead.");
+   
    
    switch (axes_mode) {
       case wta_kt_axes:

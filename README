@@ -43,7 +43,8 @@ There are various ways to access N-(sub)jettiness variables, described
 in more detail below:
 
 Nsubjettiness       [Nsubjettiness.hh]:
-   A FunctionOfPseudoJet<double> interface to measure N-subjettiness
+   A FunctionOfPseudoJet<double> interface to measure the
+   N-subjettiness jet shape
    (Recommended for most users)
 
 NsubjettinessRatio  [Nsubjettiness.hh]:
@@ -56,15 +57,15 @@ XConePlugin         [XConePlugin.hh]:
    (Recommended for most users)
 
 NjettinessPlugin    [NjettinessPlugin.hh]:
-   A FastJet plugin for finding jets by minimizing N-jettiness.  Same basic
-   philosophy as XCone, but many more options.
+   A FastJet plugin for finding jets by minimizing N-jettiness.
+   Same basic philosophy as XCone, but many more options.
    (Recommended for advanced users only.)
 
 Njettiness          [Njettiness.hh]:
    Access to the core Njettiness code.
    (Not recommended for users, since the interface might change)
 
-The code assumes that you have FastJet 3.
+The code assumes that you have FastJet 3, but does not (yet) require FastJet 3.1
 
 --------------------------------------------------------------------------------
 Basic Usage: Nsubjettiness and NsubjettinessRatio  [Nsubjettiness.hh]
@@ -187,15 +188,15 @@ advanced users.
 New for v2.2 is a set of measures defined in arXiv:1506.xxxxx.  First, there is
 the "conical measure":
 
-    ConicalMeasure(beta,Rcutoff) // same jets as UnnormalizedCutoffMeasure
-                                 // but differs in normalization and specifics
-                                 // of one-pass minimization
+    ConicalMeasure(beta,R0) // same jets as UnnormalizedCutoffMeasure
+                            // but differs in normalization and specifics
+                            // of one-pass minimization
 
 Next, there is the geometric measure (as well as a modified version to yield
 more conical jet regions):
 
-    OriginalGeometricMeasure(Rcutoff) // not recommended for analysis
-    ModifiedGeometricMeasure(Rcutoff)
+    OriginalGeometricMeasure(R) // not recommended for analysis
+    ModifiedGeometricMeasure(R)
 
 (Prior to v2.2, there was a "GeometricMeasure" which unfortunately had the wrong
 definition.  These have been commented out in the code as

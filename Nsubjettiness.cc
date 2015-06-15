@@ -28,6 +28,9 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
+LimitedWarning Nsubjettiness::_old_constructor_warning;
+   
+   
 //result returns tau_N with normalization dependent on what is specified in constructor
 double Nsubjettiness::result(const PseudoJet& jet) const {
    std::vector<fastjet::PseudoJet> particles = jet.constituents();

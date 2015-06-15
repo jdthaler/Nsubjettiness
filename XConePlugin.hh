@@ -40,10 +40,12 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-/// The XCone jet algorithm
+///------------------------------------------------------------------------
+/// \class XConePlugin
+/// \brief The XCone Jet Algorithm
 /**
- * An exclusive jet finder that identifies N jets; first N axes are found, then
- * particles are assigned to the nearest (DeltaR) axis and for each axis the
+ * An exclusive jet finder that identifies N jets.  First N axes are found, then
+ * particles are assigned to the nearest (approximte DeltaR) axis and for each axis the
  * corresponding jet is simply the four-momentum sum of these particles.
  *
  * The XConePlugin is based on NjettinessPlugin, but with sensible default
@@ -60,18 +62,15 @@ namespace contrib {
  *
  * The MeasureDefinition is the XConeMeasure, which is based on the
  * ConicalGeometric measure.
- *
  */
-
-// class XConePlugin
 class XConePlugin : public NjettinessPlugin {
 public:
 
-   // Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
-   // All this does is use the NjettinessPlugin with OnePass_GenET_GenKT_Axes and the XConeMeasure.
-   // For more advanced usage, call NjettinessPlugin directly
-   // Note that the order of the R0 and beta values is reversed from the XConeMeasure to
-   // standard usage for Plugins.
+   /// Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
+   /// All this does is use the NjettinessPlugin with OnePass_GenET_GenKT_Axes and the XConeMeasure.
+   /// For more advanced usage, call NjettinessPlugin directly
+   /// Note that the order of the R0 and beta values is reversed from the XConeMeasure to
+   /// standard usage for Plugins.
    XConePlugin(int N, double R0, double beta = 2.0)
    : NjettinessPlugin(N,
                       OnePass_GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), // use recommended axes method only
@@ -90,7 +89,7 @@ public:
 
 private:
 
-   // static calls to use with in the constructor, sets the recommended delta value
+   /// Static call used within the constructor to set the recommended delta value
    static double calc_delta(double beta) {
       double delta;
       if (beta > 1) delta = 1/(beta - 1);
@@ -98,28 +97,28 @@ private:
       return delta;
    }
 
-   // static calls to use with in the constructor, sets the recommended p value
+   /// Static call used within the constructor to set the recommended p value
    static double calc_power(double beta) {
       return (double) 1.0/beta;
    }
 
-   double _N;
-   double _R0;
-   double _beta;
+   double _N;    ///< Number of desired jets
+   double _R0;   ///< Jet radius
+   double _beta; ///< Angular exponent (beta = 2.0 is dafault, beta = 1.0 is recoil-free)
 
 public:
 
 };
 
    
-// class PseudoXConePlugin
-// A "poor man's" version of XCone with no minimization step
-// Right now, just for testing purposes by the developers
+/// \class PseudoXConePlugin
+/// A "poor man's" version of XCone with no minimization step
+/// Right now, used just for testing purposes by the developers
 class PseudoXConePlugin : public NjettinessPlugin {
 public:
    
-   // Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
-   // All this does is use the NjettinessPlugin with GenET_GenKT_Axes and the XConeMeasure.
+   /// Constructor with N, R0, and beta as the options.  beta = 2.0 is the default
+   /// All this does is use the NjettinessPlugin with GenET_GenKT_Axes and the XConeMeasure.
    PseudoXConePlugin(int N, double R0, double beta = 2.0)
    : NjettinessPlugin(N,
                       GenET_GenKT_Axes(calc_delta(beta), calc_power(beta), R0), // poor man's axes
@@ -138,7 +137,7 @@ public:
    
 private:
    
-   // static calls to use with in the constructor, sets the recommended delta value
+   /// Static call used within the constructor to set the recommended delta value
    static double calc_delta(double beta) {
       double delta;
       if (beta > 1) delta = 1/(beta - 1);
@@ -146,14 +145,14 @@ private:
       return delta;
    }
    
-   // static calls to use with in the constructor, sets the recommended p value
+   /// Static call used within the constructor to set the recommended p value
    static double calc_power(double beta) {
       return (double) 1.0/beta;
    }
    
-   double _N;
-   double _R0;
-   double _beta;
+   double _N;    ///< Number of desired jets
+   double _R0;   ///< Jet radius
+   double _beta; ///< Angular exponent (beta = 2.0 is dafault, beta = 1.0 is recoil-free)
    
 public:
    

@@ -40,39 +40,47 @@ FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 namespace contrib {
 
-//Added General Et Scheme Recomber to allow user to choose different values of delta in recombination scheme
-//------------------------------------------------------------------------
+///------------------------------------------------------------------------
 /// \class GeneralEtSchemeRecombiner
-// GeneralERecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
-// This scheme compares the pT of two input particles, and then combines them into a particle with
-// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) weighted by the respective momenta of the 
-// particle. The weighting is dependent on the power delta. For delta = infinity, this should return the same result as WTA
+/// GeneralEtSchemeRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
+/// This scheme compares the pT of two input particles, and then combines them into a particle with
+/// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) weighted by the respective momenta of the
+/// particle. The weighting is dependent on the power delta. For delta = infinity, this should return the same result as the
+/// WinnerTakeAllRecombiner.
+///------------------------------------------------------------------------
 class GeneralEtSchemeRecombiner : public fastjet::JetDefinition::Recombiner {
 public:
-  GeneralEtSchemeRecombiner(double delta) : _delta(delta) {}
+
+   /// Constructor takes delta weighting
+   /// (delta = 1.0 for Et-scheme, delta = infinity for winner-take-all scheme)
+   GeneralEtSchemeRecombiner(double delta) : _delta(delta) {}
   
-  virtual std::string description() const;
+   /// Description
+   virtual std::string description() const;
   
-  /// recombine pa and pb and put result into pab
-  virtual void recombine(const fastjet::PseudoJet & pa, 
+   /// Recombine pa and pb and put result into pab
+   virtual void recombine(const fastjet::PseudoJet & pa,
                          const fastjet::PseudoJet & pb, 
                          fastjet::PseudoJet & pab) const;
 
 private:
-  double _delta;
+  double _delta;  ///< Weighting exponent
 };
 
-//------------------------------------------------------------------------
+///------------------------------------------------------------------------
 /// \class WinnerTakeAllRecombiner
-// WinnerTakeAllRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
-// This scheme compares the pT of two input particles, and then combines them into a particle with
-// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) identical to that of the harder 
-// particle. This creates a jet with an axis guaranteed to align with a particle in the event.
+/// WinnerTakeAllRecombiner defines a new recombination scheme by inheriting from JetDefinition::Recombiner.
+/// This scheme compares the pT of two input particles, and then combines them into a particle with
+/// a pT equal to the sum of the two particle pTs and a direction (in rapidity/phi) identical to that of the harder
+/// particle. This creates a jet with an axis guaranteed to align with a particle in the event.
+///------------------------------------------------------------------------
 class WinnerTakeAllRecombiner : public fastjet::JetDefinition::Recombiner {
 public:
-	// Constructor to choose value of alpha (defaulted to 1 for normal pT sum)
+   
+	/// Constructor to choose value of alpha (defaulted to 1 for normal pT sum)
    WinnerTakeAllRecombiner(double alpha = 1.0) : _alpha(alpha) {}
 
+   /// Description
    virtual std::string description() const;
    
    /// recombine pa and pb and put result into pab

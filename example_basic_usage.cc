@@ -160,47 +160,23 @@ void analyze(const vector<PseudoJet> & input_particles) {
          << endl;
       
       
-      // Axes modes to try
-      OnePass_WTA_KT_Axes axisMode1;
-      OnePass_KT_Axes     axisMode2;
+      // Define Nsubjettiness functions for beta = 1.0 using one-pass WTA KT axes
+      double beta = 1.0;
+      Nsubjettiness         nSub1_beta1(1,   OnePass_WTA_KT_Axes(), UnnormalizedMeasure(beta));
+      Nsubjettiness         nSub2_beta1(2,   OnePass_WTA_KT_Axes(), UnnormalizedMeasure(beta));
+      Nsubjettiness         nSub3_beta1(3,   OnePass_WTA_KT_Axes(), UnnormalizedMeasure(beta));
+      NsubjettinessRatio   nSub21_beta1(2,1, OnePass_WTA_KT_Axes(), UnnormalizedMeasure(beta));
+      NsubjettinessRatio   nSub32_beta1(3,2, OnePass_WTA_KT_Axes(), UnnormalizedMeasure(beta));
       
-
-      // Measure modes to try
-      double beta1 = 1.0;
-      double beta2 = 2.0;
-      UnnormalizedMeasure measureSpec1(beta1);
-      UnnormalizedMeasure measureSpec2(beta2);
-      
-      // define Nsubjettiness functions (beta = 1.0)
-      Nsubjettiness         nSub1_beta1(1,  axisMode1,measureSpec1);
-      Nsubjettiness         nSub2_beta1(2,  axisMode1,measureSpec1);
-      Nsubjettiness         nSub3_beta1(3,  axisMode1,measureSpec1);
-      NsubjettinessRatio   nSub21_beta1(2,1,axisMode1,measureSpec1);
-      NsubjettinessRatio   nSub32_beta1(3,2,axisMode1,measureSpec1);
-      
-      // define Nsubjettiness functions (beta = 2.0)
-      Nsubjettiness         nSub1_beta2(1,  axisMode2,measureSpec2);
-      Nsubjettiness         nSub2_beta2(2,  axisMode2,measureSpec2);
-      Nsubjettiness         nSub3_beta2(3,  axisMode2,measureSpec2);
-      NsubjettinessRatio   nSub21_beta2(2,1,axisMode2,measureSpec2);
-      NsubjettinessRatio   nSub32_beta2(3,2,axisMode2,measureSpec2);
-   
       // calculate Nsubjettiness values (beta = 1.0)
-      double tau1_beta1 = nSub1_beta1(antikt_jets[j]);
-      double tau2_beta1 = nSub2_beta1(antikt_jets[j]);
-      double tau3_beta1 = nSub3_beta1(antikt_jets[j]);
+      double  tau1_beta1 =  nSub1_beta1(antikt_jets[j]);
+      double  tau2_beta1 =  nSub2_beta1(antikt_jets[j]);
+      double  tau3_beta1 =  nSub3_beta1(antikt_jets[j]);
       double tau21_beta1 = nSub21_beta1(antikt_jets[j]);
       double tau32_beta1 = nSub32_beta1(antikt_jets[j]);
-
-      // calculate Nsubjettiness values (beta = 2.0)
-      double tau1_beta2 = nSub1_beta2(antikt_jets[j]);
-      double tau2_beta2 = nSub2_beta2(antikt_jets[j]);
-      double tau3_beta2 = nSub3_beta2(antikt_jets[j]);
-      double tau21_beta2 = nSub21_beta2(antikt_jets[j]);
-      double tau32_beta2 = nSub32_beta2(antikt_jets[j]);
       
       // Output results (beta = 1.0)
-      cout << setw(15) << beta1
+      cout << setw(15) << 1.0
          << setw(14) << tau1_beta1
          << setw(14) << tau2_beta1
          << setw(14) << tau3_beta1
@@ -208,8 +184,25 @@ void analyze(const vector<PseudoJet> & input_particles) {
          << setw(14) << tau32_beta1
          << endl;
       
+      // Repeat the above for beta = 2.0
+      
+      // Define Nsubjettiness functions for beta = 2.0, using one-pass ordinary KT axes
+      beta = 2.0;
+      Nsubjettiness         nSub1_beta2(1,   OnePass_KT_Axes(), UnnormalizedMeasure(beta));
+      Nsubjettiness         nSub2_beta2(2,   OnePass_KT_Axes(), UnnormalizedMeasure(beta));
+      Nsubjettiness         nSub3_beta2(3,   OnePass_KT_Axes(), UnnormalizedMeasure(beta));
+      NsubjettinessRatio   nSub21_beta2(2,1, OnePass_KT_Axes(), UnnormalizedMeasure(beta));
+      NsubjettinessRatio   nSub32_beta2(3,2, OnePass_KT_Axes(), UnnormalizedMeasure(beta));
+      
+      // calculate Nsubjettiness values (beta = 2.0)
+      double  tau1_beta2 =  nSub1_beta2(antikt_jets[j]);
+      double  tau2_beta2 =  nSub2_beta2(antikt_jets[j]);
+      double  tau3_beta2 =  nSub3_beta2(antikt_jets[j]);
+      double tau21_beta2 = nSub21_beta2(antikt_jets[j]);
+      double tau32_beta2 = nSub32_beta2(antikt_jets[j]);
+
       // Output results (beta = 2.0)
-      cout << setw(15) << beta2
+      cout << setw(15) << 2.0
          << setw(14) << tau1_beta2
          << setw(14) << tau2_beta2
          << setw(14) << tau3_beta2
@@ -217,6 +210,8 @@ void analyze(const vector<PseudoJet> & input_particles) {
          << setw(14) << tau32_beta2
          << endl;
 
+      
+      // Additional information
 
       cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
       cout << "Subjets found using beta = 1.0 tau values" << endl;
@@ -240,6 +235,29 @@ void analyze(const vector<PseudoJet> & input_particles) {
       //PrintJets(nSub3_beta1.seedAxes());  // For one-pass minimization, this would show starting seeds
       
       cout << "-------------------------------------------------------------------------------------" << endl;
+      
+      
+      
+      cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+      cout << "Subjets found using beta = 2.0 tau values" << endl;
+      PrintJets(nSub1_beta2.currentSubjets(),nSub1_beta2.currentTauComponents()); // these subjets have valid constituents
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintJets(nSub2_beta2.currentSubjets(),nSub2_beta2.currentTauComponents()); // these subjets have valid constituents
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintJets(nSub3_beta2.currentSubjets(),nSub3_beta2.currentTauComponents()); // these subjets have valid constituents
+      cout << "-------------------------------------------------------------------------------------" << endl;
+      
+      cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+      cout << "Axes used for above beta = 2.0 tau values" << endl;
+      
+      PrintJets(nSub1_beta2.currentAxes(),nSub1_beta2.currentTauComponents(),false);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintJets(nSub2_beta2.currentAxes(),nSub2_beta2.currentTauComponents(),false);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintJets(nSub3_beta2.currentAxes(),nSub3_beta2.currentTauComponents(),false);
+      cout << "-------------------------------------------------------------------------------------" << endl;
+      
+      
 
    }
 
@@ -260,166 +278,136 @@ void analyze(const vector<PseudoJet> & input_particles) {
    cout << "Using the XCone Jet Algorithm" << endl;
    cout << "-------------------------------------------------------------------------------------" << endl;
 
-   //create list of various values of beta
-   vector<double> betalist;
-   betalist.push_back(1.0);
-   betalist.push_back(2.0);
-   unsigned int n_betas = betalist.size();   
+   // Jet radius to use throughout
+   double R = 0.5;
 
-   for (unsigned iB = 0; iB < n_betas; iB++) {
+   // Define the jet finding plugins for beta = 1.0
+   double beta = 1.0;
    
-      double beta = betalist[iB];
+   // define the plugins
+   XConePlugin xcone_plugin2_beta1(2, R, beta);
+   XConePlugin xcone_plugin3_beta1(3, R, beta);
+   XConePlugin xcone_plugin4_beta1(4, R, beta);
+   
+   // and the jet definitions
+   JetDefinition xcone_jetDef2_beta1(&xcone_plugin2_beta1);
+   JetDefinition xcone_jetDef3_beta1(&xcone_plugin3_beta1);
+   JetDefinition xcone_jetDef4_beta1(&xcone_plugin4_beta1);
+   
+   // and the cluster sequences
+   ClusterSequence xcone_seq2_beta1(input_particles, xcone_jetDef2_beta1);
+   ClusterSequence xcone_seq3_beta1(input_particles, xcone_jetDef3_beta1);
+   ClusterSequence xcone_seq4_beta1(input_particles, xcone_jetDef4_beta1);
 
-      double Rcutoff = 0.5;
+   // and find the jets
+   vector<PseudoJet> xcone_jets2_beta1 = xcone_seq2_beta1.inclusive_jets();
+   vector<PseudoJet> xcone_jets3_beta1 = xcone_seq3_beta1.inclusive_jets();
+   vector<PseudoJet> xcone_jets4_beta1 = xcone_seq4_beta1.inclusive_jets();
 
-      // define the plugins
-      XConePlugin xcone_plugin2(2, Rcutoff, beta);
-      XConePlugin xcone_plugin3(3, Rcutoff, beta);
-      XConePlugin xcone_plugin4(4, Rcutoff, beta);
+   // Do exactly the same for beta = 2.0 (which is the default, so no argument needed)
+   
+   // define the plugins
+   XConePlugin xcone_plugin2_beta2(2, R);
+   XConePlugin xcone_plugin3_beta2(3, R);
+   XConePlugin xcone_plugin4_beta2(4, R);
+   
+   // and the jet definitions
+   JetDefinition xcone_jetDef2_beta2(&xcone_plugin2_beta2);
+   JetDefinition xcone_jetDef3_beta2(&xcone_plugin3_beta2);
+   JetDefinition xcone_jetDef4_beta2(&xcone_plugin4_beta2);
+   
+   // and the cluster sequences
+   ClusterSequence xcone_seq2_beta2(input_particles, xcone_jetDef2_beta2);
+   ClusterSequence xcone_seq3_beta2(input_particles, xcone_jetDef3_beta2);
+   ClusterSequence xcone_seq4_beta2(input_particles, xcone_jetDef4_beta2);
 
-      // and the jet definitions
-      JetDefinition xcone_jetDef2(&xcone_plugin2);
-      JetDefinition xcone_jetDef3(&xcone_plugin3);
-      JetDefinition xcone_jetDef4(&xcone_plugin4);
+   // and find the jets
+   vector<PseudoJet> xcone_jets2_beta2 = xcone_seq2_beta2.inclusive_jets();
+   vector<PseudoJet> xcone_jets3_beta2 = xcone_seq3_beta2.inclusive_jets();
+   vector<PseudoJet> xcone_jets4_beta2 = xcone_seq4_beta2.inclusive_jets();
+   
+   
+   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "Using beta = " << setprecision(2) << 1.0 << ", R = " << setprecision(2) << R << endl;
+   cout << "-------------------------------------------------------------------------------------" << endl;
 
-      // and the cluster sequences
-      ClusterSequence xcone_seq2(input_particles, xcone_jetDef2);
-      ClusterSequence xcone_seq3(input_particles, xcone_jetDef3);
-      ClusterSequence xcone_seq4(input_particles, xcone_jetDef4);
+   PrintXConeJets(xcone_jets2_beta1);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeJets(xcone_jets3_beta1);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeJets(xcone_jets4_beta1);
+   
+   // The axes might point in a different direction than the jets
+   // Using the njettiness_extras pointer (ClusterSequence::Extras) to access that information
+   vector<PseudoJet> xcone_axes2_beta1 = njettiness_extras(xcone_seq2_beta1)->axes();
+   vector<PseudoJet> xcone_axes3_beta1 = njettiness_extras(xcone_seq3_beta1)->axes();
+   vector<PseudoJet> xcone_axes4_beta1 = njettiness_extras(xcone_seq4_beta1)->axes();
+   
+   cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+   cout << "Axes Used for Above Jets" << endl;
+   
+   PrintXConeAxes(xcone_axes2_beta1);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeAxes(xcone_axes3_beta1);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeAxes(xcone_axes4_beta1);
 
-      // and associated extras for more information
-      const NjettinessExtras * extras2 = njettiness_extras(xcone_seq2);
-      const NjettinessExtras * extras3 = njettiness_extras(xcone_seq3);
-      const NjettinessExtras * extras4 = njettiness_extras(xcone_seq4);
-
-      // and find the jets
-      vector<PseudoJet> xcone_jets2 = xcone_seq2.inclusive_jets();
-      vector<PseudoJet> xcone_jets3 = xcone_seq3.inclusive_jets();
-      vector<PseudoJet> xcone_jets4 = xcone_seq4.inclusive_jets();
-
-      // (alternative way to find the jets)
-      //vector<PseudoJet> xcone_jets2 = extras2->jets();
-      //vector<PseudoJet> xcone_jets3 = extras3->jets();
-      //vector<PseudoJet> xcone_jets4 = extras4->jets();
-
-      cout << "-------------------------------------------------------------------------------------" << endl;
-      cout << "Using beta = " << setprecision(2) << beta << ", Rcut = " << setprecision(2) << Rcutoff << endl;
-      cout << "-------------------------------------------------------------------------------------" << endl;
-      // cout << measure_def.description() << ":" << endl;
-      // cout << axes_def.description() << ":" << endl;
-      
-      PrintXConeJets(xcone_jets2);
-      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintXConeJets(xcone_jets3);
-      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintXConeJets(xcone_jets4);
-
-      // The axes might point in a different direction than the jets
-      // Using the NjettinessExtras pointer (ClusterSequence::Extras) to access that information         
-      vector<PseudoJet> xcone_axes2 = extras2->axes();
-      vector<PseudoJet> xcone_axes3 = extras3->axes();
-      vector<PseudoJet> xcone_axes4 = extras4->axes();
-      
+   
+   
+   cout << "-------------------------------------------------------------------------------------" << endl;
+   cout << "Using beta = " << setprecision(2) << 2.0 << ", R = " << setprecision(2) << R << endl;
+   cout << "-------------------------------------------------------------------------------------" << endl;
+   
+   PrintXConeJets(xcone_jets2_beta2);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeJets(xcone_jets3_beta2);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeJets(xcone_jets4_beta2);
+   
+   // The axes might point in a different direction than the jets
+   // Using the njettiness_extras pointer (ClusterSequence::Extras) to access that information
+   vector<PseudoJet> xcone_axes2_beta2 = njettiness_extras(xcone_seq2_beta2)->axes();
+   vector<PseudoJet> xcone_axes3_beta2 = njettiness_extras(xcone_seq3_beta2)->axes();
+   vector<PseudoJet> xcone_axes4_beta2 = njettiness_extras(xcone_seq4_beta2)->axes();
+   
+   cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+   cout << "Axes Used for Above Jets" << endl;
+   
+   PrintXConeAxes(xcone_axes2_beta2);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeAxes(xcone_axes3_beta2);
+   cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+   PrintXConeAxes(xcone_axes4_beta2);
+   
+   
+   
+   bool calculateArea = false;
+   if (calculateArea) {
       cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
-      cout << "Axes Used for Above Jets" << endl;
+      cout << "Adding Area Information for beta = 2.0 (quite slow)" << endl;
       
-      PrintXConeAxes(xcone_axes2);
-      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintXConeAxes(xcone_axes3);
-      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-      PrintXConeAxes(xcone_axes4);
+      double ghost_maxrap = 5.0; // e.g. if particles go up to y=5
+      AreaDefinition area_def(active_area_explicit_ghosts, GhostedAreaSpec(ghost_maxrap));
       
-      bool calculateArea = false;
-      if (calculateArea) {
-         cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
-         cout << "Adding Area Information (quite slow)" << endl;
-         
-         double ghost_maxrap = 5.0; // e.g. if particles go up to y=5
-         AreaDefinition area_def(active_area_explicit_ghosts, GhostedAreaSpec(ghost_maxrap));
-         
-         // Defining cluster sequences with area
-         ClusterSequenceArea xcone_seq_area2(input_particles, xcone_jetDef2, area_def);
-         ClusterSequenceArea xcone_seq_area3(input_particles, xcone_jetDef3, area_def);
-         ClusterSequenceArea xcone_seq_area4(input_particles, xcone_jetDef4, area_def);
-         
-         vector<PseudoJet> xcone_jets_area2 = xcone_seq_area2.inclusive_jets();
-         vector<PseudoJet> xcone_jets_area3 = xcone_seq_area3.inclusive_jets();
-         vector<PseudoJet> xcone_jets_area4 = xcone_seq_area4.inclusive_jets();
-         
-         PrintXConeJets(xcone_jets_area2);
-         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-         PrintXConeJets(xcone_jets_area3);
-         cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-         PrintXConeJets(xcone_jets_area4);
-      }
+      // Defining cluster sequences with area
+      ClusterSequenceArea xcone_seq_area2(input_particles, xcone_jetDef2_beta2, area_def);
+      ClusterSequenceArea xcone_seq_area3(input_particles, xcone_jetDef3_beta2, area_def);
+      ClusterSequenceArea xcone_seq_area4(input_particles, xcone_jetDef4_beta2, area_def);
+      
+      vector<PseudoJet> xcone_jets_area2 = xcone_seq_area2.inclusive_jets();
+      vector<PseudoJet> xcone_jets_area3 = xcone_seq_area3.inclusive_jets();
+      vector<PseudoJet> xcone_jets_area4 = xcone_seq_area4.inclusive_jets();
+      
+      PrintXConeJets(xcone_jets_area2);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintXConeJets(xcone_jets_area3);
+      cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
+      PrintXConeJets(xcone_jets_area4);
    }
    
    cout << "-------------------------------------------------------------------------------------" << endl;
    cout << "Done Using the XCone Jet Algorithm" << endl;
    cout << "-------------------------------------------------------------------------------------" << endl;
-
-   
-   
-   
-   // Below are timing tests for the developers
-   double do_timing_test = false;
-   if (do_timing_test) {
-      
-      clock_t clock_begin, clock_end;
-      double num_iter;
-      
-      cout << setprecision(6);
-      
-      num_iter = 1000;
-      
-      double R0 = 0.5;
-      double beta = 2.0;
-      double N = 6;
-
-
-      // AKT
-      JetDefinition aktDef = JetDefinition(antikt_algorithm,R0,E_scheme,Best);
-      
-      // XC
-      XConePlugin xconePlugin(N, R0, beta);
-      JetDefinition xconeDef = JetDefinition(&xconePlugin);
-
-      // pXC
-      PseudoXConePlugin pseudoxconePlugin(N, R0, beta);
-      JetDefinition pseudoxconeDef = JetDefinition(&pseudoxconePlugin);
-      
-      //AKT
-      cout << "Timing for " << aktDef.description() << endl;
-      clock_begin = clock();
-      for (int t = 0; t < num_iter; t++) {
-         aktDef(input_particles);
-      }
-      clock_end = clock();
-      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per AKT"<< endl;
-
-      // XC
-      cout << "Timing for " << xconeDef.description() << endl;
-      clock_begin = clock();
-      for (int t = 0; t < num_iter; t++) {
-         xconeDef(input_particles);
-      }
-      clock_end = clock();
-      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per XCone"<< endl;
-
-      // pXC
-      cout << "Timing for " << pseudoxconePlugin.description() << endl;
-      clock_begin = clock();
-      for (int t = 0; t < num_iter; t++) {
-         pseudoxconeDef(input_particles);
-      }
-      clock_end = clock();
-      cout << (clock_end-clock_begin)/double(CLOCKS_PER_SEC*num_iter)*1000 << " ms per PseudoXCone"<< endl;
-
-      
-   }
-
-
-
 
 }
 
