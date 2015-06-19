@@ -510,8 +510,8 @@ public:
 
    /// true beam measure
    virtual double beam_numerator(const fastjet::PseudoJet& particle) const {
-      fastjet::PseudoJet beam_a(1,0,0,1);
-      fastjet::PseudoJet beam_b(-1,0,0,1);
+      fastjet::PseudoJet beam_a(0,0,1,1);
+      fastjet::PseudoJet beam_b(0,0,-1,1);
       double min_perp = std::min(dot_product(beam_a, particle),dot_product(beam_b, particle));
       return min_perp;
    }
