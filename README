@@ -29,11 +29,11 @@ New in v2.2 are new measures used in the XCone jet algorithm, described in:
    XCone: N-jettiness as an Exclusive Cone Jet Algorithm.
    Iain W. Stewart, Frank J. Tackmann, Jesse Thaler,
    Christopher K. Vermilion, and Thomas F. Wilkason.
-   arXiv:1506.xxxxx.
+   arXiv:150x.xxxxx.
 
    Resolving Boosted Jets with XCone.
    Jesse Thaler and Thomas F. Wilkason.
-   arXiv:1506.xxxxx.
+   arXiv:150x.xxxxx.
 
 --------------------------------------------------------------------------------
 Core Classes
@@ -238,47 +238,6 @@ For quark/gluon discrimination with N = 1, beta~0.2 with wta_kt_axes appears
 to be a good choice. 
 
 --------------------------------------------------------------------------------
-TauComponents  [MeasureDefinition.hh]
---------------------------------------------------------------------------------
-
-For most users, they will only need the value of N-subjettiness (i.e. tau)
-itself.  For advanced users, they can access individual tau components (i.e. 
-the individual numerator pieces, the denominator, etc.)  
-
-   TauComponents tauComp = nSub.component_result(jet);
-   vector<double> numer = tauComp.jet_pieces_numerator(); //tau for each subjet
-   double denom = tauComp.denominator();  //normalization factor
-
---------------------------------------------------------------------------------
-WinnerTakeAllRecombiner  [WinnerTakeAllRecombiner.hh]
---------------------------------------------------------------------------------
-
-New in v2.0 are winner-take-all axes.  (These have now been included in 
-FastJet 3.1, but we have left the code here to allow the plugin to work under
-FJ 3.0).  These axes are found with the help of the WinnerTakeAllRecombiner.
-This class defines a new recombination scheme for clustering particles. This
-scheme recombines two PseudoJets into a PseudoJet with pT of the sum of the two
-input PseudoJet pTs and direction of the harder PseudoJet.  This is a
-"recoil-free" recombination scheme that guarantees that the axes is aligned with
-one of the input particles. It is IRC safe.  Axes found with the standard
-E-scheme recombiner at similar to the beta = 2 minimization, while
-winner-take-all is similar to the beta = 1 measure.
-
-New in v2.2 is the GeneralEtSchemeRecombiner, as defined in arxiv:1506.XXXX. This
-functions similarly to the Et-scheme defined in Fastjet, but the reweighting of the
-sum of rap and phi is parameterized by an exponent delta. Thus, delta = 1 is the normal
-Et-scheme recombination, delta = 2 is Et^2 recombination, and delta = infinity
-is the winner-take-all recombination. This recombination scheme is used in
-GenET_GenKT_Axes, and we find that optimal seed axes for minimization can be found
-by using delta = 1/(beta - 1). 
-
-Note that the WinnerTakeAllRecombiner can be used outside of Nsubjettiness
-itself for jet finding.  For example, the direction of anti-kT jets found
-with the WinnerTakeAllRecombiner is particularly robust against soft jet
-contamination.  That said, this functionality is now included in FJ 3.1, so this
-code is likely to be deprecated in a future version.
-
---------------------------------------------------------------------------------
 XConePlugin  [XConePlugin.hh]
 --------------------------------------------------------------------------------
 
@@ -330,6 +289,47 @@ one can use Njettiness.hh directly. This class is in constant evolution, so
 users who wish to extend its functionality should contact the authors first.
 
 --------------------------------------------------------------------------------
+TauComponents  [MeasureDefinition.hh]
+--------------------------------------------------------------------------------
+
+For most users, they will only need the value of N-subjettiness (i.e. tau)
+itself.  For advanced users, they can access individual tau components (i.e. 
+the individual numerator pieces, the denominator, etc.)  
+
+   TauComponents tauComp = nSub.component_result(jet);
+   vector<double> numer = tauComp.jet_pieces_numerator(); //tau for each subjet
+   double denom = tauComp.denominator();  //normalization factor
+
+--------------------------------------------------------------------------------
+WinnerTakeAllRecombiner  [WinnerTakeAllRecombiner.hh]
+--------------------------------------------------------------------------------
+
+New in v2.0 are winner-take-all axes.  (These have now been included in 
+FastJet 3.1, but we have left the code here to allow the plugin to work under
+FJ 3.0).  These axes are found with the help of the WinnerTakeAllRecombiner.
+This class defines a new recombination scheme for clustering particles. This
+scheme recombines two PseudoJets into a PseudoJet with pT of the sum of the two
+input PseudoJet pTs and direction of the harder PseudoJet.  This is a
+"recoil-free" recombination scheme that guarantees that the axes is aligned with
+one of the input particles. It is IRC safe.  Axes found with the standard
+E-scheme recombiner at similar to the beta = 2 minimization, while
+winner-take-all is similar to the beta = 1 measure.
+
+New in v2.2 is the GeneralEtSchemeRecombiner, as defined in arxiv:1506.XXXX. This
+functions similarly to the Et-scheme defined in Fastjet, but the reweighting of the
+sum of rap and phi is parameterized by an exponent delta. Thus, delta = 1 is the normal
+Et-scheme recombination, delta = 2 is Et^2 recombination, and delta = infinity
+is the winner-take-all recombination. This recombination scheme is used in
+GenET_GenKT_Axes, and we find that optimal seed axes for minimization can be found
+by using delta = 1/(beta - 1). 
+
+Note that the WinnerTakeAllRecombiner can be used outside of Nsubjettiness
+itself for jet finding.  For example, the direction of anti-kT jets found
+with the WinnerTakeAllRecombiner is particularly robust against soft jet
+contamination.  That said, this functionality is now included in FJ 3.1, so this
+code is likely to be deprecated in a future version.
+
+--------------------------------------------------------------------------------
 Technical Details
 --------------------------------------------------------------------------------
 
@@ -366,7 +366,7 @@ Known Issues
 
 -- The MultiPass_Axes mode gives different answers on different runs, since
    random numbers are used.
--- For the default meausres, in rare cases, one pass minimization can give a 
+-- For the default measures, in rare cases, one pass minimization can give a 
    larger value of Njettiness than without minimization. The reason is due 
    to the fact that axes in default measure are not defined as light-like
 -- Nsubjettiness is not thread safe, since there are mutables in Njettiness.
