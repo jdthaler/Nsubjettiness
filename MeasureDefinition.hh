@@ -271,7 +271,11 @@ protected:
    /// Constructor is protected so that no one tries to call this directly.
    DefaultMeasure(double beta, double R0, double Rcutoff, DefaultMeasureType measure_type = pt_R)
    : MeasureDefinition(), _beta(beta), _R0(R0), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)), _measure_type(measure_type)
-   {}
+   {
+      if (beta <= 0) throw Error("DefaultMeasure:  You must choose beta > 0.");
+      if (R0 <= 0) throw Error("DefaultMeasure:  You must choose R0 > 0.");
+      if (Rcutoff <= 0) throw Error("DefaultMeasure:  You must choose Rcutoff > 0.");
+   }
    
    /// Added set measure method in case it becomes useful later
    void setDefaultMeasureType(DefaultMeasureType measure_type) {
@@ -424,6 +428,8 @@ public:
    /// Constructor
    ConicalMeasure(double beta, double Rcutoff)
    :   MeasureDefinition(), _beta(beta), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      if (beta <= 0) throw Error("ConicalMeasure:  You must choose beta > 0.");
+      if (Rcutoff <= 0) throw Error("ConicalMeasure:  You must choose Rcutoff > 0.");
       setTauMode(UNNORMALIZED_EVENT_SHAPE);
    }
    
@@ -490,11 +496,11 @@ class OriginalGeometricMeasure : public MeasureDefinition {
 public:
    /// Constructor
    OriginalGeometricMeasure(double Rcutoff)
-   :   MeasureDefinition(),
-     _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
-         setTauMode(UNNORMALIZED_EVENT_SHAPE);
-         setAxisScaling(false);  // No need to rescale axes (for speed up in one-pass minimization)
-      }
+   : MeasureDefinition(), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      if (Rcutoff <= 0) throw Error("OriginalGeometricMeasure:  You must choose Rcutoff > 0.");
+      setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      setAxisScaling(false);  // No need to rescale axes (for speed up in one-pass minimization)
+   }
 
    /// Description
    virtual std::string description() const;
@@ -541,11 +547,11 @@ class ModifiedGeometricMeasure : public MeasureDefinition {
 public:
    /// Constructor
    ModifiedGeometricMeasure(double Rcutoff)
-   :   MeasureDefinition(),
-     _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
-         setTauMode(UNNORMALIZED_EVENT_SHAPE);
-         setAxisScaling(false);  // No need to rescale axes (for speed up in one-pass minimization)
-      }
+   :  MeasureDefinition(), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)) {
+      if (Rcutoff <= 0) throw Error("ModifiedGeometricMeasure:  You must choose Rcutoff > 0.");
+      setTauMode(UNNORMALIZED_EVENT_SHAPE);
+      setAxisScaling(false);  // No need to rescale axes (for speed up in one-pass minimization)
+   }
 
    /// Description
    virtual std::string description() const;
@@ -591,10 +597,12 @@ public:
    
    /// Constructor
    ConicalGeometricMeasure(double jet_beta, double beam_gamma, double Rcutoff)
-   :   MeasureDefinition(),
-      _jet_beta(jet_beta), _beam_gamma(beam_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)){
-         setTauMode(UNNORMALIZED_EVENT_SHAPE);
-      }
+   :  MeasureDefinition(),  _jet_beta(jet_beta), _beam_gamma(beam_gamma), _Rcutoff(Rcutoff), _RcutoffSq(sq(Rcutoff)){
+      if (jet_beta <= 0)   throw Error("ConicalGeometricMeasure:  You must choose beta > 0.");
+      if (beam_gamma <= 0) throw Error("ConicalGeometricMeasure:  You must choose gamma > 0.");
+      if (Rcutoff <= 0)   throw Error("ConicalGeometricMeasure:  You must choose Rcutoff > 0.");
+      setTauMode(UNNORMALIZED_EVENT_SHAPE);
+   }
 
    /// Description
    virtual std::string description() const;

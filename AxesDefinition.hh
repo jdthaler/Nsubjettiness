@@ -27,7 +27,7 @@
 
 
 #include "MeasureDefinition.hh"
-#include "WinnerTakeAllRecombiner.hh"
+#include "ExtraRecombiners.hh"
 
 #include "fastjet/PseudoJet.hh"
 #include <fastjet/LimitedWarning.hh>
@@ -47,8 +47,9 @@ class CA_Axes;
 class AntiKT_Axes;         // (R0)
 class WTA_KT_Axes;
 class WTA_CA_Axes;
-class WTA_GenKT_Axes;      // (p, R0)
-class GenET_GenKT_Axes;    // (delta, p, R0)
+class GenKT_Axes;          // (p, R0 = infinity)
+class WTA_GenKT_Axes;      // (p, R0 = infinity)
+class GenET_GenKT_Axes;    // (delta, p, R0 = infinity)
 class Manual_Axes;
    
 class OnePass_KT_Axes;
@@ -56,15 +57,17 @@ class OnePass_CA_Axes;
 class OnePass_AntiKT_Axes;       // (R0)
 class OnePass_WTA_KT_Axes;
 class OnePass_WTA_CA_Axes;
-class OnePass_WTA_GenKT_Axes;    // (p, R0)
-class OnePass_GenET_GenKT_Axes;  // (delta, p, R0)
+class OnePass_GenKT_Axes;        // (p, R0 = infinity)
+class OnePass_WTA_GenKT_Axes;    // (p, R0 = infinity)
+class OnePass_GenET_GenKT_Axes;  // (delta, p, R0 = infinity)
 class OnePass_Manual_Axes;
    
 class MultiPass_Axes;            // (NPass) (currently only defined for KT_Axes)
 class MultiPass_Manual_Axes;     // (NPass)
 
-class Comb_WTA_GenKT_Axes;       // (p, R0, nExtra)
-class Comb_GenET_GenKT_Axes;     // (delta, p, R0, nExtra)
+class Comb_GenKT_Axes;           // (nExtra, p, R0 = infinity)
+class Comb_WTA_GenKT_Axes;       // (nExtra, p, R0 = infinity)
+class Comb_GenET_GenKT_Axes;     // (nExtra, delta, p, R0 = infinity)
 
 ///////
 //
@@ -343,6 +346,11 @@ public:
                                                              const MeasureDefinition * ) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
       std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
+      
+      if (myJets.size() < n_jets) {
+         _too_few_axes_warning.warn("HardestJetAxes::get_starting_axes:  Fewer than N axes found; results are unpredicatable.");
+      }
+      
       myJets.resize(n_jets);  // only keep n hardest
       return myJets;
    }
@@ -356,6 +364,9 @@ public:
    
 private:
    fastjet::JetDefinition _def;  ///< Jet Definition to use.
+   
+   static LimitedWarning _too_few_axes_warning;
+
 };
    
 ///------------------------------------------------------------------------
@@ -587,6 +598,50 @@ private:
 
 
 ///------------------------------------------------------------------------
+/// \class GenKT_Axes
+/// \brief Axes from exclusive generalized kT
+///
+/// Axes from a general KT algorithm (standard E-scheme recombination)
+/// Requires the power of the KT algorithm to be used and the radius parameter
+///------------------------------------------------------------------------
+class GenKT_Axes : public ExclusiveJetAxes {
+   
+public:
+   /// Constructor
+   GenKT_Axes(double p, double R0 = fastjet::JetDefinition::max_allowable_R)
+   : ExclusiveJetAxes(fastjet::JetDefinition(fastjet::genkt_algorithm,
+                                             R0,
+                                             p)), _p(p), _R0(R0) {
+      if (p < 0) throw Error("GenKT_Axes:  Currently only p >=0 is supported.");
+      setNPass(NO_REFINING);
+   }
+   
+   /// Short description
+   virtual std::string short_description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "GenKT Axes";
+      return stream.str();
+   };
+   
+   /// Long descriptions
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "General KT (p = " << _p << "), R0 = " << _R0;
+      return stream.str();
+   };
+   
+   /// For copying purposes
+   virtual GenKT_Axes* create() const {return new GenKT_Axes(*this);}
+   
+protected:
+   double _p;   ///< genkT power
+   double _R0;  ///< jet radius
+};
+   
+   
+///------------------------------------------------------------------------
 /// \class WTA_GenKT_Axes
 /// \brief Axes from exclusive generalized kT, winner-take-all recombination
 ///
@@ -603,8 +658,9 @@ public:
                                             p,
                                             _recomb = new WinnerTakeAllRecombiner()
                                             ).getJetDef()), _p(p), _R0(R0) {
-        setNPass(NO_REFINING);
-    }
+      if (p < 0) throw Error("WTA_GenKT_Axes:  Currently only p >=0 is supported.");
+      setNPass(NO_REFINING);
+   }
 
    /// Short description
    virtual std::string short_description() const {
@@ -645,8 +701,10 @@ public:
    GenET_GenKT_Axes(double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralEtSchemeRecombiner(delta))).getJetDef() ),
     _delta(delta), _p(p), _R0(R0) {
-        setNPass(NO_REFINING);
-    }
+       if (p < 0) throw Error("GenET_GenKT_Axes:  Currently only p >=0 is supported.");
+       if (delta <= 0) throw Error("GenET_GenKT_Axes:  Currently only delta >=0 is supported.");
+       setNPass(NO_REFINING);
+   }
 
    /// Short description
    virtual std::string short_description() const {
@@ -840,6 +898,37 @@ public:
    
 };
 
+///------------------------------------------------------------------------
+/// \class OnePass_GenKT_Axes
+/// \brief Axes from exclusive generalized kT with one-pass minimization
+///
+/// Onepass minimization, General KT Axes (standard E-scheme recombination)
+///------------------------------------------------------------------------
+class OnePass_GenKT_Axes : public GenKT_Axes {
+   
+public:
+   /// Constructor
+   OnePass_GenKT_Axes(double p, double R0 = fastjet::JetDefinition::max_allowable_R) : GenKT_Axes(p, R0) {
+      setNPass(ONE_PASS);
+   }
+   
+   /// Short description
+   virtual std::string short_description() const {
+      return "OnePass GenKT";
+   };
+   
+   /// Long description
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "One-Pass Minimization from General KT (p = " << _p << "), R0 = " << _R0;
+      return stream.str();
+   };
+   
+   /// For copying purposes
+   virtual OnePass_GenKT_Axes* create() const {return new OnePass_GenKT_Axes(*this);}
+};
+   
 ///------------------------------------------------------------------------
 /// \class OnePass_WTA_GenKT_Axes
 /// \brief Axes from exclusive generalized kT, winner-take-all recombination, with one-pass minimization
@@ -1041,6 +1130,47 @@ public:
    
 };
 
+///------------------------------------------------------------------------
+/// \class Comb_GenKT_Axes
+/// \brief Axes from exclusive generalized kT with combinatorial testing
+///
+/// Axes from kT algorithm (standard E-scheme recombination)
+/// Requires nExtra parameter and returns set of N that minimizes N-jettiness
+/// Note that this method is not guaranteed to find a deeper minimum than GenKT_Axes
+///------------------------------------------------------------------------
+class Comb_GenKT_Axes : public ExclusiveCombinatorialJetAxes {
+public:
+   /// Constructor
+   Comb_GenKT_Axes(int nExtra, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
+   : ExclusiveCombinatorialJetAxes(fastjet::JetDefinition(fastjet::genkt_algorithm, R0, p), nExtra),
+      _p(p), _R0(R0) {
+      if (p < 0) throw Error("Comb_GenKT_Axes:  Currently only p >=0 is supported.");
+      setNPass(NO_REFINING);
+   }
+   
+   /// Short description
+   virtual std::string short_description() const {
+      return "N Choose M GenKT";
+   };
+   
+   /// Long description
+   virtual std::string description() const {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2)
+      << "N Choose M Minimization (nExtra = " << _nExtra << ") from General KT (p = " << _p << "), R0 = " << _R0;
+      return stream.str();
+   };
+   
+   /// For copying purposes
+   virtual Comb_GenKT_Axes* create() const {return new Comb_GenKT_Axes(*this);}
+   
+private:
+   double _nExtra;   ///< Number of extra axes
+   double _p;        ///< GenkT power
+   double _R0;       ///< jet radius
+};
+   
+   
 
 ///------------------------------------------------------------------------
 /// \class Comb_WTA_GenKT_Axes
@@ -1055,7 +1185,8 @@ public:
    Comb_WTA_GenKT_Axes(int nExtra, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new WinnerTakeAllRecombiner())).getJetDef(), nExtra),
     _p(p), _R0(R0) {
-        setNPass(NO_REFINING);
+       if (p < 0) throw Error("Comb_WTA_GenKT_Axes:  Currently only p >=0 is supported.");
+       setNPass(NO_REFINING);
     }
 
    /// Short description
@@ -1094,6 +1225,8 @@ public:
    Comb_GenET_GenKT_Axes(int nExtra, double delta, double p, double R0 = fastjet::JetDefinition::max_allowable_R)
    : ExclusiveCombinatorialJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralEtSchemeRecombiner(delta))).getJetDef(), nExtra),
     _delta(delta), _p(p), _R0(R0) {
+       if (p < 0) throw Error("Comb_GenET_GenKT_Axes:  Currently only p >=0 is supported.");
+       if (delta <= 0) throw Error("Comb_GenET_GenKT_Axes:  Currently only delta >=0 is supported.");
         setNPass(NO_REFINING);
     }
 

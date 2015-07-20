@@ -105,18 +105,22 @@ the option to use the "winner-take-all" recombination scheme:
     WTA_CA_Axes      // exclusive ca with winner-take-all recombination
 
 New in v2.2 are generalized recombination/clustering schemes:
-    GenET_GenKT_Axes(delta, p, R0)
-    WTA_GenKT_Axes(p, R0)
-Here, delta labels the generalized ET recombination scheme (delta = 1 for
+    GenET_GenKT_Axes(delta, p, R0 = inf)
+    WTA_GenKT_Axes(p, R0 = inf)
+    GenKT_Axes(p, R0 = inf)
+Here, delta > 0 labels the generalized ET recombination scheme (delta = 1 for
 standard ET scheme, delta = 2 for ET^2 scheme, delta = infinity for WTA scheme)
-p labels the generalized KT clustering metric (p = 0 for ca, p = 1 for kt),
-R0 is the radius parameter, and the clustering is run in exclusive mode.
+p >= 0 labels the generalized KT clustering metric (p = 0 for ca, p = 1 for kt),
+R0 is the radius parameter, and the clustering is run in exclusive mode.  The
+GenKT_Axes mode uses standard E-scheme recombination.  By default the value of
+R0 is set to "infinity", namely fastjet::JetDefinition::max_allowable_R.
 
 Also new in v2.2 is option of identifying nExtra axes through exclusive
 clustering and then looking at all (N + nExtra) choose N axes and finding the 
 one that gives the smallest N-(sub)jettiness value:
-    Comb_GenET_GenKT_Axes(delta, p, R0, nExtra)
-    Comb_WTA_GenKT_Axes(p, R0, nExtra)
+    Comb_GenET_GenKT_Axes(nExtra, delta, p, R0 = inf)
+    Comb_WTA_GenKT_Axes(nExtra, p, R0 = inf)
+    Comb_GenKT_Axes(nExtra, p, R0 = inf)
 These modes are not recommended for reasons of speed.
 
 Starting from any set of seed axes, one can run a minimization routine to find
@@ -127,11 +131,12 @@ routine is tied to the choice of MeasureDefinition.
     OnePass_AntiKT(R0)       // one-pass min. from antikt starting point,R0=rad
 (*) OnePass_WTA_KT_Axes      // one-pass min. from wta_kt starting point
     OnePass_WTA_CA_Axes      // one-pass min. from wta_ca starting point
-    OnePass_GenET_GenKT_Axes(delta, p, R0) // one-pass min. from GenET/KT
-    OnePass_WTA_GenKT_Axes(p, R0)          // one-pass min from WTA/GenKT
+    OnePass_GenET_GenKT_Axes(delta, p, R0 = inf) // one-pass min. from GenET/KT
+    OnePass_WTA_GenKT_Axes(p, R0 = inf)          // one-pass min from WTA/GenKT
+    OnePass_GenKT_Axes(p, R0 = inf)              // one-pass min from GenKT
 
-For one-pass minimization, Onepass_CA_Axes and OnePass_WTA_CA_Axes are not recommended
-as they provide a poor choice of seed axes.
+For one-pass minimization, OnePass_CA_Axes and OnePass_WTA_CA_Axes are not
+recommended as they provide a poor choice of seed axes.
 
 In general, it is difficult to find the global minimum, but this mode attempts
 to do so:
@@ -257,11 +262,11 @@ inclusive_jets() call.
 
 The AxesDefinition and MeasureDefinition are defaulted in this measure to 
 OnePass_GenET_GenKT_Axes and XConeMeasure, respectively. The parameters chosen 
-for the OnePass_GenET_GenKT_Axes are defined according to the chosen value of beta
-as delta = 1/(beta - 1) and p = 1/beta. These have been shown to give the optimal
-choice of seed axes. The R value for finding the axes is chosen to be the same
-as the R for the jet algorithm, although in principle, these two radii could be 
-different. 
+for the OnePass_GenET_GenKT_Axes are defined according to the chosen value of
+beta as delta = 1/(beta - 1) and p = 1/beta. These have been shown to give the
+optimal choice of seed axes. The R value for finding the axes is chosen to be
+the same as the R for the jet algorithm, although in principle, these two radii
+could be different. 
 
 N.B.:  The order of the R, beta arguments is *reversed* from the XConeMeasure
 itself, since this ordering is the more natural one to use for Plugins.  We
@@ -301,7 +306,7 @@ the individual numerator pieces, the denominator, etc.)
    double denom = tauComp.denominator();  //normalization factor
 
 --------------------------------------------------------------------------------
-WinnerTakeAllRecombiner  [WinnerTakeAllRecombiner.hh]
+Extra Recombiners  [ExtraRecombiners.hh]
 --------------------------------------------------------------------------------
 
 New in v2.0 are winner-take-all axes.  (These have now been included in 
@@ -315,13 +320,13 @@ one of the input particles. It is IRC safe.  Axes found with the standard
 E-scheme recombiner at similar to the beta = 2 minimization, while
 winner-take-all is similar to the beta = 1 measure.
 
-New in v2.2 is the GeneralEtSchemeRecombiner, as defined in arxiv:1506.XXXX. This
-functions similarly to the Et-scheme defined in Fastjet, but the reweighting of the
-sum of rap and phi is parameterized by an exponent delta. Thus, delta = 1 is the normal
-Et-scheme recombination, delta = 2 is Et^2 recombination, and delta = infinity
-is the winner-take-all recombination. This recombination scheme is used in
-GenET_GenKT_Axes, and we find that optimal seed axes for minimization can be found
-by using delta = 1/(beta - 1). 
+New in v2.2 is the GeneralEtSchemeRecombiner, as defined in arxiv:1506.XXXX.
+This functions similarly to the Et-scheme defined in Fastjet, but the reweighting
+of the sum of rap and phi is parameterized by an exponent delta. Thus, delta = 1
+is the normal Et-scheme recombination, delta = 2 is Et^2 recombination, and
+delta = infinity is the winner-take-all recombination. This recombination scheme
+is used in GenET_GenKT_Axes, and we find that optimal seed axes for minimization
+can be found by using delta = 1/(beta - 1). 
 
 Note that the WinnerTakeAllRecombiner can be used outside of Nsubjettiness
 itself for jet finding.  For example, the direction of anti-kT jets found

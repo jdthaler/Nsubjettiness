@@ -1,3 +1,9 @@
+2015-07-20 <jthaler>
+   Renamed WinnerTakeAllRecombiner.hh/cc to ExtraRecombiners.hh/cc
+   Added _too_few_axes_warning to HardestJetAxes
+   Added GenKT_Axes and OnePass_GenKT_Axes and Comb_GenKT_Axes (using E-scheme recombination).
+   Added warning about p < 0 or delta <=0 in GenKT axes finders.
+   Added warning about beta <= 0 in all measures.
 2015-07-10 <jthaler>
    Putting in small tweaks in documentation to get ready for 2.2 release candidate 1.
 2015-06-15 <jthaler>

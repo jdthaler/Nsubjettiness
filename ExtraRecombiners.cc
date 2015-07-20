@@ -22,7 +22,7 @@
 // along with this code. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------
 
-#include "WinnerTakeAllRecombiner.hh"
+#include "ExtraRecombiners.hh"
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
