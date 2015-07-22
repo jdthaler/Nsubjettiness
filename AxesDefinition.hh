@@ -283,33 +283,34 @@ public:
       if (_nExtra == 0) final_axes = starting_axes;
 
       else {
-
-        // create vector of ascending numbers to easily permute
-        std::vector<int> index_vector(starting_number);
-        for (int i = 0; i < starting_number; i++) {index_vector[i] = i;}
-
+ 
+        // define string of 1's based on number of desired jets
+        std::string bitmask(n_jets, 1);
+        // expand the array size to the total number of jets with extra 0's at the end, makes string easy to permute
+        bitmask.resize(starting_number, 0); 
+ 
         double min_tau = std::numeric_limits<double>::max();
         std::vector<fastjet::PseudoJet> temp_axes;
-        
+         
         do {
+
           temp_axes.clear();
-
-          // take the first n_jet axes in the permuted vector
-          for (int i = 0; i < n_jets; ++i) {
-            temp_axes.push_back(starting_axes[index_vector[i]]);
+ 
+          // only take an axis if it is listed as true (1) in the string
+          for (int i = 0; i < (int)starting_axes.size(); ++i) {
+            if (bitmask[i]) temp_axes.push_back(starting_axes[i]);
           }
-
+ 
           double temp_tau = measure->result(inputs, temp_axes);
           if (temp_tau < min_tau) {
             min_tau = temp_tau;
             final_axes = temp_axes;
           }
-
-          // permutes string of integers according to next lexicographic ordering and returns true
+ 
+          // permutes string of 1's and 0's according to next lexicographic ordering and returns true
           // continues to loop through all possible lexicographic orderings
           // returns false and breaks the loop when there are no more possible orderings
-
-        } while (std::next_permutation(index_vector.begin(), index_vector.end()));
+        } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
       }
 
       return final_axes;
