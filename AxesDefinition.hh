@@ -234,7 +234,15 @@ public:
                                                              const std::vector <fastjet::PseudoJet> & inputs,
                                                              const MeasureDefinition * ) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
-      return jet_clust_seq.exclusive_jets(n_jets);
+      
+      std::vector<fastjet::PseudoJet> axes = jet_clust_seq.exclusive_jets_up_to(n_jets);
+      
+      if ((int)axes.size() < n_jets) {
+         _too_few_axes_warning.warn("ExclusiveJetAxes::get_starting_axes:  Fewer than N axes found; results are unpredictable.");
+         axes.resize(n_jets);  // resize to make sure there are enough axes to not yield an error elsewhere
+      }
+      
+      return axes;
    }
    
    /// Short description
@@ -247,7 +255,7 @@ public:
 
 private:
    fastjet::JetDefinition _def; ///< Jet definition to use.
-   
+   static LimitedWarning _too_few_axes_warning;
 };
 
 ///------------------------------------------------------------------------
@@ -275,8 +283,13 @@ public:
                                                            const MeasureDefinition *measure) const {
       int starting_number = n_jets + _nExtra;
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
-      std::vector<fastjet::PseudoJet> starting_axes = jet_clust_seq.exclusive_jets(starting_number);
-
+      std::vector<fastjet::PseudoJet> starting_axes = jet_clust_seq.exclusive_jets_up_to(starting_number);
+       
+       if ((int)starting_axes.size() < n_jets) {
+          _too_few_axes_warning.warn("ExclusiveCombinatorialJetAxes::get_starting_axes:  Fewer than N + nExtra axes found; results are unpredictable.");
+          starting_axes.resize(n_jets);  // resize to make sure there are enough axes to not yield an error elsewhere
+       }
+       
       std::vector<fastjet::PseudoJet> final_axes;
 
       // check so that no computation time is wasted if there are no extra axes
@@ -326,6 +339,7 @@ public:
 private:
    fastjet::JetDefinition _def;   ///< Jet definition to use
    int _nExtra;                   ///< Extra axes to find
+   static LimitedWarning _too_few_axes_warning;
 };
    
 ///------------------------------------------------------------------------
@@ -348,14 +362,14 @@ public:
                                                              const std::vector <fastjet::PseudoJet> & inputs,
                                                              const MeasureDefinition * ) const {
       fastjet::ClusterSequence jet_clust_seq(inputs, _def);
-      std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
+      std::vector<fastjet::PseudoJet> axes = sorted_by_pt(jet_clust_seq.inclusive_jets());
       
-      if ((int)myJets.size() < n_jets) {
-         _too_few_axes_warning.warn("HardestJetAxes::get_starting_axes:  Fewer than N axes found; results are unpredicatable.");
+      if ((int)axes.size() < n_jets) {
+         _too_few_axes_warning.warn("HardestJetAxes::get_starting_axes:  Fewer than N axes found; results are unpredictable.");
       }
       
-      myJets.resize(n_jets);  // only keep n hardest
-      return myJets;
+      axes.resize(n_jets);  // only keep n hardest
+      return axes;
    }
    
    /// Short description
@@ -705,7 +719,7 @@ public:
    : ExclusiveJetAxes((JetDefinitionWrapper(fastjet::genkt_algorithm, R0, p, _recomb = new GeneralEtSchemeRecombiner(delta))).getJetDef() ),
     _delta(delta), _p(p), _R0(R0) {
        if (p < 0) throw Error("GenET_GenKT_Axes:  Currently only p >=0 is supported.");
-       if (delta <= 0) throw Error("GenET_GenKT_Axes:  Currently only delta >=0 is supported.");
+       if (delta <= 0) throw Error("GenET_GenKT_Axes:  Currently only delta >0 is supported.");
        setNPass(NO_REFINING);
    }
 

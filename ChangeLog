@@ -1,3 +1,7 @@
+2015-07-23 <jthaler>
+   Fixed typo in GenET_GenKT_Axes error message
+   Added _too_few_axes_warning to ExclusiveJetAxes and ExclusiveCombinatorialJetAxes
+   Switched to ../data/single_event_ee.dat for make check
 2015-07-20 <jthaler>
    Renamed WinnerTakeAllRecombiner.hh/cc to ExtraRecombiners.hh/cc
    Added _too_few_axes_warning to HardestJetAxes

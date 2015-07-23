@@ -60,7 +60,7 @@ check: examples
 	  $(check_script) $${prog} ../data/single-event.dat || exit 1; \
 	done
 	@for prog in $(EXAMPLES2); do\
-	  $(check_script) $${prog} single-ee-event.dat || exit 1; \
+	  $(check_script) $${prog} ../data/single-ee-event.dat || exit 1; \
 	done
 	@echo "All tests successful"
 

@@ -375,6 +375,10 @@ Known Issues
    larger value of Njettiness than without minimization. The reason is due 
    to the fact that axes in default measure are not defined as light-like
 -- Nsubjettiness is not thread safe, since there are mutables in Njettiness.
+-- If the AxesDefinition does not find N axes, then it adds zero vectors to the
+   list of axes to get the total up to N.  This can lead to unpredictable
+   results (including divide by zero issues), and a warning is thrown to alert
+   the user.
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

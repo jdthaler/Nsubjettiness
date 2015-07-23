@@ -78,7 +78,8 @@ PseudoJet AxesDefinition::jiggle(const PseudoJet& axis) const {
 
    
 LimitedWarning HardestJetAxes::_too_few_axes_warning;
-
+LimitedWarning ExclusiveJetAxes::_too_few_axes_warning;
+LimitedWarning ExclusiveCombinatorialJetAxes::_too_few_axes_warning;
 
 std::vector<fastjet::PseudoJet> Manual_Axes::get_starting_axes(int,
                                                                const std::vector<fastjet::PseudoJet>&,
