@@ -29,11 +29,11 @@ New in v2.2 are new measures used in the XCone jet algorithm, described in:
    XCone: N-jettiness as an Exclusive Cone Jet Algorithm.
    Iain W. Stewart, Frank J. Tackmann, Jesse Thaler,
    Christopher K. Vermilion, and Thomas F. Wilkason.
-   arXiv:150x.xxxxx.
+   arXiv:1508.01516.
 
    Resolving Boosted Jets with XCone.
    Jesse Thaler and Thomas F. Wilkason.
-   arXiv:150x.xxxxx.
+   arXiv:1508.01518.
 
 --------------------------------------------------------------------------------
 Core Classes
@@ -190,7 +190,7 @@ E_theta distance measure recommended for ee collisions.  There are also
 lorentz_dot and perp_lorentz_dot distance measures recommended only for
 advanced users.
 
-New for v2.2 is a set of measures defined in arXiv:1506.xxxxx.  First, there is
+New for v2.2 is a set of measures defined in arXiv:1508.01516.  First, there is
 the "conical measure":
 
     ConicalMeasure(beta,R0) // same jets as UnnormalizedCutoffMeasure
