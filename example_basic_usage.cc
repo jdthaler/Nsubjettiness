@@ -63,7 +63,6 @@ int main(){
 
   //----------------------------------------------------------
   // illustrate how Nsubjettiness contrib works
-
   analyze(event);
 
   return 0;
@@ -114,10 +113,12 @@ void analyze(const vector<PseudoJet> & input_particles) {
    vector<PseudoJet> antikt_jets  = sorted_by_pt(clust_seq.inclusive_jets());
    
    for (int j = 0; j < 2; j++) { // Two hardest jets per event
-      if (antikt_jets[j].perp() < 200) continue;
-      
 
-      vector<PseudoJet> jet_constituents = clust_seq.constituents(antikt_jets[j]);
+      // get the jet for analysis
+      PseudoJet this_jet = antikt_jets[j];
+      
+      // only look at if harder than 200 GeV
+      if (this_jet.perp() < 200.0) continue;
       
       cout << "-------------------------------------------------------------------------------------" << endl;
       cout << "Analyzing Jet " << j + 1 << ":" << endl;
@@ -170,11 +171,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
       NsubjettinessRatio   nSub32_beta1(3,2, OnePass_WTA_KT_Axes(), UnnormalizedMeasure(beta));
       
       // calculate Nsubjettiness values (beta = 1.0)
-      double  tau1_beta1 =  nSub1_beta1(antikt_jets[j]);
-      double  tau2_beta1 =  nSub2_beta1(antikt_jets[j]);
-      double  tau3_beta1 =  nSub3_beta1(antikt_jets[j]);
-      double tau21_beta1 = nSub21_beta1(antikt_jets[j]);
-      double tau32_beta1 = nSub32_beta1(antikt_jets[j]);
+      double  tau1_beta1 =  nSub1_beta1(this_jet);
+      double  tau2_beta1 =  nSub2_beta1(this_jet);
+      double  tau3_beta1 =  nSub3_beta1(this_jet);
+      double tau21_beta1 = nSub21_beta1(this_jet);
+      double tau32_beta1 = nSub32_beta1(this_jet);
       
       // Output results (beta = 1.0)
       cout << setw(15) << 1.0
@@ -196,11 +197,11 @@ void analyze(const vector<PseudoJet> & input_particles) {
       NsubjettinessRatio   nSub32_beta2(3,2, OnePass_KT_Axes(), UnnormalizedMeasure(beta));
       
       // calculate Nsubjettiness values (beta = 2.0)
-      double  tau1_beta2 =  nSub1_beta2(antikt_jets[j]);
-      double  tau2_beta2 =  nSub2_beta2(antikt_jets[j]);
-      double  tau3_beta2 =  nSub3_beta2(antikt_jets[j]);
-      double tau21_beta2 = nSub21_beta2(antikt_jets[j]);
-      double tau32_beta2 = nSub32_beta2(antikt_jets[j]);
+      double  tau1_beta2 =  nSub1_beta2(this_jet);
+      double  tau2_beta2 =  nSub2_beta2(this_jet);
+      double  tau3_beta2 =  nSub3_beta2(this_jet);
+      double tau21_beta2 = nSub21_beta2(this_jet);
+      double tau32_beta2 = nSub32_beta2(this_jet);
 
       // Output results (beta = 2.0)
       cout << setw(15) << 2.0
@@ -258,8 +259,6 @@ void analyze(const vector<PseudoJet> & input_particles) {
       PrintJets(nSub3_beta2.currentAxes(),nSub3_beta2.currentTauComponents(),false);
       cout << "-------------------------------------------------------------------------------------" << endl;
       
-      
-
    }
 
 

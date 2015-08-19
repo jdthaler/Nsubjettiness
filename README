@@ -88,6 +88,16 @@ Also available are ratios of N-subjettiness values
                                  MeasureDefinition)
     // N and M give tau_N / tau_M, all other options the same
 
+For example, if you just want the tau_2/tau_1 value of a jet, using recommended
+parameter choices, do this:
+
+    PseudoJet this_jet = /*from your favorite jet algorithm*/;
+    double beta = 1.0;
+    NsubjettinessRatio nSub21(2,1,
+                              OnePass_WTA_KT_Axes(),
+                              UnnormalizedMeasure(beta));
+    double tau21 = nSub21(this_jet);
+
 --------------------------------------------------------------------------------
 AxesDefinition  [NjettinessDefinition.hh]
 --------------------------------------------------------------------------------
