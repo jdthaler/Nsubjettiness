@@ -34,31 +34,31 @@ std::string GeneralEtSchemeRecombiner::description() const {
 
 // recombine pa and pb according to a generalized Et-scheme parameterized by the power delta
 void GeneralEtSchemeRecombiner::recombine(const fastjet::PseudoJet & pa, const fastjet::PseudoJet & pb, fastjet::PseudoJet & pab) const {
-
-  // Define new weights for recombination according to delta
-  // definition of ratio done so that we do not encounter issues about numbers being too large for huge values of delta
-  double ratio;
-  if (abs(_delta - 1.0) < std::numeric_limits<double>::epsilon()) ratio = pb.perp()/pa.perp(); // save computation time of pow()
-  else ratio = pow(pb.perp()/pa.perp(), _delta);
-  double weighta = 1.0/(1.0 + ratio);
-  double weightb = 1.0/(1.0 + 1.0/ratio);
-
-  double perp_ab = pa.perp() + pb.perp();
-  // reweight the phi and rap sums according to the weights above
-  if (perp_ab != 0.0) {
-    double y_ab = (weighta * pa.rap() + weightb * pb.rap());
-    
-    double phi_a = pa.phi(), phi_b = pb.phi();
-    if (phi_a - phi_b > pi)  phi_b += twopi;
-    if (phi_a - phi_b < -pi) phi_b -= twopi;
-    double phi_ab = (weighta * phi_a + weightb * phi_b);
-    
-    pab.reset_PtYPhiM(perp_ab, y_ab, phi_ab);
-
-  }
-  else {
-    pab.reset(0.0,0.0,0.0,0.0);
-  }
+   
+   // Define new weights for recombination according to delta
+   // definition of ratio done so that we do not encounter issues about numbers being too large for huge values of delta
+   double ratio;
+   if (std::abs(_delta - 1.0) < std::numeric_limits<double>::epsilon()) ratio = pb.perp()/pa.perp(); // save computation time of pow()
+   else ratio = pow(pb.perp()/pa.perp(), _delta);
+   double weighta = 1.0/(1.0 + ratio);
+   double weightb = 1.0/(1.0 + 1.0/ratio);
+   
+   double perp_ab = pa.perp() + pb.perp();
+   // reweight the phi and rap sums according to the weights above
+   if (perp_ab != 0.0) {
+      double y_ab = (weighta * pa.rap() + weightb * pb.rap());
+      
+      double phi_a = pa.phi(), phi_b = pb.phi();
+      if (phi_a - phi_b > pi)  phi_b += twopi;
+      if (phi_a - phi_b < -pi) phi_b -= twopi;
+      double phi_ab = (weighta * phi_a + weightb * phi_b);
+      
+      pab.reset_PtYPhiM(perp_ab, y_ab, phi_ab);
+      
+   }
+   else {
+      pab.reset(0.0,0.0,0.0,0.0);
+   }
 }
 
 
