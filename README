@@ -29,11 +29,11 @@ New in v2.2 are new measures used in the XCone jet algorithm, described in:
    XCone: N-jettiness as an Exclusive Cone Jet Algorithm.
    Iain W. Stewart, Frank J. Tackmann, Jesse Thaler,
    Christopher K. Vermilion, and Thomas F. Wilkason.
-   arXiv:150x.xxxxx.
+   arXiv:1508.01516.
 
    Resolving Boosted Jets with XCone.
    Jesse Thaler and Thomas F. Wilkason.
-   arXiv:150x.xxxxx.
+   arXiv:1508.01518.
 
 --------------------------------------------------------------------------------
 Core Classes
@@ -87,6 +87,16 @@ Also available are ratios of N-subjettiness values
     NsubjettinessRatio nSubRatio(N, M, AxesDefinition,
                                  MeasureDefinition)
     // N and M give tau_N / tau_M, all other options the same
+
+For example, if you just want the tau_2/tau_1 value of a jet, using recommended
+parameter choices, do this:
+
+    PseudoJet this_jet = /*from your favorite jet algorithm*/;
+    double beta = 1.0;
+    NsubjettinessRatio nSub21(2,1,
+                              OnePass_WTA_KT_Axes(),
+                              UnnormalizedMeasure(beta));
+    double tau21 = nSub21(this_jet);
 
 --------------------------------------------------------------------------------
 AxesDefinition  [NjettinessDefinition.hh]
@@ -190,7 +200,7 @@ E_theta distance measure recommended for ee collisions.  There are also
 lorentz_dot and perp_lorentz_dot distance measures recommended only for
 advanced users.
 
-New for v2.2 is a set of measures defined in arXiv:1506.xxxxx.  First, there is
+New for v2.2 is a set of measures defined in arXiv:1508.01516.  First, there is
 the "conical measure":
 
     ConicalMeasure(beta,R0) // same jets as UnnormalizedCutoffMeasure

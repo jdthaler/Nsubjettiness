@@ -31,7 +31,7 @@ The key new features are:
   * (v2.2)  XConePlugin, which improves on the previous NjettinessPlugin to use
     N-jettiness as a jet finder using the new ConicalGeometric measure.
 
--- 2.2.0:  (July xx, 2015)  Inclusion of the XCone jet algorithm, as well as a
+-- 2.2.0:  (Sept 7, 2015)  Inclusion of the XCone jet algorithm, as well as a
            few new measures, including the "conical geometric" measure and
            options for e+e- colliders.  Improvement of the
            Measure/AxesDefinition interface to allow for direct

@@ -5,7 +5,7 @@
 //  Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, and TJ Wilkason
 //
 // Run this example with
-//     ./example_advanced_usage < ../data/single-event.dat
+//     ./example_advanced_usage < ../data/single-ee-event.dat
 //
 //  $Id: example_advanced_usage.cc 750 2014-10-08 15:32:14Z tjwilk $
 //----------------------------------------------------------------------

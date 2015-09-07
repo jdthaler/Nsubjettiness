@@ -1,3 +1,10 @@
+2015-08-20 <jthaler>
+   Trying to fix "abs" bug in ExtraRecombiners.cc
+2015-08-19 <jthaler>
+   Adding arXiv numbers to XCone papers
+   Used this_jet in example_basic_usage.
+   Fixed typo in example_advanced_usage header.
+   Added copy/paste code in README file.
 2015-08-13 <jthaler>
    Ready for 2.2.0 release
 2015-07-23 <jthaler>
