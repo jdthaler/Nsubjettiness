@@ -15,10 +15,10 @@ check_script = ../utils/check.sh
 #------------------------------------------------------------------------
 # things that are specific to this contrib
 NAME=Nsubjettiness
-SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc XConePlugin.cc MeasureDefinition.cc ExtraRecombiners.cc AxesDefinition.cc TauComponents.cc XConePlugin.cc
+SRCS=Nsubjettiness.cc Njettiness.cc NjettinessPlugin.cc XConePlugin.cc MeasureDefinition.cc ExtraRecombiners.cc AxesDefinition.cc TauComponents.cc
 EXAMPLES=example_basic_usage example_advanced_usage example_v1p0p3
 EXAMPLES2=example_advanced_usage_ee
-INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh XConePlugin.hh MeasureDefinition.hh ExtraRecombiners.hh AxesDefinition.hh TauComponents.hh XConePlugin.hh
+INSTALLED_HEADERS=Nsubjettiness.hh Njettiness.hh NjettinessPlugin.hh XConePlugin.hh MeasureDefinition.hh ExtraRecombiners.hh AxesDefinition.hh TauComponents.hh
 #------------------------------------------------------------------------
 
 CXXFLAGS+= $(shell $(FASTJETCONFIG) --cxxflags)

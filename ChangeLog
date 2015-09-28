@@ -1,3 +1,7 @@
+2015-09-28 <jthaler>
+   Updated NEWS for 2.2.1 release.
+2015-09-18 <jthaler>
+   Fixed duplicate XConePlugin entry in Makefile.
 2015-08-20 <jthaler>
    Trying to fix "abs" bug in ExtraRecombiners.cc
 2015-08-19 <jthaler>
