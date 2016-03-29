@@ -45,7 +45,7 @@ Njettiness::Njettiness(const AxesDefinition & axes_def, const MeasureDefinition 
    
 // setAxes for Manual mode
 void Njettiness::setAxes(const std::vector<fastjet::PseudoJet> & myAxes) {
-   if (_axes_def()->needsManualAxes()) {
+   if (_axes_def->needsManualAxes()) {
       _currentAxes = myAxes;
    } else {
       throw Error("You can only use setAxes for manual AxesDefinitions");
@@ -62,21 +62,21 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
       _seedAxes = _currentAxes;
       _currentPartition = TauPartition(n_jets); // empty partition
    } else {
-      assert(_axes_def()); // this should never fail.
+      assert(_axes_def); // this should never fail.
       
-      if (_axes_def()->needsManualAxes()) { // if manual mode
+      if (_axes_def->needsManualAxes()) { // if manual mode
          // take current axes as seeds
          _seedAxes = _currentAxes;
          
          // refine axes if requested
-         _currentAxes = _axes_def->get_refined_axes(n_jets,inputJets,_seedAxes, _measure_def());
+         _currentAxes = _axes_def->get_refined_axes(n_jets,inputJets,_seedAxes, _measure_def.get());
       } else { // non-manual axes
          
           //set starting point for minimization
-         _seedAxes = _axes_def->get_starting_axes(n_jets,inputJets,_measure_def());
+         _seedAxes = _axes_def->get_starting_axes(n_jets,inputJets,_measure_def.get());
          
          // refine axes as needed
-         _currentAxes = _axes_def->get_refined_axes(n_jets,inputJets,_seedAxes, _measure_def());
+         _currentAxes = _axes_def->get_refined_axes(n_jets,inputJets,_seedAxes, _measure_def.get());
          
          // NOTE:  The above two function calls are combined in "AxesDefinition::get_axes"
          // but are separated here to allow seed axes to be stored.
