@@ -1,3 +1,6 @@
+2016-04-04 <jthaler>
+   Fixed Njettiness.cc to give value of _current_tau_components even if less than N constituents
+   Delete extraneous code in example_advanced_usage.cc
 2016-03-29 <jthaler>
    Update for FJ 3.2.0 to deal with SharedPtr () deprecation
 2015-09-28 <jthaler>

@@ -58,7 +58,16 @@ TauComponents Njettiness::getTauComponents(unsigned n_jets, const std::vector<fa
    if (inputJets.size() <= n_jets) {  //if not enough particles, return zero
       _currentAxes = inputJets;
       _currentAxes.resize(n_jets,fastjet::PseudoJet(0.0,0.0,0.0,0.0));
-      _current_tau_components = TauComponents();
+     
+     // Put in empty tau components
+     std::vector<double> dummy_jet_pieces;
+     _current_tau_components = TauComponents(UNDEFINED_SHAPE,
+                                             dummy_jet_pieces,
+                                             0.0,
+                                             1.0,
+                                             _currentAxes,
+                                             _currentAxes
+                                             );
       _seedAxes = _currentAxes;
       _currentPartition = TauPartition(n_jets); // empty partition
    } else {
