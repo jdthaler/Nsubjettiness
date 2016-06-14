@@ -523,6 +523,7 @@ std::vector<fastjet::PseudoJet> DefaultMeasure::get_one_pass_axes(int n_jets,
    for (int k = 0; k < n_jets; k++) {
       old_axes[k].set_rap( seedAxes[k].rap() );
       old_axes[k].set_phi( seedAxes[k].phi() );
+      old_axes[k].set_mom( seedAxes[k].modp()  );
    }
    
    // Find new axes by iterating (only one pass here)
