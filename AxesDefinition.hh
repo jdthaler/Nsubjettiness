@@ -507,8 +507,8 @@ protected:
 /// \class JetDefinitionWrapper
 /// \brief Wrapper for jet definitions (for memory management)
 ///
-/// This class was introduced to avoid issue of a FastJet bug when using genKT clustering
-/// Now using this for all AxesDefinition with a manual recombiner to use the delete_recombiner_when_unused function
+/// This class is used by all AxesDefinition with a manual recombiner to
+/// ensure that the delete_recombiner_when_unused function is always called
 ///------------------------------------------------------------------------
 class JetDefinitionWrapper {
 
