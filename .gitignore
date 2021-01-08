@@ -1,0 +1,7 @@
+*.o
+*.a
+*.d
+*.so
+*.dylib
+**/__pycache__
+**/.ipynb_checkpoints
