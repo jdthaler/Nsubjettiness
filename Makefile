@@ -3,7 +3,7 @@
 FASTJETCONFIG=fastjet-config
 PREFIX=`$(FASTJETCONFIG) --prefix`
 CXX=g++
-CXXFLAGS= -O3 -Wall -Woverloaded-virtual -g -Wunused-parameter
+CXXFLAGS+= -O3 -Wall -Woverloaded-virtual -g -Wunused-parameter
 install_script = $(SHELL) ../utils/install-sh
 check_script = ../utils/check.sh
 
@@ -34,7 +34,15 @@ install_DATA    = $(install_script) -c -m 644
 install_PROGRAM = $(install_script) -c -s
 install_SCRIPT  = $(install_script) -c
 
-.PHONY: clean distclean examples check install
+ifeq "$(shell uname)" "Darwin"
+	dynlibopt=-dynamiclib
+    dynlibext=dylib
+else 
+    dynlibopt=-shared
+    dynlibext=so
+endif
+
+.PHONY: all shared clean distclean examples check install
 
 # compilation of the code (default target)
 all: lib$(NAME).a
@@ -42,6 +50,9 @@ all: lib$(NAME).a
 lib$(NAME).a: $(OBJS)
 	ar cru lib$(NAME).a $(OBJS)
 	ranlib lib$(NAME).a
+
+shared: $(SRCS) $(INSTALLED_HEADERS)
+	$(CXX) $(dynlibopt) -fPIC -DPIC $(CXXFLAGS) $(LDFLAGS) -o $(NAME).$(dynlibext) $(SRCS)
 
 # building the examples
 examples: $(EXAMPLES) $(EXAMPLES2)
@@ -66,7 +77,7 @@ check: examples
 
 # cleaning the directory
 clean:
-	rm -f *~ *.o *.a
+	rm -rf *~ *.o *.a *.so *.dylib*
 
 distclean: clean
 	rm -f lib$(NAME).a $(EXAMPLES)

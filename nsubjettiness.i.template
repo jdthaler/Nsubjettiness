@@ -1,0 +1,49 @@
+%define NSUBJETTINESSDOCSTRING
+"{docstring}"
+%enddef
+
+%module(docstring=NSUBJETTINESSDOCSTRING) nsubjettiness
+
+// this makes SWIG aware of the types contained in the main fastjet library
+// but does not generate new wrappers for them here
+%import FASTJET_SWIG_INTERFACE
+
+// converts fastjet::Error into a FastJetError Python exception
+FASTJET_ERRORS_AS_PYTHON_EXCEPTIONS(nsubjettiness)
+
+// include some information in the docstrings
+%feature("autodoc", "1");
+
+// include FastJetError in python module
+%pythoncode %{{
+from fastjet import FastJetError
+
+__version__ = '{version}'
+%}}
+
+%{{
+#ifndef SWIG
+#define SWIG
+#endif
+
+#include "fastjet/ClusterSequenceArea.hh"
+#include "fastjet/tools/JetMedianBackgroundEstimator.hh"
+
+#include "fastjet/contrib/ExtraRecombiners.hh"
+#include "fastjet/contrib/TauComponents.hh"
+#include "fastjet/contrib/MeasureDefinition.hh"
+#include "fastjet/contrib/AxesDefinition.hh"
+#include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/Nsubjettiness.hh"
+#include "fastjet/contrib/NjettinessPlugin.hh"
+#include "fastjet/contrib/XConePlugin.hh"
+%}}
+
+%include "fastjet/contrib/ExtraRecombiners.hh"
+%include "fastjet/contrib/TauComponents.hh"
+%include "fastjet/contrib/MeasureDefinition.hh"
+%include "fastjet/contrib/AxesDefinition.hh"
+%include "fastjet/contrib/Njettiness.hh"
+%include "fastjet/contrib/Nsubjettiness.hh"
+%include "fastjet/contrib/NjettinessPlugin.hh"
+%include "fastjet/contrib/XConePlugin.hh"
