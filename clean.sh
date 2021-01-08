@@ -1,1 +1,1 @@
-rm -rfv build dist *.egg-info
+rm -rfv build dist *.egg-info __pycache__

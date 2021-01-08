@@ -52,7 +52,7 @@ lib$(NAME).a: $(OBJS)
 	ranlib lib$(NAME).a
 
 shared: $(SRCS) $(INSTALLED_HEADERS)
-	$(CXX) $(dynlibopt) -fPIC -DPIC $(CXXFLAGS) $(LDFLAGS) -o $(NAME).$(dynlibext) $(SRCS)
+	$(CXX) $(dynlibopt) -fPIC -DPIC $(CXXFLAGS) $(LDFLAGS) -o lib$(NAME).$(dynlibext) $(SRCS)
 
 # building the examples
 examples: $(EXAMPLES) $(EXAMPLES2)

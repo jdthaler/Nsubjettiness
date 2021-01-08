@@ -105,9 +105,10 @@ def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
+    ldflags = ['-Wl,-rpath,{}'.format(path)]
 
     # determine library paths and names for Python
-    fj_libdirs = [x[2:] for x in fj_ldflags.split() if x.startswith('-L')]
+    fj_libdirs = ['.'] + [x[2:] for x in fj_ldflags.split() if x.startswith('-L')]
     libs = [name] + [x[2:] for x in fj_ldflags.split() if x.startswith('-l')]
 
     module = Extension('_' + lname,
@@ -115,7 +116,8 @@ def run_setup():
                        language='c++',
                        library_dirs=fj_libdirs,
                        libraries=libs,
-                       extra_compile_args=cxxflags)
+                       extra_compile_args=cxxflags,
+                       extra_link_args=ldflags)
 
     setup(
         name=name,
@@ -126,6 +128,7 @@ def run_setup():
         maintainer_email='pkomiske@mit.edu',
         description='{} FastJet Contrib'.format(name),
         long_description=readme,
+        long_description_content_type='text/plain',
         url='https://fastjet.hepforge.org/contrib/',
         py_modules=[lname],
         ext_modules=[module],
