@@ -13,6 +13,8 @@ install: |
   git submodule update
   autoreconf -i
   cd ..
+  pwd
+  ls
 
 jobs:
   include:
@@ -49,9 +51,9 @@ jobs:
 env:
   global:
     - TWINE_USERNAME=__token__
-    - CIBW_BEFORE_ALL="cd fastjet
-                       ./configure --prefix=$(pwd)/../fastjet-install --enable-pyext --disable-monolithic --disable-allplugins
-                       make install
+    - CIBW_BEFORE_ALL="cd fastjet;
+                       ./configure --prefix=$(pwd)/../fastjet-install --enable-pyext --disable-monolithic --disable-allplugins;
+                       make -j2;
                        cd .."
     - CIBW_ENVIRONMENT="FASTJET_CONFIG=$(pwd)/fastjet-install/bin/fastjet-config CXXFLAGS=-std=c++14"
     - CIBW_BUILD_VERBOSITY=1
