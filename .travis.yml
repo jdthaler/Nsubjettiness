@@ -56,10 +56,9 @@ env:
                        make -j2;
                        make install;
                        cd ..;
+                       export CONTRIB_LIBRARY_PATH=$(pwd);
                        make shared"
     - CIBW_ENVIRONMENT="CXXFLAGS=-std=c++14"
-    - CIBW_ENVIRONMENT_LINUX="LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH"
-    - CIBW_ENVIRONMENT_MACOS="DYLD_LIBRARY_PATH=$(pwd):$DYLD_LIBRARY_PATH"
     - CIBW_BUILD_VERBOSITY=1
     - TRAVIS_TAG=test
 
