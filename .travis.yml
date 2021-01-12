@@ -24,7 +24,7 @@ jobs:
     - name: Build wheels on Linux and deploy
       dist: bionic
       services: docker
-      script: python -m cibuildwheel -v --output-dir wheelhouse
+      script: python -m cibuildwheel --output-dir wheelhouse
       after_success: |
         if [ ! -z $TRAVIS_TAG ]; then
           python -m twine upload -r testpypi wheelhouse/*.whl
@@ -37,7 +37,7 @@ jobs:
       os: osx
       osx_image: xcode12
       language: shell
-      script: python -m cibuildwheel -v --output-dir wheelhouse
+      script: python -m cibuildwheel --output-dir wheelhouse
       after_success: |
         if [ ! -z $TRAVIS_TAG ]; then
           python -m twine upload -r testpypi wheelhouse/*.whl
@@ -49,10 +49,11 @@ env:
   global:
     - TWINE_USERNAME=__token__
     - CIBW_BEFORE_ALL="./configure --prefix=$(pwd)/../fastjet-install --disable-monolithic --disable-allplugins
-                       make install"
+                       make install
+                       cd .."
     - CIBW_ENVIRONMENT="FASTJET_CONFIG=$(pwd)/../fastjet-install/bin/fastjet-config CXXFLAGS=-std=c++14"
     - TRAVIS_TAG=test
 
 branches:
   only:
-    - master
+    - main
