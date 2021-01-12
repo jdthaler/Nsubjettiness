@@ -105,7 +105,7 @@ def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
-    setup_path = os.path.abspath(os.path.dirname(__file__))
+    setup_path = os.path.abspath(os.getcwd())
     ldflags = ['-Wl,-rpath,{}'.format(setup_path)]
 
     # determine library paths and names for Python
