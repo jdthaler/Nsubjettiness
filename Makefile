@@ -77,10 +77,10 @@ check: examples
 
 # cleaning the directory
 clean:
-	rm -rf *~ *.o *.a *.so *.dylib*
+	rm -rfv *~ *.o *.a *.so *.dylib*
 
 distclean: clean
-	rm -f lib$(NAME).a $(EXAMPLES)
+	rm -fv lib$(NAME).a $(EXAMPLES)
 
 # install things in PREFIX/...
 install: all

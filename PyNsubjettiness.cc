@@ -2884,14 +2884,14 @@ static PyObject * FastJetError_;
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/JetMedianBackgroundEstimator.hh"
 
-#include "fastjet/contrib/ExtraRecombiners.hh"
-#include "fastjet/contrib/TauComponents.hh"
-#include "fastjet/contrib/MeasureDefinition.hh"
-#include "fastjet/contrib/AxesDefinition.hh"
-#include "fastjet/contrib/Njettiness.hh"
-#include "fastjet/contrib/Nsubjettiness.hh"
-#include "fastjet/contrib/NjettinessPlugin.hh"
-#include "fastjet/contrib/XConePlugin.hh"
+#include "ExtraRecombiners.hh"
+#include "TauComponents.hh"
+#include "MeasureDefinition.hh"
+#include "AxesDefinition.hh"
+#include "Njettiness.hh"
+#include "Nsubjettiness.hh"
+#include "NjettinessPlugin.hh"
+#include "XConePlugin.hh"
 
 
 SWIGINTERN int
@@ -23946,7 +23946,11 @@ SWIG_init(void) {
   if (PyModule_AddObject(m, "FastJetError", FastJetError_) < 0) {
     Py_DECREF(m);
     Py_DECREF(FastJetError_);
+#if PY_VERSION_HEX >= 0x03000000
     return NULL;
+#else
+    return;
+#endif
   }
   
   SWIG_Python_SetConstant(d, "UNDEFINED_SHAPE",SWIG_From_int(static_cast< int >(fastjet::contrib::UNDEFINED_SHAPE)));

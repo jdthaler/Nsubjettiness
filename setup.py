@@ -28,7 +28,7 @@ import os
 import subprocess
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 # get path to and name of package
@@ -39,8 +39,7 @@ lname = name.lower()
 # function to query a config binary and get the result
 fastjet_config = os.environ.get('FASTJET_CONFIG', 'fastjet-config')
 def query_config(query):
-    ret = subprocess.run('{} {}'.format(fastjet_config, query).split(), stdout=subprocess.PIPE)
-    return str(ret.stdout, 'ascii').strip()
+    return subprocess.check_output([fastjet_config, query]).decode('utf-8').strip()
 
 # get fastjet info
 fj_prefix = query_config('--prefix')
@@ -92,7 +91,7 @@ def run_swig():
 
     # form swig options
     fj_swig_interface = os.path.join(fj_prefix, 'share', 'fastjet', 'pyinterface', 'fastjet.i')
-    opts = '-fastproxy {} -DSWIG_NUMPY -DFASTJET_SWIG_INTERFACE={}'.format(fj_cxxflags, fj_swig_interface)
+    opts = '-fastproxy {} -DFASTJET_SWIG_INTERFACE={}'.format(fj_cxxflags, fj_swig_interface)
 
     if len(sys.argv) > 2:
         opts += ' ' + ' '.join(sys.argv[2:])
@@ -101,6 +100,9 @@ def run_swig():
     print(command)
     subprocess.run(command.split())
 
+    # move nsubjettiness.py into subdirectory
+    os.rename(os.path.join(path, lname + '.py'), os.path.join(path, lname, lname + '.py'))
+
 def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
@@ -108,11 +110,17 @@ def run_setup():
     ldflags = ['-Wl,-rpath,{}'.format(path)]
 
     # determine library paths and names for Python
-    fj_libdirs = ['.'] + [x[2:] for x in fj_ldflags.split() if x.startswith('-L')]
-    libs = [name] + [x[2:] for x in fj_ldflags.split() if x.startswith('-l')]
+    fj_libdirs, libs = [], []
+    for x in fj_ldflags.split():
+        if x.startswith('-L'):
+            fj_libdirs.append(x[2:])
+        elif x.startswith('-l'):
+            libs.append(x[2:])
+        else:
+            ldflags.append(x)
 
-    module = Extension('_' + lname,
-                       sources=['Py{}.cc'.format(name)],
+    module = Extension('nsubjettiness._' + lname,
+                       sources=[os.path.join(path, 'Py{}.cc'.format(name))],
                        language='c++',
                        library_dirs=fj_libdirs,
                        libraries=libs,
@@ -120,20 +128,9 @@ def run_setup():
                        extra_link_args=ldflags)
 
     setup(
-        name=name,
         version=__version__,
-        author='Jesse Thaler, Ken Van Tilburg, Christopher K. Vermilion, TJ Wilkason',
-        author_email='jthaler@mit.edu',
-        maintainer='Patrick Komiske',
-        maintainer_email='pkomiske@mit.edu',
-        description='{} FastJet Contrib'.format(name),
-        long_description=readme,
-        long_description_content_type='text/plain',
-        url='https://fastjet.hepforge.org/contrib/',
-        py_modules=[lname],
+        packages=find_packages(),
         ext_modules=[module],
-        license='GPLv2',
-        license_files='COPYING'
     )
 
 def main():
