@@ -55,7 +55,7 @@ with open('README', 'r') as f:
 
 # get contrib version
 with open('VERSION', 'r') as f:
-    __version__ = f.read().strip()
+    __version__ = f.read().strip() + 'a'
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
 
@@ -112,7 +112,7 @@ def run_setup():
     ldflags = ['-Wl,-rpath,{}'.format(os.path.abspath('.'))]
 
     # determine library paths and names for Python
-    fj_libdirs, libs = [], []
+    fj_libdirs, libs = ['.'], [name]
     for x in fj_ldflags.split():
         if x.startswith('-L'):
             fj_libdirs.append(x[2:])

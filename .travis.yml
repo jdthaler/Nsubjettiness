@@ -6,15 +6,13 @@ stages:
   - build
 
 install: |
-  python3 -m pip install -U twine cibuildwheel
+  python3 -m pip install cibuildwheel
   git clone https://gitlab.com/pkomiske/fastjet.git
   cd fastjet
   git submodule init
   git submodule update
   autoreconf -i
   cd ..
-  pwd
-  ls
 
 jobs:
   include:
@@ -30,10 +28,11 @@ jobs:
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
         if [ ! -z $TRAVIS_TAG ]; then
+          python3 -m pip install twine
           python3 -m twine upload -r testpypi wheelhouse/*.whl
         fi
       env:
-        - CIBW_BUILD="cp35-manylinux_x86_64 cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64"
+        - CIBW_BUILD="cp27-manylinux_x86_64 cp35-manylinux_x86_64 cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64"
 
     # build on mac
     - name: Build wheels on Mac and deploy
@@ -43,10 +42,11 @@ jobs:
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
         if [ ! -z $TRAVIS_TAG ]; then
+          python3 -m pip install twine
           python3 -m twine upload -r testpypi wheelhouse/*.whl
         fi
       env:
-        - CIBW_BUILD="cp35-macosx_x86_64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp39-macosx_x86_64"
+        - CIBW_BUILD="cp27-macosx_x86_64 cp35-macosx_x86_64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp39-macosx_x86_64"
 
 env:
   global:
@@ -55,7 +55,8 @@ env:
                        ./configure --enable-pyext --disable-monolithic --disable-allplugins;
                        make -j2;
                        make install;
-                       cd .."
+                       cd ..;
+                       make shared"
     - CIBW_ENVIRONMENT="CXXFLAGS=-std=c++14"
     - CIBW_BUILD_VERBOSITY=1
     - TRAVIS_TAG=test
