@@ -51,7 +51,7 @@ with open('README', 'r') as f:
 
 # get contrib version
 with open('VERSION', 'r') as f:
-    __version__ = f.read().strip() + 'a0'
+    __version__ = f.read().strip() + 'a1'
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
 
@@ -105,11 +105,9 @@ def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
-    setup_path = os.path.abspath(os.getcwd())
-    ldflags = ['-Wl,-rpath,{}'.format(setup_path)]
 
     # determine library paths and names for Python
-    fj_libdirs, libs = [setup_path], [name]
+    fj_libdirs, libs, ldflags = [], [name], []
     for x in fj_ldflags.split():
         if x.startswith('-L'):
             fj_libdirs.append(x[2:])
