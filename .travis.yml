@@ -6,6 +6,7 @@ stages:
   - build
 
 install: |
+  apt-get install swig
   python3 -m pip install -U twine cibuildwheel
   git clone https://gitlab.com/fastjet/fastjet.git
   cd fastjet
@@ -52,7 +53,7 @@ env:
   global:
     - TWINE_USERNAME=__token__
     - CIBW_BEFORE_ALL="cd fastjet;
-                       ./configure --enable-pyext --disable-monolithic --disable-allplugins ;
+                       ./configure --enable-pyext --enable-swig --disable-monolithic --disable-allplugins;
                        make -j2;
                        make install;
                        cd .."

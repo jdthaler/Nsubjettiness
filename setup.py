@@ -40,6 +40,7 @@ lname = name.lower()
 fastjet_config = os.environ.get('FASTJET_CONFIG', 'fastjet-config')
 def query_config(query):
     print('fastjet_config:', fastjet_config)
+    print(sys.path)
     return subprocess.check_output([fastjet_config, query]).decode('utf-8').strip()
 
 # get fastjet info
