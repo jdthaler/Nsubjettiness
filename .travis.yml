@@ -49,7 +49,8 @@ env:
   global:
     - TWINE_USERNAME=__token__
     - CIBW_BEFORE_ALL="./configure --prefix=$(pwd)/../fastjet-install --enable-pyext --disable-monolithic --disable-allplugins
-                       make install"
+                       make install
+                       cd .."
     - CIBW_ENVIRONMENT="FASTJET_CONFIG=$(pwd)/../fastjet-install/bin/fastjet-config CXXFLAGS=-std=c++14"
     - TRAVIS_TAG=test
 
