@@ -57,7 +57,7 @@ env:
                        make install;
                        cd ..;
                        make shared;
-                       mv libNsubjettiness.* /usr/local/lib"
+                       cp libNsubjettiness.* /usr/local/lib"
     - CIBW_ENVIRONMENT="CXXFLAGS=-std=c++14"
     - CIBW_BUILD_VERBOSITY=1
     - TRAVIS_TAG=test
