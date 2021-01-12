@@ -39,14 +39,16 @@ lname = name.lower()
 # function to query a config binary and get the result
 fastjet_config = os.environ.get('FASTJET_CONFIG', 'fastjet-config')
 def query_config(query):
-    print('fastjet_config:', fastjet_config)
-    print(sys.path)
     return subprocess.check_output([fastjet_config, query]).decode('utf-8').strip()
 
 # get fastjet info
 fj_prefix = query_config('--prefix')
 fj_cxxflags = query_config('--cxxflags')
 fj_ldflags = query_config('--libs')
+
+print('fj_prefix', fj_prefix)
+print('fj_cxxflags', fj_cxxflags)
+print('fj_ldflags', fj_ldflags)
 
 # get contrib README
 with open(os.path.join(path, 'README'), 'r') as f:
