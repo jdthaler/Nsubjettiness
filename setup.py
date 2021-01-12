@@ -32,8 +32,7 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 # get path to and name of package
-path = os.path.abspath(os.path.dirname(__file__))
-name = os.path.basename(path)
+name = 'Nsubjettiness'
 lname = name.lower()
 
 # function to query a config binary and get the result
@@ -51,11 +50,11 @@ print('fj_cxxflags', fj_cxxflags)
 print('fj_ldflags', fj_ldflags)
 
 # get contrib README
-with open(os.path.join(path, 'README'), 'r') as f:
+with open('README', 'r') as f:
     readme = f.read()
 
 # get contrib version
-with open(os.path.join(path, 'VERSION'), 'r') as f:
+with open('VERSION', 'r') as f:
     __version__ = f.read().strip()
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
@@ -64,7 +63,7 @@ Usage: python3 setup.py [COMMAND] [OPTIONS]
 
 Valid options for COMMAND include:
   help - Show this message
-  swig - Run SWIG to generate new {name}.py and Py{name}.cc files; OPTIONS are passed to SWIG
+  swig - Run SWIG to generate new {lname}.py and Py{name}.cc files; OPTIONS are passed to SWIG
   build_ext - Build the Python extension
   install - Install the Python extension to a standard location
   clean - Remove Python build directories
@@ -77,7 +76,7 @@ Relevant environment variables include:
 """
 
 def show_help():
-    print(HELP_MESSAGE.format(name=name))
+    print(HELP_MESSAGE.format(name=name, lname=lname))
 
 def run_swig():
 
@@ -89,8 +88,7 @@ def run_swig():
     print('Constructing SWIG interface file {} from {}'.format(interface_file, template_file))
 
     # read interface template and write interface file
-    with open(os.path.join(path, template_file), 'r') as f_template, \
-         open(os.path.join(path, interface_file), 'w') as f_interface:
+    with open(template_file, 'r') as f_template, open(interface_file, 'w') as f_interface:
         f_interface.write(f_template.read().format(**contrib))
 
     # form swig options
@@ -105,13 +103,13 @@ def run_swig():
     subprocess.run(command.split())
 
     # move nsubjettiness.py into subdirectory
-    os.rename(os.path.join(path, lname + '.py'), os.path.join(path, lname, lname + '.py'))
+    os.rename(lname + '.py', os.path.join(lname, lname + '.py'))
 
 def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
-    ldflags = ['-Wl,-rpath,{}'.format(path)]
+    ldflags = ['-Wl,-rpath,{}'.format(os.path.abspath('.'))]
 
     # determine library paths and names for Python
     fj_libdirs, libs = [], []
@@ -124,7 +122,7 @@ def run_setup():
             ldflags.append(x)
 
     module = Extension('nsubjettiness._' + lname,
-                       sources=[os.path.join(path, 'Py{}.cc'.format(name))],
+                       sources=['Py{}.cc'.format(name)],
                        language='c++',
                        library_dirs=fj_libdirs,
                        libraries=libs,
