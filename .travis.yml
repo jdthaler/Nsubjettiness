@@ -52,7 +52,7 @@ env:
   global:
     - TWINE_USERNAME=__token__
     - CIBW_BEFORE_ALL="cd fastjet;
-                       ./configure --enable-pyext --disable-monolithic --disable-allplugins;
+                       ./configure --enable-pyext --disable-debug --disable-monolithic --disable-allplugins;
                        make -j2;
                        make install;
                        cd ..;

@@ -45,17 +45,13 @@ fj_prefix = query_config('--prefix')
 fj_cxxflags = query_config('--cxxflags')
 fj_ldflags = query_config('--libs')
 
-print('fj_prefix', fj_prefix)
-print('fj_cxxflags', fj_cxxflags)
-print('fj_ldflags', fj_ldflags)
-
 # get contrib README
 with open('README', 'r') as f:
     readme = f.read()
 
 # get contrib version
 with open('VERSION', 'r') as f:
-    __version__ = f.read().strip() + 'a'
+    __version__ = f.read().strip() + 'a0'
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
 
@@ -109,10 +105,11 @@ def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
-    ldflags = ['-Wl,-rpath,{}'.format(os.path.abspath('.'))]
+    setup_path = os.path.abspath(os.path.dirname(__file__))
+    ldflags = ['-Wl,-rpath,{}'.format(setup_path)]
 
     # determine library paths and names for Python
-    fj_libdirs, libs = ['.'], [name]
+    fj_libdirs, libs = [setup_path], [name]
     for x in fj_ldflags.split():
         if x.startswith('-L'):
             fj_libdirs.append(x[2:])
