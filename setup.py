@@ -105,11 +105,9 @@ def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
-    setup_path = os.environ.get('CONTRIB_LIBRARY_PATH', os.path.dirname(__file__))
-    ldflags = ['-Wl,-rpath,{}'.format(setup_path)]
 
     # determine library paths and names for Python
-    fj_libdirs, libs = [], [name]
+    fj_libdirs, libs, ldflags = [], [name], []
     for x in fj_ldflags.split():
         if x.startswith('-L'):
             fj_libdirs.append(x[2:])
