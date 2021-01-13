@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# fastjet prereqs
-brew upgrade cgal
-
 # install fastjet
 git clone https://gitlab.com/pkomiske/fastjet.git
 cd fastjet
