@@ -25,15 +25,15 @@
 from __future__ import print_function
 
 import os
+import re
 import subprocess
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.extension import Extension
 
 # get path to and name of package
-path = os.path.abspath(os.path.dirname(__file__))
-name = os.path.basename(path)
+name = 'Nsubjettiness'
 lname = name.lower()
 
 # function to query a config binary and get the result
@@ -47,12 +47,12 @@ fj_cxxflags = query_config('--cxxflags')
 fj_ldflags = query_config('--libs')
 
 # get contrib README
-with open(os.path.join(path, 'README'), 'r') as f:
+with open('README', 'r') as f:
     readme = f.read()
 
 # get contrib version
-with open(os.path.join(path, 'VERSION'), 'r') as f:
-    __version__ = f.read().strip()
+with open('nsubjettiness/__init__.py', 'r') as f:
+    __version__ = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read()).group(1)
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
 
@@ -60,7 +60,7 @@ Usage: python3 setup.py [COMMAND] [OPTIONS]
 
 Valid options for COMMAND include:
   help - Show this message
-  swig - Run SWIG to generate new {name}.py and Py{name}.cc files; OPTIONS are passed to SWIG
+  swig - Run SWIG to generate new {lname}.py and Py{name}.cc files; OPTIONS are passed to SWIG
   build_ext - Build the Python extension
   install - Install the Python extension to a standard location
   clean - Remove Python build directories
@@ -73,7 +73,7 @@ Relevant environment variables include:
 """
 
 def show_help():
-    print(HELP_MESSAGE.format(name=name))
+    print(HELP_MESSAGE.format(name=name, lname=lname))
 
 def run_swig():
 
@@ -85,8 +85,7 @@ def run_swig():
     print('Constructing SWIG interface file {} from {}'.format(interface_file, template_file))
 
     # read interface template and write interface file
-    with open(os.path.join(path, template_file), 'r') as f_template, \
-         open(os.path.join(path, interface_file), 'w') as f_interface:
+    with open(template_file, 'r') as f_template, open(interface_file, 'w') as f_interface:
         f_interface.write(f_template.read().format(**contrib))
 
     # form swig options
@@ -100,17 +99,13 @@ def run_swig():
     print(command)
     subprocess.run(command.split())
 
-    # move nsubjettiness.py into subdirectory
-    os.rename(os.path.join(path, lname + '.py'), os.path.join(path, lname, lname + '.py'))
-
 def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
-    cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
-    ldflags = ['-Wl,-rpath,{}'.format(path)]
+    cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split()
 
     # determine library paths and names for Python
-    fj_libdirs, libs = [], []
+    fj_libdirs, libs, ldflags = [], [name], []
     for x in fj_ldflags.split():
         if x.startswith('-L'):
             fj_libdirs.append(x[2:])
@@ -120,16 +115,15 @@ def run_setup():
             ldflags.append(x)
 
     module = Extension('nsubjettiness._' + lname,
-                       sources=[os.path.join(path, 'Py{}.cc'.format(name))],
+                       sources=['Py{}.cc'.format(name)],
                        language='c++',
                        library_dirs=fj_libdirs,
                        libraries=libs,
-                       extra_compile_args=cxxflags,
+                       extra_compile_args=cxxflags + ['-DSWIG_TYPE_TABLE=fastjet', '-g0'],
                        extra_link_args=ldflags)
 
     setup(
         version=__version__,
-        packages=find_packages(),
         ext_modules=[module],
     )
 

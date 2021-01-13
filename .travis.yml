@@ -1,3 +1,6 @@
+---
+os: linux
+dist: bionic
 language: python
 python:
   - 3.8
@@ -5,54 +8,48 @@ python:
 stages:
   - build
 
-install: |
-  pip install twine cibuildwheel
-  git clone https://gitlab.com/fastjet/fastjet.git
-  cd fastjet
-  git submodule init
-  git submodule update
-  autoreconf -i
+install:
+  - pip3 install cibuildwheel twine
+
+script:
+  - cibuildwheel --output-dir wheelhouse
 
 jobs:
   include:
 
   ##############################################################################
-  # BUILDS
+  # LINUX BUILDS
   ##############################################################################
 
-    # build on linux
     - name: Build wheels on Linux and deploy
-      dist: bionic
       services: docker
-      script: python -m cibuildwheel --output-dir wheelhouse
       after_success: |
-        if [ ! -z $TRAVIS_TAG ]; then
-          python -m twine upload -r testpypi wheelhouse/*.whl
+        if [ ! -z $PYPI_TEST ]; then
+          twine upload -r testpypi --skip-existing wheelhouse/*.whl
         fi
-      env:
-        - CIBW_BUILD="cp27-manylinux_x86_64 cp35-manylinux_x86_64 cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64"
 
-    # build on mac
+  ##############################################################################
+  # MACOS BUILDS
+  ##############################################################################
+
     - name: Build wheels on Mac and deploy
       os: osx
-      osx_image: xcode12
       language: shell
-      script: python -m cibuildwheel --output-dir wheelhouse
       after_success: |
-        if [ ! -z $TRAVIS_TAG ]; then
-          python -m twine upload -r testpypi wheelhouse/*.whl
+        pip3 install twine
+        if [ ! -z $PYPI_TEST ]; then
+          twine upload -r testpypi --skip-existing wheelhouse/*.whl
         fi
-      env:
-        - CIBW_BUILD="cp27-macosx_x86_64 cp35-macosx_x86_64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp39-macosx_x86_64"
 
 env:
   global:
     - TWINE_USERNAME=__token__
-    - CIBW_BEFORE_ALL="./configure --prefix=$(pwd)/../fastjet-install --disable-monolithic --disable-allplugins
-                       make install
-                       cd .."
-    - CIBW_ENVIRONMENT="FASTJET_CONFIG=$(pwd)/../fastjet-install/bin/fastjet-config CXXFLAGS=-std=c++14"
-    - TRAVIS_TAG=test
+    - CIBW_BEFORE_ALL_LINUX=./scripts/prepare-cibw-linux.sh
+    - CIBW_BEFORE_ALL_MACOS=./scripts/prepare-cibw-macos.sh
+    - CIBW_BUILD="cp*_x86_64"
+    - CIBW_MANYLINUX_X86_64_IMAGE=registry.gitlab.com/pkomiske/fastjet:latest
+    - CIBW_BUILD_VERBOSITY=1
+    - PYPI_TEST=true
 
 branches:
   only:
