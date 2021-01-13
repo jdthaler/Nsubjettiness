@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# some macos-specific CIBW variables
-export CIBW_BUILD="cp*-macosx_x86_64"
-
 # fastjet prereqs
-brew install cgal
+brew upgrade cgal
 
 # install fastjet
 git clone https://gitlab.com/pkomiske/fastjet.git
