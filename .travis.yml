@@ -14,11 +14,6 @@ install:
 script:
   - cibuildwheel --output-dir wheelhouse
 
-addons:
-  homebrew:
-    packages:
-      - cgal
-
 jobs:
   include:
 
@@ -39,7 +34,6 @@ jobs:
 
     - name: Build wheels on Mac and deploy
       os: osx
-      osx_image: xcode10
       language: shell
       after_success: |
         pip3 install twine

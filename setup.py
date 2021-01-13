@@ -25,6 +25,7 @@
 from __future__ import print_function
 
 import os
+import re
 import subprocess
 import sys
 
@@ -50,8 +51,8 @@ with open('README', 'r') as f:
     readme = f.read()
 
 # get contrib version
-with open('VERSION', 'r') as f:
-    __version__ = f.read().strip() + 'a1'
+with open('nsubjettiness/__init__.py', 'r') as f:
+    __version__ = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read()).group(1)
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
 
