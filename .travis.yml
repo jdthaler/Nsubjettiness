@@ -1,3 +1,6 @@
+---
+os: linux
+dist: bionic
 language: python
 python:
   - 3.8
@@ -5,62 +8,47 @@ python:
 stages:
   - build
 
-install: |
-  python3 -m pip install cibuildwheel
-  git clone https://gitlab.com/pkomiske/fastjet.git
-  cd fastjet
-  git submodule init
-  git submodule update
-  autoreconf -i
-  cd ..
+install:
+  - pip3 install cibuildwheel twine
+
+script:
+  - cibuildwheel --output-dir wheelhouse
 
 jobs:
   include:
 
   ##############################################################################
-  # BUILDS
+  # LINUX BUILDS
   ##############################################################################
 
-    # build on linux
     - name: Build wheels on Linux and deploy
-      dist: bionic
       services: docker
-      script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
-        if [ ! -z $TRAVIS_TAG ]; then
-          python3 -m pip install twine
-          python3 -m twine upload -r testpypi wheelhouse/*.whl
+        if [ ! -z $PYPI_TEST ]; then
+          twine upload -r testpypi --skip-existing wheelhouse/*.whl
         fi
-      env:
-        - CIBW_BUILD="cp27-manylinux_x86_64 cp35-manylinux_x86_64 cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64"
 
-    # build on mac
+  ##############################################################################
+  # MACOS BUILDS
+  ##############################################################################
+
     - name: Build wheels on Mac and deploy
       os: osx
       osx_image: xcode12
       language: shell
-      script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
-        if [ ! -z $TRAVIS_TAG ]; then
-          python3 -m pip install twine
-          python3 -m twine upload -r testpypi wheelhouse/*.whl
+        pip3 install twine
+        if [ ! -z $PYPI_TEST ]; then
+          twine upload -r testpypi --skip-existing wheelhouse/*.whl
         fi
-      env:
-        - CIBW_BUILD="cp27-macosx_x86_64 cp35-macosx_x86_64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp39-macosx_x86_64"
 
 env:
   global:
     - TWINE_USERNAME=__token__
-    - CIBW_BEFORE_ALL="cd fastjet;
-                       ./configure --enable-pyext --disable-debug --disable-monolithic --disable-allplugins;
-                       make -j2;
-                       make install;
-                       cd ..;
-                       make shared;
-                       cp libNsubjettiness.* /usr/local/lib"
-    - CIBW_ENVIRONMENT="CXXFLAGS=-std=c++14"
+    - CIBW_BEFORE_ALL_LINUX=./scripts/prepare-cibw-linux.sh
+    - CIBW_BEFORE_ALL_MACOS=./scripts/prepare-cibw-macos.sh
     - CIBW_BUILD_VERBOSITY=1
-    - TRAVIS_TAG=test
+    - PYPI_TEST=true
 
 branches:
   only:

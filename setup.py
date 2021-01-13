@@ -28,7 +28,7 @@ import os
 import subprocess
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.extension import Extension
 
 # get path to and name of package
@@ -98,13 +98,10 @@ def run_swig():
     print(command)
     subprocess.run(command.split())
 
-    # move nsubjettiness.py into subdirectory
-    os.rename(lname + '.py', os.path.join(lname, lname + '.py'))
-
 def run_setup():
 
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
-    cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split() + ['-DSWIG_TYPE_TABLE=fastjet']
+    cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split()
 
     # determine library paths and names for Python
     fj_libdirs, libs, ldflags = [], [name], []
@@ -121,12 +118,11 @@ def run_setup():
                        language='c++',
                        library_dirs=fj_libdirs,
                        libraries=libs,
-                       extra_compile_args=cxxflags,
+                       extra_compile_args=cxxflags + ['-DSWIG_TYPE_TABLE=fastjet', '-g0'],
                        extra_link_args=ldflags)
 
     setup(
         version=__version__,
-        packages=find_packages(),
         ext_modules=[module],
     )
 

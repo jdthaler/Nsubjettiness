@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# some macos-specific CIBW variables
+export CIBW_BUILD="cp*-macosx_x86_64"
+
+# fastjet prereqs
+brew install cgal
+
+# install fastjet
+git clone https://gitlab.com/pkomiske/fastjet.git
+cd fastjet
+git submodule init
+git submodule update
+autoreconf -i
+export CXXFLAGS=-std=c++14
+./configure --prefix=/usr/local --enable-pyext --enable-cgal --enable-cgal-header-only --disable-monolithic --disable-allplugins --disable-debug PYTHON=python3 PYTHON_CONFIG=python3-config
+make -j2 install
+cd ..
+
+# make contrib shared library
+make shared
+cp lib*.dylib /usr/local/lib

@@ -6,7 +6,7 @@
 *.dSYM
 **/__pycache__
 **/.ipynb_checkpoints
-nsubjettiness.i
 build/
 dist/
 *.egg-info/
+*.pyc
