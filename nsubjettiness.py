@@ -465,7 +465,7 @@ import fastjet
 
 from fastjet import FastJetError
 
-__version__ = '2.2.5a1'
+__version__ = '2.2.5a2'
 
 class GeneralEtSchemeRecombiner(object):
     r"""Proxy of C++ fastjet::contrib::GeneralEtSchemeRecombiner class."""

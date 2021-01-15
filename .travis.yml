@@ -46,9 +46,10 @@ env:
     - TWINE_USERNAME=__token__
     - CIBW_BEFORE_ALL_LINUX=./scripts/prepare-cibw-linux.sh
     - CIBW_BEFORE_ALL_MACOS=./scripts/prepare-cibw-macos.sh
+    - CIBW_BEFORE_BUILD_MACOS="export CXXFLAGS=-std=c++14"
     - CIBW_BUILD="cp*_x86_64"
-    - CIBW_MANYLINUX_X86_64_IMAGE=registry.gitlab.com/pkomiske/fastjet:latest
     - CIBW_BUILD_VERBOSITY=1
+    - CIBW_MANYLINUX_X86_64_IMAGE=registry.gitlab.com/pkomiske/fastjet:latest
     - PYPI_TEST=true
 
 branches:

@@ -1,4 +1,4 @@
-%define NSUBJETTINESSDOCSTRING
+%define NSUBJETTINESS_DOCSTRING
 "--------------------------------------------------------------------------------
 Nsubjettiness Package
 --------------------------------------------------------------------------------
@@ -395,7 +395,7 @@ Known Issues
 --------------------------------------------------------------------------------"
 %enddef
 
-%module(docstring=NSUBJETTINESSDOCSTRING) nsubjettiness
+%module(docstring=NSUBJETTINESS_DOCSTRING) nsubjettiness
 
 // this makes SWIG aware of the types contained in the main fastjet library
 // but does not generate new wrappers for them here
@@ -411,7 +411,7 @@ FASTJET_ERRORS_AS_PYTHON_EXCEPTIONS(nsubjettiness)
 %pythoncode %{
 from fastjet import FastJetError
 
-__version__ = '2.2.5a1'
+__version__ = '2.2.5a2'
 %}
 
 %{

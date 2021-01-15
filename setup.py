@@ -29,11 +29,10 @@ import re
 import subprocess
 import sys
 
-from setuptools import setup
-from setuptools.extension import Extension
-
-# get path to and name of package
+# Package name, with capitalization
 name = 'Nsubjettiness'
+
+# Python package name, lower case by convention
 lname = name.lower()
 
 # function to query a config binary and get the result
@@ -51,8 +50,8 @@ with open('README', 'r') as f:
     readme = f.read()
 
 # get contrib version
-with open('nsubjettiness/__init__.py', 'r') as f:
-    __version__ = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read()).group(1)
+with open('VERSION', 'r') as f:
+    __version__ = f.read().strip()
 
 HELP_MESSAGE = """{name} FastJet Contrib Python Package
 
@@ -101,6 +100,9 @@ def run_swig():
 
 def run_setup():
 
+    from setuptools import setup
+    from setuptools.extension import Extension
+
     # get cxxflags from environment, add fastjet cxxflags, and SWIG type table info
     cxxflags = os.environ.get('CXXFLAGS', '').split() + fj_cxxflags.split()
 
@@ -114,7 +116,7 @@ def run_setup():
         else:
             ldflags.append(x)
 
-    module = Extension('nsubjettiness._' + lname,
+    module = Extension('{0}._{0}'.format(lname),
                        sources=['Py{}.cc'.format(name)],
                        language='c++',
                        library_dirs=fj_libdirs,
